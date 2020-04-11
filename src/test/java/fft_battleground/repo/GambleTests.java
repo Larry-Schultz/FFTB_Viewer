@@ -1,0 +1,254 @@
+package fft_battleground.repo;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+
+import fft_battleground.bot.detector.BetDetector;
+import fft_battleground.bot.detector.BetInfoEventDetector;
+import fft_battleground.bot.detector.FightDetector;
+import fft_battleground.bot.detector.GiftSkillDetector;
+import fft_battleground.bot.detector.LevelUpDetector;
+import fft_battleground.bot.detector.OtherPlayerExpDetector;
+import fft_battleground.bot.detector.PlayerSkillDetector;
+import fft_battleground.bot.detector.PortraitEventDetector;
+import fft_battleground.bot.detector.ResultEventDetector;
+import fft_battleground.bot.detector.SkillDropDetector;
+import fft_battleground.bot.detector.SkillWinEventDetector;
+import fft_battleground.bot.detector.TeamInfoDetector;
+import fft_battleground.bot.model.BetType;
+import fft_battleground.bot.model.event.BattleGroundEvent;
+import fft_battleground.bot.model.event.BetEvent;
+import fft_battleground.bot.model.event.BetInfoEvent;
+import fft_battleground.bot.model.event.ExpEvent;
+import fft_battleground.bot.model.event.GiftSkillEvent;
+import fft_battleground.bot.model.event.LevelUpEvent;
+import fft_battleground.bot.model.event.PlayerSkillEvent;
+import fft_battleground.bot.model.event.PortraitEvent;
+import fft_battleground.bot.model.event.ResultEvent;
+import fft_battleground.bot.model.event.SkillDropEvent;
+import fft_battleground.bot.model.event.SkillWinEvent;
+import fft_battleground.bot.model.event.TeamInfoEvent;
+import fft_battleground.dump.DumpService;
+import fft_battleground.dump.Music;
+import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.model.ChatMessage;
+import fft_battleground.tournament.Tournament;
+import fft_battleground.tournament.TournamentService;
+import fft_battleground.util.GambleUtil;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class GambleTests {
+
+	@Test
+	public void testLevelUpDetector() {
+		LevelUpDetector detector = new LevelUpDetector();
+		ChatMessage message = new ChatMessage("FFTBattleground", "Dakren, you advanced to Level 32! Your gil floor has increased to 328!");
+		BattleGroundEvent event = detector.detect(message);
+		assertNotNull(event);
+		assertTrue(event instanceof LevelUpEvent);
+		LevelUpEvent levelUpEvent = (LevelUpEvent) event;
+		assertTrue(levelUpEvent.getPlayer().contentEquals("Dakren"));
+		assertTrue(levelUpEvent.getLevel().equals((short) 32));
+		
+		ChatMessage message2 = new ChatMessage("FFTBattleground", "Bilabrin, your balance is: 292G (Spendable: 0G).");
+		BattleGroundEvent event2 = detector.detect(message2);
+		assertNull(event2);
+	}
+	
+	@Test
+	public void otherPlayerExpDetector() {
+		String test1 = " im4u2nvqt, your balance is: 4,330G (Spendable: 4,230G).; OtherBrand, You are Level 6. You will Level Up when you gain another 67 EXP!";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		OtherPlayerExpDetector detector = new OtherPlayerExpDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null);
+		String test2 = "OtherBrand, You are Level 6. You will Level Up when you gain another 67 EXP!";
+		message = new ChatMessage("fftbattleground", test2);
+		event = detector.detect(message);
+		assertTrue(event != null);
+	}
+	
+	@Test
+	public void testGambleUtil() {
+		Integer team1 = 12656;
+		Integer team2 = 45622;
+		Float team1Odds = GambleUtil.bettingOdds(team1, team2);
+		Float team2Odds = GambleUtil.bettingOdds(team2, team1);
+		
+		log.info("odds1: {}, odds2:{}", team1Odds, team2Odds);
+	}
+	
+	@Test
+	public void testBetDetector() {
+		BetDetector detector = new BetDetector();
+		ChatMessage message = new ChatMessage("OtherBrand", "!bet 57% red");
+		ChatMessage message2 = new ChatMessage("allinbot", "!bet all blue");
+		ChatMessage message3 = new ChatMessage("omnibotgamma", "!bet 100 random");
+		ChatMessage message4 = new ChatMessage("minbetbot", "!allin yellow");
+		
+		BetEvent event = (BetEvent) detector.detect(message);
+		assertTrue(event != null);
+		assertTrue(event.getBetType() == BetType.PERCENTAGE);
+		
+		event = (BetEvent) detector.detect(message2);
+		assertTrue(event != null);
+		assertTrue(event.getBetType() == BetType.ALLIN);
+		
+		event = (BetEvent) detector.detect(message3);
+		assertTrue(event != null);
+		assertTrue(event.getBetType() == BetType.VALUE);
+		
+		event = (BetEvent) detector.detect(message4);
+		assertTrue(event != null);
+		assertTrue(event.getBetType() == BetType.ALLIN);
+	}
+
+	@Test
+	public void testTeamInfoDetector() {
+		String test1 = "Champion Team (Green): PrudishDuckling the Bard, RjA0zcOQ96 the Knight, Zebobz the Lancer, Aka Gilly the Malboro";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		TeamInfoDetector teamInfoDetector = new TeamInfoDetector();
+		BattleGroundEvent event = teamInfoDetector.detect(message);
+		assertTrue(event != null && event instanceof TeamInfoEvent && ((TeamInfoEvent)event).getTeam() != null);
+		
+		String test1a = "Champion Team (Blue): Lodrak the Archer, FreedomNM the Knight, L2 Sentinel the Lancer, BurningSaph the Wizard";
+		message = new ChatMessage("fftbattleground", test1a);
+		event = teamInfoDetector.detect(message);
+		assertTrue(event != null && event instanceof TeamInfoEvent && ((TeamInfoEvent)event).getTeam() != null);
+		
+		String test2 = "Red Team: BlackFireUK the Wizard, Alacor the Knight, Numbersborne the Lancer, Shalloween the Squire";
+		message = new ChatMessage("fftbattleground", test2);
+		event = teamInfoDetector.detect(message);
+		assertTrue(event != null && event instanceof TeamInfoEvent);
+	}
+	
+	@Test
+	public void testPlayerSkillDetector() {
+		String test1 = "friendsquirrel, your skills: Wyvern, DualWield, Jump, Throw, Grenade, Cockatrice, HighlySkilled, Hydra, ArchaicDemon, DrawOut, Sicken, Reaper, IronHawk, ShortCharge, BlueDragon, EquipSword, Serpentarius, BlueMagic, MonsterTalk, AngelRing, EXPBoost, GreatMalboro, Gobbledeguck, PunchArt, DragonSpirit. (page 1 of 2)";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		PlayerSkillDetector playerSkillDetector = new PlayerSkillDetector();
+		BattleGroundEvent event = playerSkillDetector.detect(message);
+		assertTrue(event != null && event instanceof PlayerSkillEvent && ((PlayerSkillEvent) event).getSkills().size() > 0);
+		
+		String test2 = "OtherBrand, your skills: Teleport, Parry, BlueDragon, Fly, HalveMP, EquipSword, RedDragon, BlackMagic, LongStatus, Dance, PunchArt";
+		message = new ChatMessage("fftbattleground", test2);
+		event = playerSkillDetector.detect(message);
+		assertTrue(event != null && event instanceof PlayerSkillEvent && ((PlayerSkillEvent) event).getSkills().size() > 0);
+	}
+	
+	@Test
+	public void testSkillDropDetector() {
+		String test1 = "The current Skill Drop is: Caution (When you take damage, gain Defend, which increases your evasion.).";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		SkillDropDetector detector = new SkillDropDetector();
+		BattleGroundEvent event = detector.detect(message);
+		SkillDropEvent skillDropEvent = (SkillDropEvent) event;
+		assertTrue(event != null && skillDropEvent.getSkill() != null && skillDropEvent.getSkillDescription() != null);
+	}
+	
+	@Test
+	public void testPortraitDetector() {
+		String test1 = "otherbrand, your Cheer Portrait was successfully set to chocobo.";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		PortraitEventDetector detector = new PortraitEventDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof PortraitEvent);
+		PortraitEvent portraitEvent = (PortraitEvent) event;
+		assertTrue(portraitEvent.getPlayer() != null && portraitEvent.getPortrait() != null && 
+				portraitEvent.getPlayer().equals("otherbrand") && portraitEvent.getPortrait().equals("chocobo"));
+	}
+	
+	@Test
+	public void testResultEventDetector() {
+		String test1 = "The green team was victorious! Next match starting soon...";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		ResultEventDetector detector = new ResultEventDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof ResultEvent);
+		ResultEvent resultEvent = (ResultEvent) event;
+		assertTrue(resultEvent.getWinner() != null && resultEvent.getWinner() == BattleGroundTeam.GREEN);
+	}
+	
+	@Test
+	public void testSkillWinDetector() {
+		String test1 = "Congratulations, mirtaiatana! You have been bestowed the VanishMantle skill free of charge! Additionally, winterharte has also received it from the subscriber-only pool!";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		SkillWinEventDetector detector = new SkillWinEventDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof SkillWinEvent);
+		SkillWinEvent skillWinEvent = (SkillWinEvent) event;
+		assertTrue(skillWinEvent.getSkillEvents().size() == 2 && skillWinEvent.getSkillEvents().get(0).getPlayer().equals("mirtaiatana"));
+	}
+	
+	@Test
+	public void testBetInfoEventDetector() {
+		String test1 = "TheChainNerd, your bet is 1,297G on black. You hold a 5.0% share of your team's winnings, and stand to win 617G if you win.";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		BetInfoEventDetector detector = new BetInfoEventDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof BetInfoEvent);
+		BetInfoEvent betInfoEvent = (BetInfoEvent) event;
+		assertTrue(betInfoEvent.getPlayer() != null && betInfoEvent.getPlayer().equals(StringUtils.lowerCase("TheChainNerd")));
+		assertTrue(betInfoEvent.getTeam() != null && betInfoEvent.getTeam() == BattleGroundTeam.BLACK);
+		assertTrue(betInfoEvent.getBetAmount() != null && betInfoEvent.getBetAmount().equals(1297));
+		assertTrue(betInfoEvent.getPercentage() != null && betInfoEvent.getPercentage().equals("5.0"));
+		assertTrue(betInfoEvent.getPossibleEarnings() != null && betInfoEvent.getPossibleEarnings().equals(617));
+	}
+	
+	@Test
+	public void testFightBeginsEventDetector() {
+		String test1 = "You may now !fight to enter the tournament! This tournament's Skill Drop is: Dragon. One random user using !fight (or !dontfight) will receive this skill. Alternately, you can buy the skill for 1,000G.";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		FightDetector detector = new FightDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null);
+	}
+	
+	@Test
+	public void testGiftSkillEventDetector() {
+		String test1 = "Due to a generous donation from BirbBrainsBot, thekillernacho has been bestowed the Tiamat skill free of charge!";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		GiftSkillDetector detector = new GiftSkillDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null);
+		assertTrue(event instanceof GiftSkillEvent);
+		GiftSkillEvent giftSkillEvent = (GiftSkillEvent) event;
+		assertTrue(giftSkillEvent.getGivingPlayer().equals("birbbrainsbot"));
+	}
+	
+	@Test
+	public void testTournamentService() {
+		TournamentService tournamentService = new TournamentService();
+		Tournament currentTournament = tournamentService.getcurrentTournament();
+		assertTrue(currentTournament != null);
+	}
+	
+	@Test
+	public void testDumpService() {
+		
+		DumpService dumpService = new DumpService();
+		Map<String, Integer> data = dumpService.getHighScoreDump();
+		assertTrue(data != null);
+		
+		Map<String, ExpEvent> expData = dumpService.getHighExpDump();
+		assertTrue(expData != null);
+		
+		Collection<Music> musicData = dumpService.getPlaylist();
+		assertTrue(musicData != null);
+		
+		String portrait = dumpService.getPortraitForPlayer("otherbrand");
+		assertNotNull(portrait);
+		
+		BattleGroundTeam allegiance = dumpService.getAllegianceForPlayer("otherbrand");
+		assertTrue(allegiance != null && allegiance != BattleGroundTeam.NONE);
+	}
+	
+}

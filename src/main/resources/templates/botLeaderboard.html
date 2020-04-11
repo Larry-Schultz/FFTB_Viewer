@@ -1,0 +1,66 @@
+<html>
+<head>
+	<link rel="icon" href="/img/bigbrain.png">
+</head>
+<body>
+	<div th:replace="fragments/menu :: menu"></div>
+	<div class="grid-y fluid">
+		<div class="cell small-2">
+			<br />
+		</div>
+		<div class="cell small-3">
+			<div class="grid-x fluid">
+				<div class="cell small-4"></div>
+				<div class="cell small-4">
+					<table class="hover">
+						<thead>
+							<tr>
+								<th>Rank</th>
+								<th>Name</th>
+								<th>Balance</th>
+								<th>Last Active</th>
+							</tr>	
+						</thead>
+						<tbody th:each="bot: ${leaderboard}">
+							<tr>
+								<td th:id="${bot.name} + 'Rank'" th:text="${bot.rank}" />
+								<td th:id="${bot.name} + 'NameCell'">
+									<a th:id="${bot.name} + 'Link'" th:href="'/player/' + ${bot.name}" target="_blank" style="color: inherit;" >
+										<span style="text-decoration: underline;" th:id="${bot.name} + 'Name'" th:text="${bot.name}" />
+									</a>
+								</td>
+								<td th:id="${bot.name} + 'Amount'" th:text="${bot.gil}" />
+								<td th:id="${bot.name} + 'LastActive'" th:text="${bot.lastActiveDate}" />
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="cell small-4">
+					<br />
+				</div>
+			</div>
+		</div>
+		<div class="cell small-5">
+			<div class="grid-x">
+				<div class="cell small-3"></div>
+				<div class="cell small-6">
+					<canvas id="line-chart" width="400" height="225"></canvas>
+					<br />
+				</div>
+				<div class="cell small-3"></div>
+			</div>
+		</div>
+		<div class="cell small-2"></div>
+	</div>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.5.1/dist/css/foundation.min.css" integrity="sha256-1mcRjtAxlSjp6XJBgrBeeCORfBp/ppyX4tsvpQVCcpA= sha384-b5S5X654rX3Wo6z5/hnQ4GBmKuIJKMPwrJXn52ypjztlnDK2w9+9hSMBz/asy9Gw sha512-M1VveR2JGzpgWHb0elGqPTltHK3xbvu3Brgjfg4cg5ZNtyyApxw/45yHYsZ/rCVbfoO5MSZxB241wWq642jLtA==" crossorigin="anonymous">
+	<link rel="stylesheet" th:href="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.css}" />
+	<link rel="stylesheet" th:href="@{/webjars/chartjs/2.9.3/Chart.min.css}" />
+	<script th:src="@{/webjars/jquery/1.8.3/jquery.min.js}"></script>
+	<script th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<script th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
+	<script th:src="@{/webjars/foundation/6.2.3/dist/foundation.min.js}"></script>
+	<script th:src="@{/webjars/chartjs/2.9.3/Chart.min.js}"></script>
+	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
+	<script>$(document).foundation();</script>
+	<script src="botLeaderboard.js"></script>
+</body>

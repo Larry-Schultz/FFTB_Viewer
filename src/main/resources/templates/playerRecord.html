@@ -1,0 +1,125 @@
+<html>
+<head>
+	<link rel="icon" href="/img/bigbrain.png">
+</head>
+<body>
+	<div th:replace="fragments/menu :: menu"></div>
+	<div class="grid-container fluid grid-frame">
+		<div class="grid-y">
+			<div class="cell small-1"><br /></div>
+			<div class="cell small-3">
+				<div class="grid-x fluid grid-padding-x">
+					<div class="cell small-2">
+						<div class="input-group-button">
+							<label for="playerNamesInput">Player Name:</label>
+							<input id="playerNamesInput" type="text" size="25" style="width: 150px;" />
+							<button id="playerSearchButton" class="button" value="Submit" onclick="playerSearch();">Submit</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="cell small-3">
+				<br />
+				<br />
+			</div>
+			<div class="cell small-4">
+				<div class="grid-x fluid">
+					<div class="cell small 5"></div>
+					<div class="cell small 2">
+						<div class="grid-y" th:if="${playerData != null}" style="border-style: solid; word-wrap: break-word; color: black; border-radius: 25px; background-color: white; width: 1200px">
+							<div class="cell small-3"></div>
+							<div class="cell small-3">
+								<div class="grid-x">
+									<div class="cell small-3"></div>
+									<div class="cell small-2">
+										<div class="grid-y">
+											<div class="cell small-2">
+												<span id="playerName" th:text="${playerData.playerRecord.player}" style="font-weight: bold;" />
+											</div>
+											<div class="cell small-6">
+												<img th:src="${playerData.portraitUrl}" style="height: 180px" />
+											</div>
+											<div class="cell small-4"></div>
+										</div>
+									</div>
+									<div class="cell small-1"></div>
+									<div class="cell small-5">
+										<div class="grid-y">
+											<div class="cell small-2">
+												<br />
+											</div>
+											<div class="cell small-2">
+											<span style="font-weight: bold;">Betting</span><br />
+											<span>Wins: </span><span id="winSpan" th:text="${playerData.playerRecord.wins}" /> <span> Losses: </span><span id="lossSpan" th:text="${playerData.playerRecord.losses}"></span><span> Ratio: </span><span id="ratioSpan" th:text="${playerData.betRatio}" />
+											</div>
+											<div class="cell small-2">
+											<span style="font-weight: bold;">Fighting</span><br />
+											<span>Wins: </span><span id="fightWinSpan" th:text="${playerData.playerRecord.fightWins}" /> <span> Losses: </span><span id="fightLossSpan" th:text="${playerData.playerRecord.fightLosses}" /> <span>Ratio: </span><span id="fightRatioSpan" th:text="${playerData.fightRatio}" /> 
+											</div>
+											<div class="cell small-2">
+											<span style="font-weight: bold;">Other Data:</span><br />
+											<span>Estimated Balance: </span><span id="estimatedBalanceSpan" th:text="${playerData.playerRecord.lastKnownAmount}" /> <span> Highest Known Amount: </span><span id="highestKnownAmount" th:text="${playerData.playerRecord.highestKnownAmount}" /><br />
+											<span>Estimated Level: </span><span id="estimatedLevelSpan" th:text="${playerData.playerRecord.lastKnownLevel}" /><span> Estimated Remaining Exp: </span><span id="estimatedRemainingExp" th:text="${playerData.playerRecord.lastKnownRemainingExp}" /><br />
+											<span>Allegiance: </span><span id="allegiance" th:text="${playerData.playerRecord.allegiance}" onload="setColor('allegiance');" /><span> Prestige Level: </span><span id="prestigeLevel" th:text="${playerData.prestigeLevel}" /><br />
+											<span>Leaderboard Rank: #</span><span id="rank" th:text="${playerData.leaderboardPosition}" />
+											</div>
+											<div class="cell small-2">
+											
+											</div>
+											<div class="cell small-2"></div>
+										</div>
+									</div>
+									<div class="cell small-3"></div>
+								</div>
+							</div>
+							<div class="cell small-2">
+								<div class="grid-x">
+									<div class="cell small-3"></div>
+									<div class="cell small-7">
+										<canvas id="line-chart" width="400" height="225"></canvas>
+										<br />
+									</div>
+									<div class="cell small-2"></div>
+								</div>
+							</div>
+							<div class="cell small-3">
+								<div class="grid-x">
+									<div class="cell small-3"></div>
+									<div class="cell small-7">
+										<span style="font-weight: bold;">Skills:</span>
+										<br />
+										<span th:each="skill: ${playerData.playerRecord.playerSkills}"><span th:if="${skill.skillType == T(fft_battleground.bot.model.SkillType).USER}" th:title="${skill.metadata}" th:text="${skill.skill}" /> - </span>
+										<br />
+										<div th:if="${playerData.containsPrestige}">
+											<span style="font-weight: bold;">Prestige Skills:</span>
+											<br />
+											<span th:each="skill: ${playerData.playerRecord.playerSkills}"><span th:if="${skill.skillType == T(fft_battleground.bot.model.SkillType).PRESTIGE}">
+												<span th:title="${skill.metadata}" th:text="${skill.skill}" /> - </span>
+											</span>
+										</div>
+									</div>
+									<div class="cell small-2"></div>
+								</div>
+							</div>
+							<div class="cell small-1"></div>
+						</div>
+					</div>
+					<div class="cell small 5"></div>
+				</div>
+			</div>
+			<div class="cell small-4"></div>
+		</div>
+	</div>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.5.1/dist/css/foundation.min.css" integrity="sha256-1mcRjtAxlSjp6XJBgrBeeCORfBp/ppyX4tsvpQVCcpA= sha384-b5S5X654rX3Wo6z5/hnQ4GBmKuIJKMPwrJXn52ypjztlnDK2w9+9hSMBz/asy9Gw sha512-M1VveR2JGzpgWHb0elGqPTltHK3xbvu3Brgjfg4cg5ZNtyyApxw/45yHYsZ/rCVbfoO5MSZxB241wWq642jLtA==" crossorigin="anonymous">
+	<link rel="stylesheet" th:href="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.css}" />
+	<link rel="stylesheet" th:href="@{/webjars/chartjs/2.9.3/Chart.min.css}" />
+	<script th:src="@{/webjars/jquery/1.8.3/jquery.min.js}"></script>
+	<script th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<script th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
+	<script th:src="@{/webjars/foundation/6.2.3/dist/foundation.min.js}"></script>
+	<script th:src="@{/webjars/chartjs/2.9.3/Chart.min.js}"></script>
+	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
+	<script th:src="@{/playerRecord.js}"></script>
+	<script></script>
+</body>
+</html>

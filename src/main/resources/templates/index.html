@@ -1,0 +1,292 @@
+<html>
+
+<head>
+<style>
+	.player {
+		 text-decoration: underline;
+	}
+	
+	.fightPlayerName {
+		 text-decoration: underline;
+	}
+	
+	.textLoading {
+		height: 16px;
+	}
+	
+	.imageLoading {
+		height: 125px;
+		width: 148px;
+	}
+	
+	.leftPlayerImageLoading {
+		height: 125px;
+		width: 148px;
+	}
+	
+	.rightPlayerImageLoading {
+		height: 125px;
+		width: 148px;
+	}
+	
+	.leftPlayerNameLoading {
+		height: 16px;
+	}
+	
+	.rightPlayerNameLoading {
+		height: 16px;
+	}
+	
+	.mapPlayerLoadingImage {
+		height: 16px;
+	}
+</style>
+<head>
+	<link rel="icon" href="/img/bigbrain.png">
+</head>
+<body  style="background-color: white">
+<div th:replace="fragments/menu :: menu"></div>
+	<div class="grid-container fluid grid-frame">
+		<div class="grid-y">
+			<div class="cell small-1"><br /></div>
+			<div class="cell small-3">
+				<div class="grid-container" style="border-style: solid; word-wrap: break-word; color: black; border-radius: 25px; background-color: white">
+					<div class="grid-y">
+						<div class="cell small-2">
+							<div class="grid-x">
+								<div class="cell small-1"></div>
+								<div class="cell small-2 text-left"><span class="fightData" id="team1Name"></span><img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" /></div>
+								<div class="cell small-2"></div>
+								<div class="cell small-2 text-center"><span id="matchNotice">Match</span><span id="fightNotice">Fight</span></div>
+								<div class="cell small-2"></div>
+								<div class="cell small-2 text-right"><span class="fightData" id="team2Name"></span><img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" /></div>
+								<div class="cell small-2"></div>
+							</div>
+						</div>
+						<div class="cell small-2">
+							<div class="grid-x" style="height: 125px">
+								<div class="cell small-1"></div>
+								<div class="cell small-1 text-left">
+									<span id="fightLeftPlayer1Image" class="playerImage fightData"><img id="fightLeftPlayer1ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="101"/></span>
+									<img id="fightLeftPlayer1LoadingImage" class="fightLoading leftPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightLeftPlayer2Image" class="playerImage fightData"><img id="fightLeftPlayer2ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="102"/></span>
+									<img id="fightLeftPlayer2LoadingImage" class="fightLoading leftPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightLeftPlayer3Image" class="playerImage fightData"><img id="fightLeftPlayer3ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="103"/></span>
+									<img id="fightLeftPlayer3LoadingImage" class="fightLoading leftPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightLeftPlayer4Image" class="playerImage fightData"><img id="fightLeftPlayer4ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="104"/></span>
+									<img id="fightLeftPlayer4LoadingImage" class="fightLoading leftPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-2 text-center">
+									<div class="grid-y">
+										<span><img src="img/vs-swords.png" style="height: 35px; margin-top: 35px; margin-bottom: 35px" title="versus" /></span>
+									</div>
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightRightPlayer1Image" class="playerImage fightData"><img id="fightRightPlayer1ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="105"/></span>
+									<img id="fightRightPlayer1LoadingImage" class="fightLoading rightPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightRightPlayer2Image" class="playerImage fightData"><img id="fightRightPlayer2ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="106"/></span>
+									<img id="fightRightPlayer2LoadingImage" class="fightLoading rightPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightRightPlayer3Image" class="playerImage fightData"><img id="fightRightPlayer3ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="107"/></span>
+									<img id="fightRightPlayer3LoadingImage" class="fightLoading rightPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1 text-left">
+									<span id="fightRightPlayer4Image" class="playerImage fightData"><img id="fightRightPlayer4ImageTag" src="images/characters/Archer Female" data-tippy-content="" tabindex="108"/></span>
+									<img id="fightRightPlayer4LoadingImage" class="fightLoading rightPlayerImageLoading" src="img/Spinner-1s-200px.gif" />
+								</div>
+								<div class="cell small-1"></div>
+							</div>
+						</div>
+						<div class="cell small-2">
+							<div class="grid-y">
+								<div class="cell small-2"></div>
+								<div class="cell small-2">
+									<div class="grid-x">
+										<div class="cell small-1"></div>
+										<div class="cell small-4 text-left">
+											<span id="fightLeftPlayer1" class="fightData">
+												<a id="fightLeftPlayer1Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer1Name" data-tippy-content="" tabindex="109" class="fightPlayerName">left player 1</span></a> the <span id="fightLeftPlayer1Class" data-tippy-content="" tabindex="110"></span>
+											</span>
+											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-2"></div>
+										<div class="cell small-4 text-right">
+											<span id="fightRightPlayer1" class="fightData">
+												<a id="fightRightPlayer1Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer1Name" data-tippy-content="" tabindex="111" class="fightPlayerName">right player 1</span></a> the <span id="fightRightPlayer1Class" data-tippy-content="" tabindex="112"></span>
+											</span>
+											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-1"></div>
+									</div>
+								</div>
+								<div class="cell small-2">
+									<div class="grid-x">
+										<div class="cell small-1"></div>
+										<div class="cell small-4 text-left">
+											<span id="fightLeftPlayer2" class="fightData">
+												<a id="fightLeftPlayer2Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer2Name" data-tippy-content="" tabindex="113" class="fightPlayerName">left player 2</span></a> the <span id="fightLeftPlayer2Class" data-tippy-content="" tabindex="114"></span>
+											</span>
+											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-2"></div>
+										<div class="cell small-4 text-right">
+											<span id="fightRightPlayer2" class="fightData">
+												<a id="fightRightPlayer2Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer2Name" data-tippy-content="" tabindex="115" class="fightPlayerName">right player 2</span></a> the <span id="fightRightPlayer2Class" data-tippy-content="" tabindex="116"></span>
+											</span>
+											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-1"></div>
+									</div>
+								</div>
+								<div class="cell small-2">
+									<div class="grid-x">
+										<div class="cell small-1"></div>
+										<div class="cell small-4 text-left">
+											<span id="fightLeftPlayer3" class="fightData">
+												<a id="fightLeftPlayer3Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer3Name"  data-tippy-content="" tabindex="117" class="fightPlayerName">left player 3</span></a> the <span id="fightLeftPlayer3Class" data-tippy-content="" tabindex="118"></span>
+											</span>
+											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-2"></div>
+										<div class="cell small-4 text-right">
+											<span id="fightRightPlayer3" class="fightData">
+												<a id="fightRightPlayer3Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer3Name"  data-tippy-content="" tabindex="119" class="fightPlayerName">right player 3</span></a> the <span id="fightRightPlayer3Class" data-tippy-content="" tabindex="120"></span>
+											</span>
+											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-1"></div>
+									</div>
+								</div>
+								<div class="cell small-2">
+									<div class="grid-x">
+										<div class="cell small-1"></div>
+										<div class="cell small-4 text-left">
+											<span id="fightLeftPlayer4" class="fightData">
+												<a id="fightLeftPlayer4Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer4Name" data-tippy-content="" tabindex="121" class="fightPlayerName">left player 4</span></a> the <span id="fightLeftPlayer4Class" data-tippy-content="" tabindex="122"></span>
+											</span>
+											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-2"></div>
+										<div class="cell small-4 text-right">
+											<span id="fightRightPlayer4" class="fightData">
+												<a id="fightRightPlayer4Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer4Name" data-tippy-content="" tabindex="123" class="fightPlayerName">right player 4</span></a> the <span id="fightRightPlayer4Class" data-tippy-content="" tabindex="124"></span>
+											</span>
+											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
+										</div>
+										<div class="cell small-1"></div>
+									</div>
+								</div>
+								<div class="cell small-2"></div>
+							</div>
+						</div>
+						<div class="cell small-2">
+							<div class="grid-y">
+								<div class="cell small-4">
+									<div class="grid-x">
+										<div class="cell small-4"></div>
+										<div class="cell small-4 text-center"><span class="skilldropIntro">The current skilldrop is: </span><span id="skilldropName" data-tippy-content="" tabindex="125">BlackMagic</span></div>
+										<div class="cell small-4"></div>
+									</div>
+								</div>
+								<div class="cell small-4">
+									<div class="grid-x">
+										<div class="cell small-4"></div>
+										<div class="cell small-4 text-center">Map <span id="mapNumber" class="fightData"></span><img class="fightLoading mapPlayerLoadingImage mapLoading" src="img/Pulse-1s-200px.gif" /> - <span id="mapName"  class="fightData"></span><img class="fightLoading mapPlayerLoadingImage mapLoading" src="img/Pulse-1s-200px.gif" /></div>
+										<div class="cell small-4"></div>
+									</div>
+								</div>
+								<div class="cell small-4">
+									<div class="grid-x">
+										<div class="cell small-1"></div>
+										<div class="cell small-1 text-left">
+											<span class="fightData" id="team1Amount">0</span>
+											<img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" />
+											<img href="/img/gil_icon.png" height="16px" />
+											<br />
+											<span class="fightData" id="team1Percentage">0</span><span class="fightData" id="team1PercentageSign">%</span>
+											<br />
+											<span class="fightData" id="team1Odds">0</span>
+										</div>
+										<div class="cell small-2"></div>
+										<div class="cell small-4 text-center">
+											<span class="fightData" id="mapIconSpan"><a id="mapIconLink" href="" target="_blank"><img id="mapIcon" src="img/gil_icon.png" style="height: 125px" /></a></span>
+											<img id="mapPlayerLoadingImage" class="fightLoading imageLoading mapLoading" src="img/Spinner-1s-200px.gif" />
+										</div>
+										<div class="cell small-2"></div>
+										<div class="cell small-1 text-right">
+											<span class="fightData" id="team2Amount">0</span>
+											<img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" />
+											<img href="/img/gil_icon.png" height="16px" />
+											<br />
+											<span class="fightData" id="team2Percentage">0</span><span class="fightData" id="team2PercentageSign">%</span>
+											<br />
+											<span class="fightData" id="team2Odds">0</span>
+											
+										</div>
+										<div class="cell small-1"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+<!-- 						<div class="cell small-2">
+							<div class="grid-x">
+								<div class="grid-x">
+									<div class="cell small-5"></div>
+									<div class="cell small-2 text-center"><img id="mapIcon" src="img/gil_icon.png" /></div>
+									<div class="cell small-5"></div>
+								</div>
+							</div>
+						</div> -->
+						<div class="cell small-2">
+							<div class="grid-x">
+							
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="cell small-1"><br /></div>
+			<div class="cell small-5">
+				<div class="grid-container">
+					<div class="grid-x">
+						<div id="team1grid" class="cell small-5" style="border-style: solid; word-wrap: break-word; color: blue; border-radius: 25px; background-color: white;">
+						<ul id="team1" style="list-style-type: none;">
+						
+						</ul>
+						</div>
+						<div class="cell small-2"></div>
+						<div id="team2grid" class="cell small-5" style="border-style: solid; word-wrap: break-word; color: green; border-radius: 25px; background-color: white;">
+							<ul id="team2" style="list-style-type: none;">
+							
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+			<div class="cell small-1"></div>
+		</div>
+	</div>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.5.1/dist/css/foundation.min.css" integrity="sha256-1mcRjtAxlSjp6XJBgrBeeCORfBp/ppyX4tsvpQVCcpA= sha384-b5S5X654rX3Wo6z5/hnQ4GBmKuIJKMPwrJXn52ypjztlnDK2w9+9hSMBz/asy9Gw sha512-M1VveR2JGzpgWHb0elGqPTltHK3xbvu3Brgjfg4cg5ZNtyyApxw/45yHYsZ/rCVbfoO5MSZxB241wWq642jLtA==" crossorigin="anonymous">
+
+	<script src="webjars/jquery/1.8.3/jquery.min.js"></script>
+    <script src="webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="webjars/stomp-websocket/stomp.min.js"></script>
+    <script src="webjars/foundation/6.2.3/dist/foundation.min.js"></script>
+	<script src="https://unpkg.com/@popperjs/core@2"></script>
+	<script src="https://unpkg.com/tippy.js@6"></script>
+    <script>$(document).foundation();</script>
+    <script src="app.js"></script>
+    <script>
+    </script>
+</body>
+</html>

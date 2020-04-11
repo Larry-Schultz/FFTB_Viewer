@@ -1,0 +1,182 @@
+package fft_battleground.model;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import fft_battleground.repo.model.TeamInfo;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import mjson.Json;
+
+@Data
+@Slf4j
+public class Images {
+
+	private Map<String, String> characters;
+	
+	private List<Portrait> potraits;
+	private String portraitsBaseUrl;
+	
+	public Images() {}
+	
+	@SneakyThrows
+	public Images(Resource jsonFileLocation, String portraitFolderLocation, String browserBaseUrl) {
+		
+		Json tipsJson = Json.read(this.getJsonAsString(jsonFileLocation));
+		this.characters = this.parseJsonMapObject(tipsJson, "Characters");
+		this.potraits = this.parsePotraitFolder(portraitFolderLocation);
+		this.portraitsBaseUrl = browserBaseUrl;
+	}
+	
+	@SneakyThrows
+	protected String getJsonAsString(Resource jsonFileLocation) {
+		StringBuilder jsonBuilder = new StringBuilder();
+		try(BufferedReader reader = new BufferedReader(new InputStreamReader(jsonFileLocation.getInputStream()))) {
+			String line = reader.readLine();
+			while(line != null) {
+				jsonBuilder.append(line);
+				line = reader.readLine();
+			}
+		}
+		
+		return jsonBuilder.toString();
+	}
+	
+	protected Map<String, String> parseJsonMapObject(Json tipsJson, String parameter) {
+		Map<String, String> normalMap = new HashMap<String, String>();
+		
+		Map<String, Json> itemJsonMap = tipsJson.at(parameter).asJsonMap();
+		for(String itemJsonMapKey : itemJsonMap.keySet()) {
+			normalMap.put(itemJsonMapKey, itemJsonMap.get(itemJsonMapKey).toString());
+		}
+		
+		return normalMap;
+	}
+	
+	@SneakyThrows
+	protected List<Portrait> parsePotraitFolder(String location) {
+		List<Portrait> portraits = new ArrayList<>();
+		
+		Path locationPath = Paths.get(new ClassPathResource(location).getURI());
+		try (Stream<Path> paths = Files.walk(locationPath)) {
+			portraits = paths.map(path -> new Portrait(path)).collect(Collectors.toList());
+	    } catch (IOException e) {
+	      log.error("Error parsing potraits folder file names", e);
+	    }
+		
+		return portraits;
+	}
+	
+	public String getCharacterImagePath(String character) {
+		String characterCapitalized = StringUtils.capitalize(character);
+		String imagePath = this.characters.get(characterCapitalized);
+		
+		if(imagePath != null) {
+			imagePath = StringUtils.remove(imagePath, "\"");
+		}
+		
+		return imagePath;
+	}
+	
+	public String getPortraitByName(String name) {
+		String result = null;
+		
+		String nameCapitalized = StringUtils.capitalize(name);
+		Optional<Portrait> possibleMatch = this.potraits.parallelStream().filter(portraits -> StringUtils.equalsIgnoreCase(nameCapitalized , StringUtils.replace(portraits.getLocation(), ".gif", ""))).findFirst();
+
+		if(possibleMatch.isPresent()) {
+			result = this.portraitsBaseUrl + possibleMatch.get().getLocation();
+		} else {
+			result = null;
+		}
+		
+		return result;
+	}
+	
+	public String getPortraitLocationByTeamInfo(TeamInfo teamInfo) {
+		String result = null;
+		Optional<Portrait> possibleMatch = null;
+		if(StringUtils.equalsIgnoreCase(teamInfo.getGender(), "Monster")) {
+			possibleMatch = this.potraits.stream().filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName())).findFirst();
+		} else {
+			possibleMatch = this.potraits.stream().
+					filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName()) && StringUtils.equalsIgnoreCase(teamInfo.getGender(), portraits.getGender())
+							&& teamInfo.getTeam() == portraits.getColor()).findFirst();
+		}
+		
+		if(possibleMatch.isPresent()) {
+			result = this.portraitsBaseUrl + possibleMatch.get().getLocation();
+		} else {
+			result = null;
+		}
+		
+		return result;
+	}
+}
+
+@Data
+@AllArgsConstructor
+class Portrait {
+	private String className;
+	private String gender;
+	private BattleGroundTeam color;
+	private String location;
+	
+	public Portrait() {}
+	
+	public Portrait(Path path) {
+		String fileName = path.getFileName().toString();
+		if(StringUtils.contains(fileName, "M_")) {
+			this.className = StringUtils.substringBefore(fileName, "M_");
+			this.gender = "Male";
+			this.location = fileName;
+			this.color = this.getColor(fileName);
+		} else if(StringUtils.contains(fileName, "M.")) {
+			this.className = StringUtils.substringBefore(fileName, "M.");
+			this.gender = "Male";
+			this.location = fileName;
+			this.color = BattleGroundTeam.NONE;
+		} else if(StringUtils.contains(fileName, "F_")) {
+			this.className = StringUtils.substringBefore(fileName, "F_");
+			this.gender = "Female";
+			this.color = this.getColor(fileName);
+		} else if(StringUtils.contains(fileName, "F.")) {
+			this.className = StringUtils.substringBefore(fileName, "F.");
+			this.gender = "Female";
+			this.color = BattleGroundTeam.NONE;
+		} else {
+			this.className = StringUtils.substringBefore(fileName, ".");
+			this.gender = "Monster";
+			this.color = BattleGroundTeam.NONE;
+		}
+		
+		this.location = fileName;
+	}
+	
+	protected BattleGroundTeam getColor(String str) {
+		String substring = StringUtils.substringBetween(str, "_", ".");
+		BattleGroundTeam team = BattleGroundTeam.parse(substring);
+		if(team == null) {
+			team = BattleGroundTeam.NONE;
+		}
+		
+		return team;
+	}
+}
