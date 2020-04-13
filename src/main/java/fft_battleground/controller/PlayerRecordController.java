@@ -34,8 +34,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Sets;
 
-import fft_battleground.bot.model.BalanceType;
-import fft_battleground.bot.model.BalanceUpdateSource;
+import fft_battleground.botland.model.BalanceType;
+import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.dump.DumpService;
 import fft_battleground.repo.BalanceHistoryRepo;
 import fft_battleground.repo.PlayerRecordRepo;

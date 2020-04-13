@@ -2,7 +2,7 @@ package fft_battleground.event.model;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package fft_battleground.event.model;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.tournament.Unit;
 import lombok.Data;
 

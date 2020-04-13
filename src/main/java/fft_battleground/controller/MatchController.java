@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.repo.MatchRepo;
 import fft_battleground.repo.model.Match;

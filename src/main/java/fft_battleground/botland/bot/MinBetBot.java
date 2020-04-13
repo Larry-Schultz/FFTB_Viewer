@@ -1,7 +1,8 @@
-package fft_battleground.bot;
+package fft_battleground.botland.bot;
 
 import java.util.List;
 
+import fft_battleground.botland.BetBot;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;

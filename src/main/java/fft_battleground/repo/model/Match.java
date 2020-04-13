@@ -27,7 +27,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.bot.model.BetResults;
+import fft_battleground.botland.model.BetResults;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;

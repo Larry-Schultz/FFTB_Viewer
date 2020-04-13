@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.util.StringUtils;
 
-import fft_battleground.bot.BetBot;
-import fft_battleground.bot.BetBotFactory;
-import fft_battleground.bot.OddsBot;
-import fft_battleground.bot.model.BetResults;
-import fft_battleground.bot.model.DatabaseResultsData;
+import fft_battleground.botland.BetBot;
+import fft_battleground.botland.BetBotFactory;
+import fft_battleground.botland.bot.OddsBot;
+import fft_battleground.botland.model.BetResults;
+import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.model.BadBetEvent;
 import fft_battleground.event.model.BalanceEvent;

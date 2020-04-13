@@ -23,7 +23,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.bot.model.SkillType;
+import fft_battleground.botland.model.SkillType;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.ExpEvent;

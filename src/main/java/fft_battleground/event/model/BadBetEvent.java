@@ -3,7 +3,7 @@ package fft_battleground.event.model;
 import java.util.Date;
 import java.util.List;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 import lombok.Data;
 
 @Data

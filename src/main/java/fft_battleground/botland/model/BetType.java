@@ -1,4 +1,4 @@
-package fft_battleground.bot.model;
+package fft_battleground.botland.model;
 
 public enum BetType {
 	VALUE,

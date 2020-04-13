@@ -1,8 +1,8 @@
 package fft_battleground.event.model;
 
-import fft_battleground.bot.model.BalanceType;
-import fft_battleground.bot.model.BalanceUpdateSource;
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BalanceType;
+import fft_battleground.botland.model.BalanceUpdateSource;
+import fft_battleground.botland.model.BattleGroundEventType;
 import lombok.Data;
 
 @Data

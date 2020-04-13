@@ -1,4 +1,4 @@
-package fft_battleground.bot;
+package fft_battleground.botland;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.BattleGroundEventBackPropagation;
+import fft_battleground.botland.bot.DataBetBot;
+import fft_battleground.botland.bot.MinBetBot;
+import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.model.ChatMessage;

@@ -19,8 +19,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.bot.model.SkillType;
-
+import fft_battleground.botland.model.SkillType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

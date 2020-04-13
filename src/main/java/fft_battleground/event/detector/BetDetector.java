@@ -2,7 +2,7 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.bot.model.BetType;
+import fft_battleground.botland.model.BetType;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;

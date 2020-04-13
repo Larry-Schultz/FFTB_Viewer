@@ -52,10 +52,10 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
-import fft_battleground.bot.model.BalanceType;
-import fft_battleground.bot.model.BalanceUpdateSource;
-import fft_battleground.bot.model.BattleGroundEventType;
-import fft_battleground.bot.model.SkillType;
+import fft_battleground.botland.model.BalanceType;
+import fft_battleground.botland.model.BalanceUpdateSource;
+import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.botland.model.SkillType;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;

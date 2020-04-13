@@ -2,7 +2,7 @@ package fft_battleground.event.model;
 
 import java.util.Date;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

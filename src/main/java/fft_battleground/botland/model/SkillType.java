@@ -1,4 +1,4 @@
-package fft_battleground.bot.model;
+package fft_battleground.botland.model;
 
 /**
  * Type of skill.  Either a User skill or a Prestige skill.

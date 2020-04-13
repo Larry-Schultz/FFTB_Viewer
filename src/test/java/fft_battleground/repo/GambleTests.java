@@ -9,7 +9,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import fft_battleground.bot.model.BetType;
+import fft_battleground.botland.model.BetType;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.Music;
 import fft_battleground.event.detector.BetDetector;

@@ -1,10 +1,11 @@
-package fft_battleground.bot;
+package fft_battleground.botland.bot;
 
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.bot.model.Bet;
+import fft_battleground.botland.BetBot;
+import fft_battleground.botland.model.Bet;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;

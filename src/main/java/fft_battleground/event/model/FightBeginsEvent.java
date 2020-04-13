@@ -1,6 +1,6 @@
 package fft_battleground.event.model;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 
 public class FightBeginsEvent extends BattleGroundEvent {
 	private static final BattleGroundEventType event = BattleGroundEventType.FIGHT_BEGINS;

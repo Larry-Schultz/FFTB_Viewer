@@ -2,9 +2,9 @@ package fft_battleground.event.model;
 
 import java.util.List;
 
-import fft_battleground.bot.model.BattleGroundEventType;
-import fft_battleground.bot.model.DatabaseResultsData;
-import fft_battleground.bot.model.SkillType;
+import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.botland.model.DatabaseResultsData;
+import fft_battleground.botland.model.SkillType;
 import lombok.Data;
 
 @Data

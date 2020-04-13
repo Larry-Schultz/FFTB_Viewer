@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.bot.model.BattleGroundEventType;
+import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import lombok.Data;

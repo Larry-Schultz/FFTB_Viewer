@@ -1,7 +1,7 @@
 package fft_battleground.event.model;
 
-import fft_battleground.bot.model.BattleGroundEventType;
-import fft_battleground.bot.model.DatabaseResultsData;
+import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.Data;
 

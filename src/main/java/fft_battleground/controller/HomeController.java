@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fft_battleground.bot.model.SkillType;
+import fft_battleground.botland.model.SkillType;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.Music;
 import fft_battleground.model.Images;
