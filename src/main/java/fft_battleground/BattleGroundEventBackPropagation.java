@@ -6,7 +6,7 @@ import java.util.TimerTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.bot.model.event.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.util.MissingEventTypeException;
 import fft_battleground.util.Router;
 import lombok.extern.slf4j.Slf4j;

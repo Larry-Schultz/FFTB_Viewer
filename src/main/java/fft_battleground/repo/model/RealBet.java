@@ -16,7 +16,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import fft_battleground.bot.model.event.BettingEndsEvent;
+import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.BattleGroundTeamConverter;
 import lombok.AllArgsConstructor;

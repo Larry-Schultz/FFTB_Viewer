@@ -12,9 +12,9 @@ import org.springframework.context.annotation.Bean;
 
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 
-import fft_battleground.bot.EventManager;
-import fft_battleground.bot.EventParser;
-import fft_battleground.bot.controller.WebsocketThread;
+import fft_battleground.controller.WebsocketThread;
+import fft_battleground.event.EventManager;
+import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
 import fft_battleground.irc.IrcChatbotThread;
 import fft_battleground.repo.RepoManager;

@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.bot.model.event.BetEvent;
-import fft_battleground.bot.model.event.BettingEndsEvent;
-import fft_battleground.bot.model.event.MatchInfoEvent;
-import fft_battleground.bot.model.event.TeamInfoEvent;
+import fft_battleground.event.model.BetEvent;
+import fft_battleground.event.model.BettingEndsEvent;
+import fft_battleground.event.model.MatchInfoEvent;
+import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.bot.model.event.TeamInfoEvent;
-import fft_battleground.bot.model.event.UnitInfoEvent;
+import fft_battleground.event.model.TeamInfoEvent;
+import fft_battleground.event.model.UnitInfoEvent;
 import lombok.Data;
 
 @Data

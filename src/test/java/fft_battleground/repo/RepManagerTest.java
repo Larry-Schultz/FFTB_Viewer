@@ -20,13 +20,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import fft_battleground.bot.detector.OtherPlayerBalanceDetector;
 import fft_battleground.bot.model.BetResults;
 import fft_battleground.bot.model.BetType;
-import fft_battleground.bot.model.event.BattleGroundEvent;
-import fft_battleground.bot.model.event.BetEvent;
-import fft_battleground.bot.model.event.BettingEndsEvent;
-import fft_battleground.bot.model.event.OtherPlayerBalanceEvent;
+import fft_battleground.event.detector.OtherPlayerBalanceDetector;
+import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.model.BetEvent;
+import fft_battleground.event.model.BettingEndsEvent;
+import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Match;

@@ -2,7 +2,7 @@ package fft_battleground.util;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.bot.model.event.BetEvent;
+import fft_battleground.event.model.BetEvent;
 import fft_battleground.repo.model.PlayerRecord;
 
 public class GambleUtil {

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 import fft_battleground.bot.model.BetResults;
 import fft_battleground.bot.model.DatabaseResultsData;
-import fft_battleground.bot.model.event.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.util.Router;
 

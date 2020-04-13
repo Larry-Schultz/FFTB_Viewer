@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.bot.model.BalanceType;
 import fft_battleground.bot.model.BalanceUpdateSource;
-import fft_battleground.bot.model.event.BalanceEvent;
+import fft_battleground.event.model.BalanceEvent;
 import lombok.Data;
 
 @Entity

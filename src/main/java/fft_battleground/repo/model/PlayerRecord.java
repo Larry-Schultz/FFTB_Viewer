@@ -24,12 +24,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.bot.model.SkillType;
-import fft_battleground.bot.model.event.AllegianceEvent;
-import fft_battleground.bot.model.event.BalanceEvent;
-import fft_battleground.bot.model.event.ExpEvent;
-import fft_battleground.bot.model.event.LastActiveEvent;
-import fft_battleground.bot.model.event.LevelUpEvent;
-import fft_battleground.bot.model.event.PortraitEvent;
+import fft_battleground.event.model.AllegianceEvent;
+import fft_battleground.event.model.BalanceEvent;
+import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.model.LastActiveEvent;
+import fft_battleground.event.model.LevelUpEvent;
+import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.BattleGroundTeamConverter;
 import fft_battleground.util.GambleUtil;

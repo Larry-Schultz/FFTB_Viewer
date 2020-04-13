@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.BattleGroundEventBackPropagation;
-import fft_battleground.bot.model.event.BetEvent;
-import fft_battleground.bot.model.event.BettingBeginsEvent;
+import fft_battleground.event.model.BetEvent;
+import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.PlayerRecord;

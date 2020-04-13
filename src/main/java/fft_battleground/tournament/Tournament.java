@@ -10,11 +10,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fft_battleground.bot.model.event.BattleGroundEvent;
-import fft_battleground.bot.model.event.MatchInfoEvent;
-import fft_battleground.bot.model.event.SkillDropEvent;
-import fft_battleground.bot.model.event.TeamInfoEvent;
-import fft_battleground.bot.model.event.UnitInfoEvent;
+import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.model.MatchInfoEvent;
+import fft_battleground.event.model.SkillDropEvent;
+import fft_battleground.event.model.TeamInfoEvent;
+import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

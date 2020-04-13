@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.bot.model.Bet;
-import fft_battleground.bot.model.event.BetEvent;
+import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.PlayerRecord;
