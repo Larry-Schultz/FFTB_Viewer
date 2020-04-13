@@ -12,7 +12,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fft_battleground.BattleGroundEventBackPropagation;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;

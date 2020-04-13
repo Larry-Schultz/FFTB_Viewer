@@ -1,4 +1,4 @@
-package fft_battleground;
+package fft_battleground.event;
 
 import java.util.Timer;
 import java.util.TimerTask;
