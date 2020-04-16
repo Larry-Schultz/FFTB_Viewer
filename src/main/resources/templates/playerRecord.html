@@ -88,12 +88,12 @@
 									<div class="cell small-7">
 										<span style="font-weight: bold;">Skills:</span>
 										<br />
-										<span th:each="skill: ${playerData.playerRecord.playerSkills}"><span th:if="${skill.skillType == T(fft_battleground.bot.model.SkillType).USER}" th:title="${skill.metadata}" th:text="${skill.skill}" /> - </span>
+										<span th:each="skill: ${playerData.playerRecord.playerSkills}"><span th:if="${skill.skillType == T(fft_battleground.botland.model.SkillType).USER}" th:title="${skill.metadata}" th:text="${skill.skill}" /> - </span>
 										<br />
 										<div th:if="${playerData.containsPrestige}">
 											<span style="font-weight: bold;">Prestige Skills:</span>
 											<br />
-											<span th:each="skill: ${playerData.playerRecord.playerSkills}"><span th:if="${skill.skillType == T(fft_battleground.bot.model.SkillType).PRESTIGE}">
+											<span th:each="skill: ${playerData.playerRecord.playerSkills}"><span th:if="${skill.skillType == T(fft_battleground.botland.model.SkillType).PRESTIGE}">
 												<span th:title="${skill.metadata}" th:text="${skill.skill}" /> - </span>
 											</span>
 										</div>
