@@ -3,15 +3,16 @@ package fft_battleground.botland.bot;
 import java.util.List;
 
 import fft_battleground.botland.BetBot;
+import fft_battleground.botland.BetterBetBot;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
-public class MinBetBot extends BetBot {
+public class MinBetBot extends BetterBetBot {
 
-	public MinBetBot(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BattleGroundTeam left,
+	public MinBetBot(Integer currentAmountToBetWith, BattleGroundTeam left,
 			BattleGroundTeam right) {
-		super(currentAmountToBetWith, otherPlayerBets, left, right);
+		super(currentAmountToBetWith, left, right);
 		// TODO Auto-generated constructor stub
 	}
 

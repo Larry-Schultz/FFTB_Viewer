@@ -53,7 +53,7 @@ public abstract class BetBot extends TimerTask {
 	protected Pair<List<BetEvent>, List<BetEvent>> betsBySide;
 	protected Bet result;
 	
-	private Date startTime;
+	protected Date startTime;
 	
 	public BetBot() {
 		this.teamData = new TeamData();

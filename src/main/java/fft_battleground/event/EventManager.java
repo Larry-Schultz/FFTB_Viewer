@@ -13,6 +13,8 @@ import org.thymeleaf.util.StringUtils;
 
 import fft_battleground.botland.BetBot;
 import fft_battleground.botland.BetBotFactory;
+import fft_battleground.botland.BotLand;
+import fft_battleground.botland.bot.DataBetBot;
 import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.DatabaseResultsData;
@@ -55,13 +57,15 @@ public class EventManager extends Thread {
 		this.setName("EventManagerThread");
 	}
 	
+	private BotLand botLand;
+	
 	@Override
 	public void run() {
 		int currentAmount = 1;
 		List<BetEvent> currentBets = new Vector<>();
 		boolean bettingCurrently = false;
-		BetBot previousBetBot = null;
-		BetBot currentBetBot = null;
+		//BetBot previousBetBot = null;
+		//BetBot currentBetBot = null;
 		while(true) {
 			try {
 				BattleGroundEvent event = this.eventManagerQueue.take();
@@ -76,53 +80,46 @@ public class EventManager extends Thread {
 						currentBets = new Vector<>();
 						if(event instanceof BettingBeginsEvent) {
 							BettingBeginsEvent beginEvent = (BettingBeginsEvent) event;
-							previousBetBot = currentBetBot;
-							currentBetBot = this.betBotFactory.create(OddsBot.class, currentAmount, currentBets, beginEvent);
-							this.bettingTimer.schedule(currentBetBot, bettingDelay);
+							//currentBetBot = this.betBotFactory.create(DataBetBot.class, currentAmount, currentBets, beginEvent);
+							this.botLand = this.betBotFactory.createBotLand(currentAmount, currentBets, beginEvent);
+							this.bettingTimer.schedule(this.botLand, this.bettingDelay);
 						}
 						break;
 					case BETTING_ENDS:
 						bettingCurrently = false;
-						if(currentBetBot != null) {
-							currentBetBot.setBetEndEvent((BettingEndsEvent) event);
+						if(this.botLand != null) {
+							this.botLand.setBettingEndsEvent((BettingEndsEvent) event);
 						}
 						//this.sendScheduledMessage("!match", 5000L);
 						break;
 					case BALANCE:
 						BalanceEvent balanceEvent = (BalanceEvent) event;
 						currentAmount = balanceEvent.getAmount();
-						if(currentBetBot != null) {
-							currentBetBot.setCurrentAmountToBetWith(currentAmount);
+						if(this.botLand != null) {
+							this.botLand.setCurrentAmountToBetWith(currentAmount);
 						}
 						break;
 					case BET:
-						if(bettingCurrently && event instanceof BetEvent) {
-							this.addToBets(currentBets, (BetEvent) event);
+						if(bettingCurrently && event instanceof BetEvent  && this.botLand != null) {
+							this.botLand.addBet((BetEvent) event);
 						}
 						break;
 					case BET_INFO:
 						if(event instanceof BetInfoEvent) {
 							BetInfoEvent betInfoEvent = (BetInfoEvent) event;
 							if(betInfoEvent.getTeam() != null) {
-								this.addToBets(currentBets, new BetEvent(betInfoEvent));
+								this.botLand.addBet(new BetEvent(betInfoEvent));
 							}
 						}
 						break;
 					case BAD_BET:
-						if(bettingCurrently && event instanceof BadBetEvent) {
-							for(String player : ((BadBetEvent) event).getPlayers()) {
-								for(BetEvent bet : currentBets) {
-									if(bet.getPlayer().equals(player)) {
-										currentBets.remove(bet);
-										break;
-									}
-								}
-							}
+						if(bettingCurrently && event instanceof BadBetEvent && this.botLand != null) {
+							this.botLand.removeBet((BadBetEvent)event);
 						}
 						break;
 					case RESULT:
-						if(currentBetBot != null && event instanceof ResultEvent) {
-							BetResults aftermathOfBotBet = currentBetBot.getBetResult((ResultEvent)event);
+						if(this.botLand != null && event instanceof ResultEvent) {
+							BetResults aftermathOfBotBet = this.botLand.createCollector().getResult((ResultEvent) event);
 							this.betResultsRouter.sendDataToQueues(aftermathOfBotBet);
 						}
 						break;
@@ -132,28 +129,19 @@ public class EventManager extends Thread {
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
 						break;
 					case MATCH_INFO:
-						if(currentBetBot != null) {
-							currentBetBot.setMatchInfo((MatchInfoEvent) event);
+						if(this.botLand!= null) {
+							this.botLand.setMatchInfo((MatchInfoEvent) event);
 						}
 						break;
 					case TEAM_INFO:
 						TeamInfoEvent teamInfoEvent = (TeamInfoEvent) event;
-						if(currentBetBot != null) {
-							if(currentBetBot.getLeft() == teamInfoEvent.getTeam()) {
-								currentBetBot.addTeamInfo(teamInfoEvent);
-							} else if(currentBetBot.getRight() == teamInfoEvent.getTeam()) {
-								currentBetBot.addTeamInfo(teamInfoEvent);
-							}
+						if(this.botLand != null) {
+							this.botLand.addTeamInfo(teamInfoEvent);
 						}
 						break;
 					case UNIT_INFO:
-						if(event instanceof UnitInfoEvent && currentBetBot != null) {
-							boolean isCommandMadeByBot = currentBetBot.getTeamData().addUnitInfo((UnitInfoEvent) event);
-							if(isCommandMadeByBot) {
-								if(currentBetBot.getTeamData().nextCommandToRun() != null) {
-									this.sendScheduledMessage(currentBetBot.getTeamData().nextCommandToRun(), 5000L);
-								}
-							}
+						if(event instanceof UnitInfoEvent && this.botLand != null) {
+							this.botLand.addUnitInfo((UnitInfoEvent) event);
 						}
 						break;
 					case SKILL_DROP: default:
@@ -176,14 +164,6 @@ public class EventManager extends Thread {
 	
 	private void handleFight(BattleGroundEvent event) {
 		return;
-	}
-	
-	public void addToBets(Collection<BetEvent> betEvents, BetEvent newBet) {
-		Optional<BetEvent> preExistingEvent = betEvents.stream().filter(betEvent -> StringUtils.equalsIgnoreCase(betEvent.getPlayer(), newBet.getPlayer())).findFirst();
-		if(preExistingEvent.isPresent()) {
-			betEvents.remove(preExistingEvent.get());
-		}
-		betEvents.add(newBet);
 	}
 	
 	private void sendBalanceRequest() {
