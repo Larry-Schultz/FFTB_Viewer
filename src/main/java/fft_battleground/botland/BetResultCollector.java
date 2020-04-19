@@ -21,7 +21,7 @@ public class BetResultCollector {
 	
 	public BetResults getResult(ResultEvent event) {
 		BetResults results = null;
-		results = new BetResults(helper.getBetsBySide(), event.getWinner(), helper.getLeft(), helper.getRight(), helper.getBettingEndsEvent(), 
+		results = new BetResults(helper.sortBetsBySide(), event.getWinner(), helper.getLeft(), helper.getRight(), helper.getBettingEndsEvent(), 
 				helper.getMatchInfo(), helper.getTeamData());
 		return results;
 	}
