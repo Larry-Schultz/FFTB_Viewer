@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,7 +69,9 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.PlayerRecordRepo;
+import fft_battleground.repo.PlayerSkillRepo;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 
@@ -96,6 +99,9 @@ public class DumpService {
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
+	
+	@Autowired
+	private PlayerSkillRepo playerSkillRepo;
 	
 	private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
 	private Map<String, ExpEvent> expCache = new HashMap<>();
@@ -156,6 +162,8 @@ public class DumpService {
 		this.botCache = this.getBots();
 		
 		this.getHighScoreDump();
+		this.updatePrestigeSkills();
+		this.updateUserSkills();
 		
 		log.info("player data cache load complete");
 	}
@@ -205,6 +213,11 @@ public class DumpService {
 	}
 	
 	@Scheduled(cron = "0 30 1 * * ?")
+	public void updateAllSkills() {
+		this.updatePrestigeSkills();
+		this.updateUserSkills();
+	}
+	
 	public Map<String, List<String>> updateUserSkills() {
 		log.info("updating user skills cache");
 		Set<String> playerNamesSet = this.userSkillsCache.keySet();
@@ -226,7 +239,6 @@ public class DumpService {
 		return userSkillsFromDump;
 	}
 	
-	@Scheduled(cron = "0 45 1 * * ?")
 	public Map<String, List<String>> updatePrestigeSkills() {
 		log.info("updating prestige skills cache");
 		Set<String> playerNamesSet = this.userSkillsCache.keySet();
@@ -235,15 +247,22 @@ public class DumpService {
 		Map<String, List<String>> differences = this.userSkillsCache.keySet().parallelStream().collect(Collectors.toMap(Function.identity(), 
 													key -> ListUtils.<String>subtract(prestigeSkillsFromDump.get(key), this.prestigeSkillsCache.get(key))));
 		List<BattleGroundEvent> skillEvents = new ArrayList<>();
+		Set<String> playersWithNewPrestige = new TreeSet<>();
 		for(String key : differences.keySet()) {
 			if(differences.get(key).size() > 0) {
 				skillEvents.add(new PrestigeSkillsEvent(key, differences.get(key)));
+				playersWithNewPrestige.add(key);
 			}
 		}
 		
 		skillEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		playersWithNewPrestige.forEach(player -> {
+			List<PlayerSkills> playerSkills = this.playerSkillRepo.getSkillsByPlayer(player);
+			playerSkills.parallelStream().forEach(skill -> this.playerSkillRepo.delete(skill));
+			log.info("deleting skills for {}", player);
+		});
 		this.eventRouter.sendAllDataToQueues(skillEvents);
-		log.info("user skills cache update complete");
+		log.info("prestige skills cache update complete");
 		
 		return prestigeSkillsFromDump;
 	}
