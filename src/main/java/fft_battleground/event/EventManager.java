@@ -105,7 +105,7 @@ public class EventManager extends Thread {
 						}
 						break;
 					case BET_INFO:
-						if(event instanceof BetInfoEvent) {
+						if(event instanceof BetInfoEvent && this.botLand != null) {
 							BetInfoEvent betInfoEvent = (BetInfoEvent) event;
 							if(betInfoEvent.getTeam() != null) {
 								this.botLand.addBet(new BetEvent(betInfoEvent));
