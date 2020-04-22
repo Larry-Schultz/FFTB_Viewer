@@ -110,7 +110,7 @@ public class RepManagerTest {
 		BettingEndsEvent endsEvent = new BettingEndsEvent(BattleGroundTeam.BLACK, 3, 1000, BattleGroundTeam.GREEN, 4, 1750);
 		BetResults testResult = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent, null, null);
 		
-		this.repoManager.updateMatchData(testResult);
+		this.repoManager.getRepoTransactionManager().updateMatchData(testResult);
 		List<Match> matches = this.matchRepo.findAll();
 		assertNotNull(matches);
 		assertTrue(matches.size() >= 1);
