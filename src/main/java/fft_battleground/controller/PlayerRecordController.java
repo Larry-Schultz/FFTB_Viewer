@@ -93,7 +93,7 @@ public class PlayerRecordController {
 	@GetMapping("/balanceHistory")
 	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>>
 	getBalanceHistory(@RequestParam(name="player", required=true) String player, @RequestParam(name="count", required=true) Integer count) {
-		LinkedList<BalanceHistory> balanceHistories = new LinkedList<>(this.balanceHistoryRepo.getTournamentBalanceHistory(player, PageRequest.of(0,count)));
+		LinkedList<BalanceHistory> balanceHistories = new LinkedList<>(this.balanceHistoryRepo.getTournamentBalanceHistoryFromPastWeek(player));
 		
 		if(balanceHistories.size() < count) {
 			for(int i = 0; i < balanceHistories.size() - count; i++) {
