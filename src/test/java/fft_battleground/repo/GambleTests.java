@@ -238,16 +238,16 @@ public class GambleTests {
 		Map<String, Integer> data = dumpService.getHighScoreDump();
 		assertTrue(data != null);
 		
-		Map<String, ExpEvent> expData = dumpService.getHighExpDump();
+		Map<String, ExpEvent> expData = dumpService.getDumpResourceManager().getHighExpDump();
 		assertTrue(expData != null);
 		
 		Collection<Music> musicData = dumpService.getPlaylist();
 		assertTrue(musicData != null);
 		
-		String portrait = dumpService.getPortraitForPlayer("otherbrand");
+		String portrait = dumpService.getDumpResourceManager().getPortraitForPlayer("otherbrand");
 		assertNotNull(portrait);
 		
-		BattleGroundTeam allegiance = dumpService.getAllegianceForPlayer("otherbrand");
+		BattleGroundTeam allegiance = dumpService.getDumpResourceManager().getAllegianceForPlayer("otherbrand");
 		assertTrue(allegiance != null && allegiance != BattleGroundTeam.NONE);
 	}
 	

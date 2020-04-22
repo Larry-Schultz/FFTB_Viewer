@@ -1,52 +1,32 @@
 package fft_battleground.dump;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -57,24 +37,18 @@ import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.botland.model.SkillType;
-import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
-import fft_battleground.event.model.PlayerSkillEvent;
-import fft_battleground.event.model.PortraitEvent;
-import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.PlayerRecordRepo;
-import fft_battleground.repo.PlayerSkillRepo;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
-
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,41 +56,31 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @CacheConfig(cacheNames = {"music"})
 public class DumpService {
-
-	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
-	private static final String DUMP_HIGH_EXP_URL = "http://www.fftbattleground.com/fftbg/highexp.txt";
-	private static final String DUMP_HIGH_LAST_ACTIVE_URL = "http://www.fftbattleground.com/fftbg/highdate.txt";
-	private static final String DUMP_PLAYLIST_URL = "http://www.fftbattleground.com/fftbg/playlist.xml";
-	private static final String DUMP_BOT_URL = "http://www.fftbattleground.com/fftbg/bots.txt";
 	
-	private static final String DUMP_PORTAIL_URL_FORMAT = "http://www.fftbattleground.com/fftbg/portrait/%s.txt";
-	private static final String DUMP_ALLEGIANCE_URL_FORMAT = "http://www.fftbattleground.com/fftbg/allegiance/%s.txt";
-	private static final String DUMP_USERSKILLS_URL_FORMAT = "http://www.fftbattleground.com/fftbg/userskills/%s.txt";
-	private static final String DUMP_PRESTIGE_URL_FORMAT = "http://www.fftbattleground.com/fftbg/prestige/%s.txt";
+	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
 	
 	// Wed Jan 01 00:00:00 EDT 2020
-	private static final String dateFormatString = "EEE MMM dd HH:mm:ss z yyyy";
+	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
+	
+	@Autowired
+	@Getter private DumpResourceManager dumpResourceManager;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
-	private PlayerSkillRepo playerSkillRepo;
-	
-	private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
-	private Map<String, ExpEvent> expCache = new HashMap<>();
-	private Map<String, Date> lastActiveCache = new HashMap<>();
-	private Map<String, String> portraitCache = new HashMap<>();
-	private Map<String, BattleGroundTeam> allegianceCache = new HashMap<>();
-	private Map<String, List<String>> userSkillsCache = new HashMap<>();
-	private Map<String, List<String>> prestigeSkillsCache = new HashMap<>();
-	private Set<String> botCache;
-	
-	private Map<String, Integer> leaderboard = new HashMap<>();
-	
-	
-	@Autowired
 	private Router<BattleGroundEvent> eventRouter;
+	
+	@Getter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
+	@Getter private Map<String, ExpEvent> expCache = new HashMap<>();
+	@Getter private Map<String, Date> lastActiveCache = new HashMap<>();
+	@Getter private Map<String, String> portraitCache = new HashMap<>();
+	@Getter private Map<String, BattleGroundTeam> allegianceCache = new HashMap<>();
+	@Getter private Map<String, List<String>> userSkillsCache = new HashMap<>();
+	@Getter private Map<String, List<String>> prestigeSkillsCache = new HashMap<>();
+	@Getter private Set<String> botCache;
+	
+	@Getter private Map<String, Integer> leaderboard = new HashMap<>();
 	
 	public DumpService() {}
 	
@@ -135,7 +99,7 @@ public class DumpService {
 		
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastActive() == null).forEach(playerRecord -> {
 			try {
-				SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormatString);
+				SimpleDateFormat dateFormatter = new SimpleDateFormat(dateActiveFormatString);
 				playerRecord.setLastActive(dateFormatter.parse("Wed Jan 01 00:00:00 EDT 2020"));
 			} catch (ParseException e) {
 				log.error("error parsing date for lastActive", e);
@@ -159,245 +123,11 @@ public class DumpService {
 				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
 				));
 		
-		this.botCache = this.getBots();
+		this.botCache = this.dumpResourceManager.getBots();
 		
 		this.getHighScoreDump();
-		this.updatePrestigeSkills();
-		this.updateUserSkills();
 		
 		log.info("player data cache load complete");
-	}
-	
-	@Scheduled(cron = "0 0 1 * * ?")
-	public Map<String, String> updatePortraits() {
-		log.info("updating portrait cache");
-		Set<String> playerNamesSet = this.portraitCache.keySet();
-		Map<String, String> portraitsFromDump = playerNamesSet.parallelStream().collect(Collectors.toMap(Function.identity(), player -> this.getPortraitForPlayer(player)));
-		
-		Map<String, ValueDifference<String>> balanceDelta = Maps.difference(this.portraitCache, portraitsFromDump).entriesDiffering();
-		List<BattleGroundEvent> portraitEvents = new LinkedList<>();
-		for(String key: balanceDelta.keySet()) {
-			PortraitEvent event = new PortraitEvent(key, balanceDelta.get(key).rightValue());
-			portraitEvents.add(event);
-			//update cache with new data
-			this.portraitCache.put(key, balanceDelta.get(key).rightValue());
-		}
-		
-		portraitEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.eventRouter.sendAllDataToQueues(portraitEvents);
-		log.info("portrait cache update complete");
-		
-		return portraitsFromDump;
-	}
-	
-	@Scheduled(cron = "0 15 1 * * ?")
-	public Map<String, BattleGroundTeam> updateAllegiances() {
-		log.info("updating allegiances cache");
-		Set<String> playerNamesSet = this.allegianceCache.keySet();
-		Map<String, BattleGroundTeam> allegiancesFromDump = playerNamesSet.parallelStream().collect(Collectors.toMap(Function.identity(), player -> this.getAllegianceForPlayer(player)));
-		
-		Map<String, ValueDifference<BattleGroundTeam>> balanceDelta = Maps.difference(this.allegianceCache, allegiancesFromDump).entriesDiffering();
-		List<BattleGroundEvent> allegianceEvents = new LinkedList<>();
-		for(String key: balanceDelta.keySet()) {
-			AllegianceEvent event = new AllegianceEvent(key, balanceDelta.get(key).rightValue());
-			allegianceEvents.add(event);
-			//update cache with new data
-			this.allegianceCache.put(key, balanceDelta.get(key).rightValue());
-		}
-		
-		allegianceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.eventRouter.sendAllDataToQueues(allegianceEvents);
-		log.info("allegiances cache update complete.");
-		
-		return allegiancesFromDump;
-	}
-	
-	@Scheduled(cron = "0 30 1 * * ?")
-	public void updateAllSkills() {
-		this.updatePrestigeSkills();
-		this.updateUserSkills();
-	}
-	
-	public Map<String, List<String>> updateUserSkills() {
-		log.info("updating user skills cache");
-		Set<String> playerNamesSet = this.userSkillsCache.keySet();
-		Map<String, List<String>> userSkillsFromDump = playerNamesSet.parallelStream().collect(Collectors.toMap(Function.identity(), player -> this.getSkillsForPlayer(player)));
-		
-		Map<String, List<String>> differences = this.userSkillsCache.keySet().parallelStream().collect(Collectors.toMap(Function.identity(), 
-													key -> ListUtils.<String>subtract(userSkillsFromDump.get(key), this.userSkillsCache.get(key))));
-		List<BattleGroundEvent> skillEvents = new ArrayList<>();
-		for(String key : differences.keySet()) {
-			if(differences.get(key).size() > 0) {
-				skillEvents.add(new PlayerSkillEvent(key, differences.get(key)));
-			}
-		}
-		
-		skillEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.eventRouter.sendAllDataToQueues(skillEvents);
-		log.info("user skills cache update complete");
-		
-		return userSkillsFromDump;
-	}
-	
-	public Map<String, List<String>> updatePrestigeSkills() {
-		log.info("updating prestige skills cache");
-		Set<String> playerNamesSet = this.userSkillsCache.keySet();
-		Map<String, List<String>> prestigeSkillsFromDump = playerNamesSet.parallelStream().collect(Collectors.toMap(Function.identity(), player -> this.getPrestigeSkillsForPlayer(player)));
-		
-		Map<String, List<String>> differences = this.userSkillsCache.keySet().parallelStream().collect(Collectors.toMap(Function.identity(), 
-													key -> ListUtils.<String>subtract(prestigeSkillsFromDump.get(key), this.prestigeSkillsCache.get(key))));
-		List<BattleGroundEvent> skillEvents = new ArrayList<>();
-		Set<String> playersWithNewPrestige = new TreeSet<>();
-		for(String key : differences.keySet()) {
-			if(differences.get(key).size() > 0) {
-				skillEvents.add(new PrestigeSkillsEvent(key, differences.get(key)));
-				playersWithNewPrestige.add(key);
-			}
-		}
-		
-		skillEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		playersWithNewPrestige.forEach(player -> {
-			List<PlayerSkills> playerSkills = this.playerSkillRepo.getSkillsByPlayer(player);
-			playerSkills.parallelStream().forEach(skill -> this.playerSkillRepo.delete(skill));
-			log.info("deleting skills for {}", player);
-		});
-		this.eventRouter.sendAllDataToQueues(skillEvents);
-		log.info("prestige skills cache update complete");
-		
-		return prestigeSkillsFromDump;
-	}
-	
-	@Scheduled(cron = "0 0 2 * * ?")
-	public Set<String> updateBotList() {
-		log.info("updating bot list");
-		
-		Set<String> dumpBots = this.getBots();
-		dumpBots.stream().forEach(botName -> this.botCache.add(botName));
-		
-		log.info("bot list update complete");
-		return this.botCache;
-	}
-	
-	@SneakyThrows
-	public Map<String, Integer> getHighScoreDump() {
-		Map<String, Integer> data = new HashMap<>();
-		
-		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
-		try(BufferedReader highScoreReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			String line;
-			highScoreReader.readLine(); //ignore the header
-			
-			while((line = highScoreReader.readLine()) != null) {
-				Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
-				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
-				Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
-				data.put(username, value);
-				this.leaderboard.put(username, position);
-			}
-		}
-		
-		return data;
-	}
-	
-	@SneakyThrows
-	public Map<String, ExpEvent> getHighExpDump() {
-		Map<String, ExpEvent> data = new HashMap<>();
-		Resource resource = new UrlResource(DUMP_HIGH_EXP_URL);
-		try(BufferedReader highScoreReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			String line;
-			highScoreReader.readLine(); //ignore the header
-			while((line = highScoreReader.readLine()) != null) {
-				String username = StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":"));
-				Short level = Short.valueOf(StringUtils.substringBetween(line, "Level ", " (EXP:"));
-				Short exp = Short.valueOf(StringUtils.substringBetween(line, "(EXP: ", ")"));
-				data.put(username, new ExpEvent(username, level, exp));
-			}
-		}
-		
-		return data;
-	}
-	
-	@SneakyThrows
-	public Map<String, Date> getLastActiveDump() {
-		Map<String, Date> data = new HashMap<>();
-		Resource resource = new UrlResource(DUMP_HIGH_LAST_ACTIVE_URL);
-		SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormatString);
-		try(BufferedReader highDateReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			String line;
-			highDateReader.readLine(); //ignore the header
-			while((line = highDateReader.readLine()) != null) {
-				String username = StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":"));
-				String dateStr = StringUtils.substringAfter(line, ": ");
-				Date date = dateFormatter.parse(dateStr);
-				data.put(username, date);
-			}
-		}
-		
-		return data;
-	}
-	
-	public String getPortraitForPlayer(String player) {
-		String playerName = StringUtils.lowerCase(player);
-		String portrait = null;
-		Resource resource = null;
-		try {
-			resource = new UrlResource(String.format(DUMP_PORTAIL_URL_FORMAT, playerName));
-		} catch (MalformedURLException e) {
-			log.error("malformed url", e);
-		}
-		try(BufferedReader portraitReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			portrait = portraitReader.readLine();
-			if(StringUtils.contains(portrait, "<!DOCTYPE")) {
-				portrait = "";
-			}
-		} catch (IOException e) {
-			return ""; //no data could be found
-		}
-		
-		return portrait;
-	}
-	
-	@SneakyThrows
-	public BattleGroundTeam getAllegianceForPlayer(String player) {
-		String playerName = StringUtils.lowerCase(player);
-		BattleGroundTeam allegiance = null;
-		Resource resource = new UrlResource(String.format(DUMP_ALLEGIANCE_URL_FORMAT, playerName));
-		try(BufferedReader portraitReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			String allegianceStr = portraitReader.readLine();
-			if(NumberUtils.isCreatable(allegianceStr)) {
-				allegiance = BattleGroundTeam.parse(Integer.valueOf(allegianceStr)); 
-			} else {
-				log.debug("non numeric allegiance found, for player {} with data {}", player, allegianceStr);
-				allegiance = BattleGroundTeam.NONE;
-			}
-		}
-		
-		return allegiance;
-	}
-	
-	@SneakyThrows
-	public Set<String> getBots() {
-		Set<String> bots = new HashSet<>();
-		Resource resource = new UrlResource(DUMP_BOT_URL);
-		try(BufferedReader botReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			String line;
-			while((line = botReader.readLine()) != null) {
-				String cleanedString = StringUtils.trim(StringUtils.lowerCase(line));
-				bots.add(cleanedString);
-			}
-		}
-		
-		return bots;
-	}
-	
-	public List<String> getSkillsForPlayer(String player) {
-		List<String> skills = this.getSkills(player, DUMP_USERSKILLS_URL_FORMAT);
-		return skills;
-	}
-	
-	public List<String> getPrestigeSkillsForPlayer(String player) {
-		List<String> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT);
-		return skills;
 	}
 	
 	public Collection<BattleGroundEvent> getUpdatesFromDumpService() {
@@ -417,7 +147,7 @@ public class DumpService {
 		log.info("balance cache update complete");
 		
 		log.info("updating exp cache");
-		Map<String, ExpEvent> newExpDataFromDump = this.getHighExpDump();
+		Map<String, ExpEvent> newExpDataFromDump = this.dumpResourceManager.getHighExpDump();
 		Map<String, ValueDifference<ExpEvent>> expDelta = Maps.difference(this.expCache, newExpDataFromDump).entriesDiffering();
 		OtherPlayerExpEvent expEvents = new OtherPlayerExpEvent(new ArrayList<ExpEvent>());
 		for(String key: expDelta.keySet()) {
@@ -429,7 +159,7 @@ public class DumpService {
 		log.info("exp cache update complete");
 		
 		log.info("updating last active cache");
-		Map<String, Date> newLastActiveFromDump = this.getLastActiveDump();
+		Map<String, Date> newLastActiveFromDump = this.dumpResourceManager.getLastActiveDump();
 		Map<String, ValueDifference<Date>> lastActiveDelta = Maps.difference(this.lastActiveCache, newLastActiveFromDump).entriesDiffering();
 		for(String key: lastActiveDelta.keySet()) {
 			LastActiveEvent newEvent = new LastActiveEvent(key, lastActiveDelta.get(key).rightValue());
@@ -442,43 +172,7 @@ public class DumpService {
 		return data;
 	}
 	
-	@SneakyThrows
-	@Cacheable("music")
-	public Collection<Music> getPlaylist() {
-		Set<Music> musicSet = new HashSet<>();
-		
-		Resource resource = new UrlResource(DUMP_PLAYLIST_URL);
-		StringBuilder xmlData = new StringBuilder();
-		String line;
-		try(BufferedReader musicReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			while((line = musicReader.readLine()) != null) {
-				xmlData.append(line);
-			}
-		}
-		
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.parse(new InputSource(new StringReader(xmlData.toString())));
-		doc.getDocumentElement().normalize();
-		
-		NodeList leafs = doc.getElementsByTagName("leaf");
-		for(int i = 0; i < leafs.getLength(); i++) {
-			Node node = leafs.item(i);
-			if(node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element) node;
-				String name = element.getAttribute("uri");
-				name = StringUtils.substringAfterLast(name, "/");
-				name = StringUtils.substringBefore(name, ".mp3");
-				name = URLDecoder.decode(name, StandardCharsets.UTF_8.toString());
-				musicSet.add(new Music(name, element.getAttribute("id"), element.getAttribute("duration")));
-			}
-		}
-		
-		Collection<Music> musicList = musicSet.stream().collect(Collectors.toList()).stream().sorted().collect(Collectors.toList());
-		
-		
-		return musicList;
-	}
+
 	
 	public Integer getLeaderboardPosition(String player) {
 		String lowercasePlayer = StringUtils.lowerCase(player);
@@ -526,31 +220,31 @@ public class DumpService {
 	public void updateBalanceCache(BalanceEvent event) {
 		this.balanceCache.put(event.getPlayer(), event.getAmount());
 	}
-	
-	protected List<String> getSkills(String player, String urlFormat) {
-		List<String> skills = new LinkedList<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(String.format(urlFormat, player));
-		} catch (MalformedURLException e) {
-			log.error("malformed url", e);
-			return new ArrayList<>();
-		}
-		try(BufferedReader skillReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+
+	@SneakyThrows
+	public Map<String, Integer> getHighScoreDump() {
+		Map<String, Integer> data = new HashMap<>();
+		
+		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		try(BufferedReader highScoreReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
 			String line;
-			while((line = skillReader.readLine()) != null) {
-				if(line.length() < 50 && !StringUtils.contains(line, "<")) {
-					//remove the '~' characters
-					line = StringUtils.replace(line, "~", "");
-					skills.add(line);
-				}
+			highScoreReader.readLine(); //ignore the header
+			
+			while((line = highScoreReader.readLine()) != null) {
+				Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
+				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
+				Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
+				data.put(username, value);
+				this.leaderboard.put(username, position);
 			}
-		} catch (IOException e) {
-			log.debug("no user skills data for player {}", player);
-			return new ArrayList<>();
 		}
 		
-		return skills;
+		return data;
+	}
+
+	public Collection<Music> getPlaylist() {
+		Collection<Music> playlist = this.dumpResourceManager.getPlaylist();
+		return playlist;
 	}
 }
 
