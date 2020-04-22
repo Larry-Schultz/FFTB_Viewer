@@ -1,15 +1,12 @@
 package fft_battleground.config;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import org.pircbotx.PircBotX;
 import org.pircbotx.cap.EnableCapHandler;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -17,9 +14,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-
-import fft_battleground.dump.Music;
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BadBetDetector;
 import fft_battleground.event.detector.BalanceDetector;
@@ -42,8 +36,6 @@ import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.TwitchChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
-import fft_battleground.tournament.Tips;
-import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.Router;
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,5 +95,4 @@ public class Config {
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),
 			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector()});
 	}
-	
 }
