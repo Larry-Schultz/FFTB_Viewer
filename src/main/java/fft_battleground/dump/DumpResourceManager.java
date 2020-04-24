@@ -125,6 +125,8 @@ public class DumpResourceManager {
 				log.debug("non numeric allegiance found, for player {} with data {}", player, allegianceStr);
 				allegiance = BattleGroundTeam.NONE;
 			}
+		} catch(IOException e) {
+			return null;
 		}
 		
 		return allegiance;
