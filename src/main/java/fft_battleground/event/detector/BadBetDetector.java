@@ -23,10 +23,10 @@ public class BadBetDetector implements EventDetector {
 			String[] splitStr = StringUtils.split(message.getMessage(), ";");
 			for(String split : splitStr) {
 				if(StringUtils.contains(split, SEARCH_STRING)) {
-					String player = StringUtils.substringBefore(split, SEARCH_STRING);
+					String player = StringUtils.trim(StringUtils.substringBefore(split, SEARCH_STRING));
 					players.add(player);
 				} else if(StringUtils.contains(split, SEARCH_STRING_2)) {
-					String player = StringUtils.substringBefore(split, SEARCH_STRING_2);
+					String player = StringUtils.trim(StringUtils.substringBefore(split, SEARCH_STRING_2));
 					players.add(player);
 				}
 			}
