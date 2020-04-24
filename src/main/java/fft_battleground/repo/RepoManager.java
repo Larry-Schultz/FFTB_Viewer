@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.dump.DumpService;
@@ -15,6 +16,7 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.GiftSkillEvent;
+import fft_battleground.event.model.GlobalGilHistoryUpdateEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
@@ -82,6 +84,8 @@ public class RepoManager extends Thread {
 					this.handleLastActiveSkillEvent((LastActiveEvent) newResults);
 				} else if(newResults instanceof GiftSkillEvent) {
 					this.handleGiftSkillEvent((GiftSkillEvent) newResults);
+				} else if(newResults instanceof GlobalGilHistoryUpdateEvent) {
+					this.handleGlobalGilHistoryUpdateEvent((GlobalGilHistoryUpdateEvent) newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
@@ -150,11 +154,15 @@ public class RepoManager extends Thread {
 		this.repoTransactionManager.updatePlayerSkills(event);
 	}
 	
+	private void handleGlobalGilHistoryUpdateEvent(GlobalGilHistoryUpdateEvent newResults) {
+		this.repoTransactionManager.updateGlobalGilHistory(newResults.getGlobalGilHistory());
+	}
+	
 	@SneakyThrows
 	protected void handleBuySkillEvent(BuySkillEvent event) {
 		for(PlayerSkillEvent playerSkillEvent : event.getSkillEvents()) {
 			this.handlePlayerSkillEvent(playerSkillEvent);
-			BattleGroundEvent balanceUpdate = this.repoTransactionManager.generateSimulatedBalanceEvent(playerSkillEvent.getPlayer(), BuySkillEvent.skillBuyBalanceUpdate);
+			BattleGroundEvent balanceUpdate = this.repoTransactionManager.generateSimulatedBalanceEvent(playerSkillEvent.getPlayer(), BuySkillEvent.skillBuyBalanceUpdate, BalanceUpdateSource.BUYSKILL);
 			if(balanceUpdate != null) {
 				this.battleGroundEventBackPropagation.SendUnitThroughTimer(balanceUpdate);
 			}
@@ -167,7 +175,7 @@ public class RepoManager extends Thread {
 	
 	private void handleGiftSkillEvent(GiftSkillEvent newResults) {
 		this.repoTransactionManager.updatePlayerSkills(newResults.getPlayerSkillEvent());
-		this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGivingPlayer(), newResults.getCost());
+		this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGivingPlayer(), newResults.getCost(), BalanceUpdateSource.GIFTSKILL);
 	}
 	
 	protected void updatePlayerData(BetResults newResults) {

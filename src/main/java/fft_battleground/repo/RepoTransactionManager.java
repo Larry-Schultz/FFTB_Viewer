@@ -30,6 +30,7 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.repo.model.BalanceHistory;
+import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
@@ -50,6 +51,9 @@ public class RepoTransactionManager {
 	private BalanceHistoryRepo balanceHistoryRepo;
 	
 	@Autowired
+	private GlobalGilHistoryRepo globalGilHistoryRepo;
+	
+	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
 	
 	public RepoTransactionManager() {}
@@ -65,7 +69,7 @@ public class RepoTransactionManager {
 	@SneakyThrows
 	public void sendBalanceBackpropagation(BetEvent bet, Float teamBettingOdds, boolean win) {
 		Integer valueUpdate = GambleUtil.getAmountUpdateFromBet(bet.getBetAmountInteger(), teamBettingOdds, false);
-		BattleGroundEvent balanceEvent = this.generateSimulatedBalanceEvent(bet.getPlayer(), valueUpdate);
+		BattleGroundEvent balanceEvent = this.generateSimulatedBalanceEvent(bet.getPlayer(), valueUpdate, BalanceUpdateSource.BET);
 		this.battleGroundEventBackPropagation.SendUnitThroughTimer(balanceEvent);
 	}
 	
@@ -247,8 +251,24 @@ public class RepoTransactionManager {
 		}
 	}
 	
+	@Transactional
+	public void updateGlobalGilHistory(GlobalGilHistory globalGilHistory) {
+		Optional<GlobalGilHistory> maybeGlobalGilHistory = this.globalGilHistoryRepo.findById(globalGilHistory.getDate_string());
+		
+		if(maybeGlobalGilHistory.isPresent()) {
+			//if present, update
+			GlobalGilHistory existingGlobalGilHistory = maybeGlobalGilHistory.get();
+			existingGlobalGilHistory.setGlobal_gil_count(globalGilHistory.getGlobal_gil_count());
+			existingGlobalGilHistory.setPlayer_count(globalGilHistory.getPlayer_count());
+			this.globalGilHistoryRepo.saveAndFlush(existingGlobalGilHistory);
+		} else {
+			this.globalGilHistoryRepo.saveAndFlush(globalGilHistory);
+		}
+		
+	}
+	
 	@Transactional(propagation=Propagation.REQUIRED)
-	public BattleGroundEvent generateSimulatedBalanceEvent(String player, int balanceUpdate) {
+	public BattleGroundEvent generateSimulatedBalanceEvent(String player, int balanceUpdate, BalanceUpdateSource balanceUpdateSource) {
 		OtherPlayerBalanceEvent event = null;
 		
 		String id = StringUtils.lowerCase(player);
@@ -266,7 +286,7 @@ public class RepoTransactionManager {
 				newSimulatedAmount = minimumBalanceForPlayer;
 			}
 			
-			event = new OtherPlayerBalanceEvent(player, newSimulatedAmount, BalanceType.SIMULATED, BalanceUpdateSource.BET);
+			event = new OtherPlayerBalanceEvent(player, newSimulatedAmount, BalanceType.SIMULATED, balanceUpdateSource);
 		}
 		
 		return event;
