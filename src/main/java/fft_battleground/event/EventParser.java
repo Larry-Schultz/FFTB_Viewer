@@ -81,7 +81,7 @@ public class EventParser extends Thread {
 				for(EventDetector detector : this.detectors) {
 					BattleGroundEvent event = detector.detect(message);
 					if(event != null) {
-						if(!(event instanceof BetEvent)) {
+						if(true) {
 							log.info("Found event: {} with data: {} from chatMessage {}", event.getEventType().getEventStringName(), event.toString(), message);
 						} 
 						
