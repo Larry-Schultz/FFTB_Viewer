@@ -1,5 +1,7 @@
 package fft_battleground.repo.model;
 
+import java.util.Date;
+
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,6 +17,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.CreationTimestamp;
 
 import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -59,6 +62,9 @@ public class RealBet {
 	
 	@OneToOne(mappedBy = "realBetInformation", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	public Match match;
+	
+    @CreationTimestamp
+    private Date createDateTime;
 	
 	public RealBet() {}
 	
