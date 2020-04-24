@@ -50,6 +50,9 @@ public class EventManager extends Thread {
 	@Autowired
 	private BetBotFactory betBotFactory;
 	
+	@Autowired
+	private DumpService dumpService;
+	
 	private Timer bettingTimer = new Timer();
 	protected long bettingDelay = 33 * 1000;
 	
@@ -90,7 +93,7 @@ public class EventManager extends Thread {
 						if(this.botLand != null) {
 							this.botLand.setBettingEndsEvent((BettingEndsEvent) event);
 						}
-						//this.sendScheduledMessage("!match", 5000L);
+						this.bettingTimer.schedule(this.dumpService.getGlobalGilUpdateTask(), 5L);
 						break;
 					case BALANCE:
 						BalanceEvent balanceEvent = (BalanceEvent) event;
@@ -125,7 +128,7 @@ public class EventManager extends Thread {
 						break;
 					case OTHER_PLAYER_BALANCE: case LEVEL_UP: case OTHER_PLAYER_EXP: case ALLEGIANCE:
 					case PLAYER_SKILL: case BUY_SKILL: case SKILL_WIN: case PORTRAIT:  case PRESTIGE_SKILLS:
-					case LAST_ACTIVE: case GIFT_SKILL:
+					case LAST_ACTIVE: case GIFT_SKILL: case GLOBAL_GIL_COUNT_UPDATE:
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
 						break;
 					case MATCH_INFO:
