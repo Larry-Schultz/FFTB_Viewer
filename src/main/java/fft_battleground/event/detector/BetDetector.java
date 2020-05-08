@@ -13,6 +13,7 @@ public class BetDetector implements EventDetector
 
 	@Override
 	public BattleGroundEvent detect(ChatMessage message) {
+		BetEvent event = null;
 		String messageText = message.getMessage();
 		if(StringUtils.contains(messageText, "!bet")) {
 			String amount = "0";
@@ -49,10 +50,15 @@ public class BetDetector implements EventDetector
 			}
 			String betText = amount;
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
-			return new BetEvent(message.getUsername(), team, amount, betText, BetType.ALLIN);
+			
+			if(this.validateBet(amount)) {
+				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.ALLIN);
+			} else {
+				event = null;
+			}
 		}
 		
-		return null;
+		return event;
 	}
 		
 	protected BetType determineBetType(String bet) {
@@ -68,6 +74,21 @@ public class BetDetector implements EventDetector
 		}
 	
 		return type;
+	}
+	
+	//try to parse the amount if its a number, to throw out dummy amounts that cause exceptions
+	protected boolean validateBet(String bet) {
+		if(StringUtils.isNumeric(bet)) {
+			try {
+				Integer.valueOf(bet);
+			} catch(NumberFormatException e) {
+				return false;
+			}
+			
+			return true;
+		}
+		
+		return true;
 	}
 	
 }
