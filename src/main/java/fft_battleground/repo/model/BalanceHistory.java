@@ -44,6 +44,9 @@ public class BalanceHistory {
     @Column(name="balance", nullable = false)
 	private Integer balance;
     
+    @Column(name="balance_change", nullable=true)
+    private Integer balanceChange;
+    
     @Column(name="type", nullable = false, length=10)
     @Enumerated(EnumType.STRING)
 	private BalanceType type;
@@ -67,6 +70,7 @@ public class BalanceHistory {
     public BalanceHistory(BalanceEvent event) {
 		this.player = event.getPlayer();
 		this.balance = event.getAmount();
+		this.balanceChange = event.getBalanceChange();
 		this.type = event.getBalancetype();
 		this.updateSource = event.getBalanceUpdateSource();
 	}

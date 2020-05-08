@@ -1,5 +1,6 @@
 package fft_battleground.event.model;
 
+import java.util.Arrays;
 import java.util.List;
 
 import fft_battleground.botland.model.BattleGroundEventType;
@@ -15,6 +16,10 @@ implements DatabaseResultsData {
 
 	public PrestigeSkillsEvent(String player, List<String> skills) {
 		super(type, player, skills);
+	}
+	
+	public PrestigeSkillsEvent(String player, String skill) {
+		super(type, player, Arrays.asList(new String[] {skill}));
 	}
 
 	@Override

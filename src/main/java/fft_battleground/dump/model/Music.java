@@ -1,4 +1,4 @@
-package fft_battleground.dump;
+package fft_battleground.dump.model;
 
 import lombok.Data;
 

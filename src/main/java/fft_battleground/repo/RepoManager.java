@@ -23,6 +23,7 @@ import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
+import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.SkillWinEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -86,6 +87,8 @@ public class RepoManager extends Thread {
 					this.handleGiftSkillEvent((GiftSkillEvent) newResults);
 				} else if(newResults instanceof GlobalGilHistoryUpdateEvent) {
 					this.handleGlobalGilHistoryUpdateEvent((GlobalGilHistoryUpdateEvent) newResults);
+				} else if(newResults instanceof PrestigeAscensionEvent) {
+					this.handlePrestigeAscensionEvent((PrestigeAscensionEvent) newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
@@ -154,8 +157,15 @@ public class RepoManager extends Thread {
 		this.repoTransactionManager.updatePlayerSkills(event);
 	}
 	
-	private void handleGlobalGilHistoryUpdateEvent(GlobalGilHistoryUpdateEvent newResults) {
+	protected void handleGlobalGilHistoryUpdateEvent(GlobalGilHistoryUpdateEvent newResults) {
 		this.repoTransactionManager.updateGlobalGilHistory(newResults.getGlobalGilHistory());
+	}
+	
+	protected void handlePrestigeAscensionEvent(PrestigeAscensionEvent event) {
+		if(event.getCurrentBalance() != null) {
+			this.repoTransactionManager.generateSimulatedBalanceEvent(event.getPrestigeSkillsEvent().getPlayer(), (-1) * event.getCurrentBalance(), BalanceUpdateSource.PRESTIGE);
+		}
+		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
 	}
 	
 	@SneakyThrows

@@ -1,24 +1,29 @@
 package fft_battleground.dump;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -26,9 +31,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
@@ -36,6 +44,7 @@ import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.dump.model.Music;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.ExpEvent;
@@ -59,12 +68,16 @@ import lombok.extern.slf4j.Slf4j;
 public class DumpService {
 	
 	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
+	private static final String DUMP_PLAYLIST_URL = "http://www.fftbattleground.com/fftbg/playlist.xml";
 	
 	// Wed Jan 01 00:00:00 EDT 2020
 	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
 	
 	@Autowired
-	@Getter private DumpResourceManager dumpResourceManager;
+	@Getter private DumpDataProvider dumpDataProvider;
+	
+	@Autowired
+	private DumpResourceManager dumpResourceManager;
 	
 	@Autowired
 	private DumpScheduledTasks dumpScheduledTasks;
@@ -127,7 +140,7 @@ public class DumpService {
 				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
 				));
 		
-		this.botCache = this.dumpResourceManager.getBots();
+		this.botCache = this.dumpDataProvider.getBots();
 		
 		//run this at startup so leaderboard data works properly
 		this.getHighScoreDump();
@@ -165,7 +178,7 @@ public class DumpService {
 		log.info("balance cache update complete");
 		
 		log.info("updating exp cache");
-		Map<String, ExpEvent> newExpDataFromDump = this.dumpResourceManager.getHighExpDump();
+		Map<String, ExpEvent> newExpDataFromDump = this.dumpDataProvider.getHighExpDump();
 		Map<String, ValueDifference<ExpEvent>> expDelta = Maps.difference(this.expCache, newExpDataFromDump).entriesDiffering();
 		OtherPlayerExpEvent expEvents = new OtherPlayerExpEvent(new ArrayList<ExpEvent>());
 		//find difference in xp
@@ -187,7 +200,7 @@ public class DumpService {
 		log.info("exp cache update complete");
 		
 		log.info("updating last active cache");
-		Map<String, Date> newLastActiveFromDump = this.dumpResourceManager.getLastActiveDump();
+		Map<String, Date> newLastActiveFromDump = this.dumpDataProvider.getLastActiveDump();
 		Map<String, ValueDifference<Date>> lastActiveDelta = Maps.difference(this.lastActiveCache, newLastActiveFromDump).entriesDiffering();
 		//find difference in last Active
 		for(String key: lastActiveDelta.keySet()) {
@@ -219,30 +232,6 @@ public class DumpService {
 		GlobalGilHistory globalGilHistory = new GlobalGilHistory(currentDateString, globalGilCount, globalPlayerCount);
 		
 		return globalGilHistory;
-	}
-	
-	public Integer getLeaderboardPosition(String player) {
-		String lowercasePlayer = StringUtils.lowerCase(player);
-		Integer position =  this.leaderboard.get(lowercasePlayer);
-		return position;
-	}
-	
-	public Map<String, Integer> getBotLeaderboard() {
-		Map<String, Integer> botBalances = new TreeMap<>(this.botCache.parallelStream().filter(botName -> this.balanceCache.containsKey(botName))
-				.collect(Collectors.toMap(Function.identity(), bot -> this.balanceCache.get(bot))));
-		return botBalances;
-	}
-	
-	public Map<String, Integer> getTopPlayers(Integer count) {
-		BiMap<String, Integer> topPlayers = HashBiMap.create();
-		topPlayers.putAll(this.leaderboard.keySet().parallelStream().filter(player -> !this.botCache.contains(player))
-				.filter(player -> this.playerRecordRepo.findById(StringUtils.lowerCase(player)).isPresent())
-				.collect(Collectors.toMap(Function.identity(), player -> this.leaderboard.get(player))));
-		Set<Integer> topValues = topPlayers.values().stream().sorted().limit(count).collect(Collectors.toSet());
-		
-		BiMap<Integer, String> topPlayersInverseMap = topPlayers.inverse();
-		Map<String, Integer> leaderboardWithoutBots = topValues.stream().collect(Collectors.toMap(rank -> topPlayersInverseMap.get(rank), Function.identity()));
-		return leaderboardWithoutBots;
 	}
 	
 	public Date getLastActiveDateFromCache(String player) {
@@ -277,7 +266,7 @@ public class DumpService {
 		Map<String, Integer> data = new HashMap<>();
 		
 		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
-		try(BufferedReader highScoreReader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
 			
@@ -293,10 +282,43 @@ public class DumpService {
 		return data;
 	}
 
+	@SneakyThrows
 	public Collection<Music> getPlaylist() {
-		Collection<Music> playlist = this.dumpResourceManager.getPlaylist();
-		return playlist;
+		Set<Music> musicSet = new HashSet<>();
+		
+		Resource resource = new UrlResource(DUMP_PLAYLIST_URL);
+		StringBuilder xmlData = new StringBuilder();
+		String line;
+		try(BufferedReader musicReader = this.dumpResourceManager.openDumpResource(resource)) {
+			while((line = musicReader.readLine()) != null) {
+				xmlData.append(line);
+			}
+		}
+		
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(new InputSource(new StringReader(xmlData.toString())));
+		doc.getDocumentElement().normalize();
+		
+		NodeList leafs = doc.getElementsByTagName("leaf");
+		for(int i = 0; i < leafs.getLength(); i++) {
+			Node node = leafs.item(i);
+			if(node.getNodeType() == Node.ELEMENT_NODE) {
+				Element element = (Element) node;
+				String name = element.getAttribute("uri");
+				name = StringUtils.substringAfterLast(name, "/");
+				name = StringUtils.substringBefore(name, ".mp3");
+				name = URLDecoder.decode(name, StandardCharsets.UTF_8.toString());
+				musicSet.add(new Music(name, element.getAttribute("id"), element.getAttribute("duration")));
+			}
+		}
+		
+		Collection<Music> musicList = musicSet.stream().collect(Collectors.toList()).stream().sorted().collect(Collectors.toList());
+		
+		return musicList;
 	}
+	
+	
 }
 
 @Slf4j

@@ -6,5 +6,6 @@ public enum BalanceUpdateSource {
 	BET,
 	BUYSKILL,
 	GIFTSKILL,
+	PRESTIGE,
 	NONE;
 }

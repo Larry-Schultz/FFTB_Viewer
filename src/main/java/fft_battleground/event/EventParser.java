@@ -20,6 +20,7 @@ import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.event.model.FightBeginsEvent;
 import fft_battleground.event.model.MatchInfoEvent;
+import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -88,13 +89,18 @@ public class EventParser extends Thread {
 						if(event instanceof BetEvent) {
 							this.attachMetadataToBetEvent((BetEvent) event);
 							this.eventRouter.sendDataToQueues(event);
+						} else if(event instanceof BetInfoEvent) {
+							this.attachMetadataToBetInfoEvent((BetInfoEvent) event);
+							this.eventRouter.sendDataToQueues(event);
 						} else if(event instanceof FightBeginsEvent) {
 							FightBeginsEvent fightEvent = (FightBeginsEvent) event;
 							SkillDropEvent skillDropEvent = fightEvent.generateSkillDropEvent();
 							this.eventRouter.sendDataToQueues(fightEvent);
 							this.eventRouter.sendDataToQueues(skillDropEvent);
+						} else if(event instanceof PrestigeAscensionEvent) {
+							this.attachMetadataToPrestigeAscension((PrestigeAscensionEvent) event);
+							this.eventRouter.sendDataToQueues(event);
 						} else if(event instanceof BettingBeginsEvent) {
-						
 							BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
 							this.eventRouter.sendDataToQueues(bettingBeginsEvent);
 							if( (bettingBeginsEvent.getTeam1() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam2() == BattleGroundTeam.BLUE)
@@ -220,6 +226,15 @@ public class EventParser extends Thread {
 		}
 		
 		event.setMetaData(metadataRecords);
+	}
+	
+	protected void attachMetadataToPrestigeAscension(PrestigeAscensionEvent event) {
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPrestigeSkillsEvent().getPlayer()));
+		if(maybeRecord.isPresent()) {
+			event.setCurrentBalance(maybeRecord.get().getLastKnownAmount());
+		}
+		
+		return;
 	}
 	
 	protected void sendScheduledMessage(String message, Long waitTime) {

@@ -128,7 +128,7 @@ public class EventManager extends Thread {
 						break;
 					case OTHER_PLAYER_BALANCE: case LEVEL_UP: case OTHER_PLAYER_EXP: case ALLEGIANCE:
 					case PLAYER_SKILL: case BUY_SKILL: case SKILL_WIN: case PORTRAIT:  case PRESTIGE_SKILLS:
-					case LAST_ACTIVE: case GIFT_SKILL: case GLOBAL_GIL_COUNT_UPDATE:
+					case LAST_ACTIVE: case GIFT_SKILL: case GLOBAL_GIL_COUNT_UPDATE: case PRESTIGE_ASCENSION:
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
 						break;
 					case MATCH_INFO:

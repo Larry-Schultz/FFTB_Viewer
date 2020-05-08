@@ -1,19 +1,11 @@
 package fft_battleground.controller;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,21 +23,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.Sets;
-
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
+import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.model.LeaderboardBalanceData;
+import fft_battleground.dump.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.repo.BalanceHistoryRepo;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GenericResponse;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -66,6 +54,9 @@ public class PlayerRecordController {
 	
 	@Autowired
 	private DumpService dumpService;
+	
+	@Autowired
+	private DumpReportsService dumpReportsService;
 	
 	@Scheduled(cron = "0 30 0 * * ?")
 	public void clearPlayerLeaderboard() {
@@ -103,7 +94,7 @@ public class PlayerRecordController {
 		
 		List<LeaderboardBalanceHistoryEntry> entries = Arrays.asList(new LeaderboardBalanceHistoryEntry[] {new LeaderboardBalanceHistoryEntry(player, balanceHistories)});
 		
-		LeaderboardBalanceData data = this.getLabelsAndSetRelevantBalanceHistories(entries, count);
+		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(entries, count);
 		
 		return GenericResponse.createGenericResponseEntity(data);
 	}
@@ -126,7 +117,7 @@ public class PlayerRecordController {
 		
 		//Map<LeaderboardBalanceHistoryEntry, Integer> balanceHistorySizes = botBalanceHistoryEntries.stream().collect(Collectors.toMap(Function.identity(), balanceHistoryEntry -> balanceHistoryEntry.getBalanceHistory().size()));
 		
-		LeaderboardBalanceData data = this.getLabelsAndSetRelevantBalanceHistories(botBalanceHistoryEntries, count);
+		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(botBalanceHistoryEntries, count);
 		
 		return data;
 	}
@@ -154,7 +145,7 @@ public class PlayerRecordController {
 		List<LeaderboardBalanceHistoryEntry> playerBalanceHistoryEntries = playerBalanceHistories.keySet().parallelStream().map(playerName -> new LeaderboardBalanceHistoryEntry(playerName, playerBalanceHistories.get(playerName)))
 				.filter(leaderboardBalanceHistory -> leaderboardBalanceHistory.getBalanceHistory().size() >= count).collect(Collectors.toList());
 		
-		LeaderboardBalanceData data = this.getLabelsAndSetRelevantBalanceHistories(playerBalanceHistoryEntries, count);
+		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(playerBalanceHistoryEntries, count);
 		
 		return data;
 	}
@@ -166,129 +157,5 @@ public class PlayerRecordController {
 	}
 	
 	
-	//this time let's take it hour by hour, and then use my original date slice algorithm
-	@SneakyThrows
-	public LeaderboardBalanceData getLabelsAndSetRelevantBalanceHistories(List<LeaderboardBalanceHistoryEntry> entries, Integer count) {
-		SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh");
-		
-		//dynamically pick best hours to find entries for one week
-		int hoursToTrack = 168;
-		int hoursPerSlice = hoursToTrack / count;
-		List<Date> dateSlices = new ArrayList<>();
-	    for(int i = 0 ; i < count; i++) { 
-	    	Calendar calendar = Calendar.getInstance();
-	    	int hourSliceSize = i * hoursPerSlice * -1; calendar.add(Calendar.HOUR,hourSliceSize); 
-	    	Date dateSlice = calendar.getTime();
-	    	sdf.parse(sdf.format(dateSlice));
-			dateSlices.add(dateSlice); 
-	    }
-	    
-	    Collections.sort(dateSlices);
-	    
-		//simplify all dates to nearest hour
-		for(LeaderboardBalanceHistoryEntry entry : entries) {
-			for(BalanceHistory balanceHistory : entry.getBalanceHistory()) {
-				String simplifiedDateString = sdf.format(balanceHistory.getCreate_timestamp());
-				Date simplifiedDate = sdf.parse(simplifiedDateString);
-				balanceHistory.setCreate_timestamp(new Timestamp(simplifiedDate.getTime()));
-			}
-		}
-	    
-	    //now lets extrapolate each player's balance history by hour
-	    List<LeaderboardBalanceHistoryEntry> extrapolatedData = new ArrayList<>();
-	    for(LeaderboardBalanceHistoryEntry entry: entries) {
-	    	LeaderboardBalanceHistoryEntry extrapolatedEntry = new LeaderboardBalanceHistoryEntry(entry.getPlayerName(), new ArrayList<BalanceHistory>());
-	    	Integer currentAmount = 0;
-	    	for(int i = 0; i < hoursToTrack; i++) {
-	    		Calendar calendar = Calendar.getInstance();
-	    		calendar.add(Calendar.HOUR, (-1 * hoursToTrack) + i);
-	    		
-	    		//find nearest balanceHistory match
-	    		boolean matchFound = false;
-	    		for(int j = 0; j < entry.getBalanceHistory().size() && !matchFound; j++) {
-	    			if(this.twoDatesMatchSameExactHour(calendar.getTime(), entry.getBalanceHistory().get(j).getCreate_timestamp())) {
-	    				matchFound = true;
-	    				currentAmount = entry.getBalanceHistory().get(j).getBalance();
-	    			}
-	    		}
-	    		
-	    		extrapolatedEntry.getBalanceHistory().add(new BalanceHistory(entry.getPlayerName(), currentAmount,calendar.getTime()));
-	    	}
-	    	extrapolatedData.add(extrapolatedEntry);
-    	}
-	    
-		//reduce balance history to appropriate values
-		for(LeaderboardBalanceHistoryEntry entry: extrapolatedData) {
-			List<BalanceHistory> truncatedHistory = new ArrayList<>();
-			for(int i = 0; i < dateSlices.size(); i++) {
-				Date currentSlice = dateSlices.get(i);
-				boolean foundEntry = false;
-				//search balance history for first entry with the correct hour
-				Integer currentAmount = 0;
-				for(int j = 0; j < entry.getBalanceHistory().size() && !foundEntry; j++) {
-					Calendar currentSliceCalendar = Calendar.getInstance();
-					currentSliceCalendar.setTime(currentSlice);
-					Calendar currentBalanceHistoryDateCalendar = Calendar.getInstance();
-					Date currentBalanceHistoryDate = entry.getBalanceHistory().get(j).getCreate_timestamp();
-					currentBalanceHistoryDateCalendar.setTime(currentBalanceHistoryDate);
-					if(this.twoDatesMatchSameExactHour(currentSlice, currentBalanceHistoryDate)) 
-					{
-						foundEntry = true;
-						truncatedHistory.add(entry.getBalanceHistory().get(j));
-						currentAmount = entry.getBalanceHistory().get(j).getBalance();
-					}
-				}
-				
-				if (!foundEntry && this.twoDatesMatchSameExactHour(currentSlice, new Date())) {
-					foundEntry = true;
-					Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(StringUtils.lowerCase(entry.getPlayerName()));
-					if(maybePlayer.isPresent()) {
-						foundEntry = true;
-						Date simplifiedDate = sdf.parse(sdf.format(new Date()));
-						truncatedHistory.add(new BalanceHistory(entry.getPlayerName(), maybePlayer.get().getLastKnownAmount(), simplifiedDate));
-					}
-				}
-				//if none found, create a valid blank entry
-				if(!foundEntry) {
-					log.warn("could not find an entry even with fully extrapolated data, something went wrong");
-					truncatedHistory.add(new BalanceHistory(entry.getPlayerName(), currentAmount, currentSlice));
-				}
-				//reset foundEntry
-				foundEntry = false;
-			}
-			entry.setBalanceHistory(truncatedHistory);
-		}
-		
-		LeaderboardBalanceData data = new LeaderboardBalanceData(dateSlices, extrapolatedData);
-	    	
-		return data;
-	}
-	    
-	protected boolean twoDatesMatchSameExactHour(Date currentSlice, Date currentBalanceHistoryDate) {
-		Calendar currentSliceCalendar = Calendar.getInstance();
-		currentSliceCalendar.setTime(currentSlice);
-		Calendar currentBalanceHistoryDateCalendar = Calendar.getInstance();
-		currentBalanceHistoryDateCalendar.setTime(currentBalanceHistoryDate);
-		boolean result = currentSliceCalendar.get(Calendar.MONTH) == currentBalanceHistoryDateCalendar.get(Calendar.MONTH)
-				&& currentSliceCalendar.get(Calendar.DAY_OF_MONTH) == currentBalanceHistoryDateCalendar.get(Calendar.DAY_OF_MONTH)
-				&& currentSliceCalendar.get(Calendar.HOUR_OF_DAY) == currentBalanceHistoryDateCalendar.get(Calendar.HOUR_OF_DAY);
-		
-		return result;
-	}
-}
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-class LeaderboardBalanceHistoryEntry {
-	private String playerName;
-	private List<BalanceHistory> balanceHistory;
-}
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-class LeaderboardBalanceData {
-	private List<Date> labels;
-	private List<LeaderboardBalanceHistoryEntry> leaderboardBalanceHistories;
+	
 }

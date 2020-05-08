@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,18 +43,30 @@ public class DumpScheduledTasks {
 	private DumpService dumpService;
 	
 	@Autowired
-	private DumpResourceManager dumpResourceManager;
+	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
 	private PlayerSkillRepo playerSkillRepo;
 	
-	@Scheduled(cron = "0 0 1 * * ?")
+	Timer timer = new Timer();
+	
+	//@Scheduled(cron = "0 0 1 * * ?")
+	public void runAllUpdates() {
+		DumpScheduledTask[] dumpScheduledTasks = new DumpScheduledTask[] {
+				new AllegianceTask(this), new UserSkillsTask(this),
+				new BotListTask(this),new PortraitsTask(this)
+			};
+		for(DumpScheduledTask task : dumpScheduledTasks) {
+			this.timer.schedule(task, 0);
+		}
+	}
+	
 	public Map<String, String> updatePortraits() {
 		log.info("updating portrait cache");
-		Set<String> playerNamesSet = this.dumpService.getPortraitCache().keySet();
+		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPortraitDump();
 		Map<String, String> portraitsFromDump = new HashMap<>();
 		for(String player: playerNamesSet) {
-			String portrait = this.dumpResourceManager.getPortraitForPlayer(player);
+			String portrait = this.dumpDataProvider.getPortraitForPlayer(player);
 			if(!StringUtils.isBlank(portrait)) {
 				portraitsFromDump.put(player, portrait);
 			}
@@ -84,13 +98,12 @@ public class DumpScheduledTasks {
 		return portraitsFromDump;
 	}
 	
-	@Scheduled(cron = "0 15 1 * * ?")
 	public Map<String, BattleGroundTeam> updateAllegiances() {
 		log.info("updating allegiances cache");
-		Set<String> playerNamesSet = this.dumpService.getAllegianceCache().keySet();
+		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForAllegianceDump();
 		Map<String, BattleGroundTeam> allegiancesFromDump = new HashMap<>();
 		for(String player : playerNamesSet) {
-			BattleGroundTeam team = this.dumpResourceManager.getAllegianceForPlayer(player);
+			BattleGroundTeam team = this.dumpDataProvider.getAllegianceForPlayer(player);
 			if(team != null) {
 				allegiancesFromDump.put(player, team);
 			}
@@ -122,7 +135,6 @@ public class DumpScheduledTasks {
 		return allegiancesFromDump;
 	}
 	
-	@Scheduled(cron = "0 30 1 * * ?")
 	public void updateAllSkills() {
 		this.updatePrestigeSkills();
 		this.updateUserSkills();
@@ -130,10 +142,10 @@ public class DumpScheduledTasks {
 	
 	public Map<String, List<String>> updateUserSkills() {
 		log.info("updating user skills cache");
-		Set<String> playerNamesSet = this.dumpService.getLeaderboard().keySet(); //use the larger set of names from the leaderboard
+		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
 		Map<String, List<String>> userSkillsFromDump = new HashMap<>();
 		for(String player: playerNamesSet) {
-			List<String> prestigeSkills = this.dumpResourceManager.getSkillsForPlayer(player);
+			List<String> prestigeSkills = this.dumpDataProvider.getSkillsForPlayer(player);
 			if(prestigeSkills.size() > 0) {
 				userSkillsFromDump.put(player, prestigeSkills);
 			}
@@ -167,10 +179,10 @@ public class DumpScheduledTasks {
 	
 	public Map<String, List<String>> updatePrestigeSkills() {
 		log.info("updating prestige skills cache");
-		Set<String> playerNamesSet = this.dumpService.getPrestigeSkillsCache().keySet(); //use the larger set of names from the leaderboard
+		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
 		Map<String, List<String>> prestigeSkillsFromDump = new HashMap<>();
 		for(String player: playerNamesSet) {
-			List<String> prestigeSkills = this.dumpResourceManager.getPrestigeSkillsForPlayer(player);
+			List<String> prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
 			if(prestigeSkills.size() > 0) {
 				prestigeSkillsFromDump.put(player, prestigeSkills);
 			}
@@ -209,21 +221,48 @@ public class DumpScheduledTasks {
 		return prestigeSkillsFromDump;
 	}
 	
-	@Scheduled(cron = "0 0 2 * * ?")
 	public Set<String> updateBotList() {
 		log.info("updating bot list");
 		
-		Set<String> dumpBots = this.dumpResourceManager.getBots();
+		Set<String> dumpBots = this.dumpDataProvider.getBots();
 		dumpBots.stream().forEach(botName -> this.dumpService.getBotCache().add(botName));
 		
 		log.info("bot list update complete");
 		return this.dumpService.getBotCache();
 	}
 	
-	public void runAllUpdates() {
-		this.updateAllegiances();
-		this.updateAllSkills();
-		this.updateBotList();
-		this.updatePortraits();
+}
+
+abstract class DumpScheduledTask extends TimerTask {
+	protected DumpScheduledTasks dumpScheduledTasksRef;
+	
+	public DumpScheduledTask(DumpScheduledTasks dumpScheduledTasks) {
+		this.dumpScheduledTasksRef = dumpScheduledTasks;
 	}
+	
+	public void run() {
+		this.task();
+	}
+	
+	protected abstract void task();
+}
+
+class AllegianceTask extends DumpScheduledTask {
+	public AllegianceTask(DumpScheduledTasks dumpScheduledTasks) { super(dumpScheduledTasks);}
+	protected void task() {this.dumpScheduledTasksRef.updateAllegiances();}
+}
+
+class UserSkillsTask extends DumpScheduledTask {
+	public UserSkillsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
+	protected void task() {this.dumpScheduledTasksRef.updateAllSkills();}
+}
+
+class BotListTask extends DumpScheduledTask {
+	public BotListTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
+	protected void task() {this.dumpScheduledTasksRef.updateBotList();}
+}
+
+class PortraitsTask extends DumpScheduledTask {
+	public PortraitsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
+	protected void task() {this.dumpScheduledTasksRef.updatePortraits();}
 }

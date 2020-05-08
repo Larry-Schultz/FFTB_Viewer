@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import fft_battleground.botland.model.BetType;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.Music;
+import fft_battleground.dump.model.Music;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
 import fft_battleground.event.detector.FightDetector;
@@ -20,6 +20,7 @@ import fft_battleground.event.detector.LevelUpDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
+import fft_battleground.event.detector.PrestigeAscensionDetector;
 import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
@@ -32,6 +33,7 @@ import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
+import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.ResultEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.SkillWinEvent;
@@ -225,6 +227,21 @@ public class GambleTests {
 	}
 	
 	@Test
+	public void testPrestigeAscensionEventDetector() {
+		String test1 = "OtherBrand, you close your eyes and strip your flesh away, ascending to a new level of prestige. Your gil floor has been increased by 100G, and you learned the Hidden Skill: Teleport2!";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		PrestigeAscensionDetector detector = new PrestigeAscensionDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null);
+		assertTrue(event instanceof PrestigeAscensionEvent);
+		PrestigeAscensionEvent prestigeAscensionEvent= (PrestigeAscensionEvent) event;
+		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent() != null);
+		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent().getPlayer().equals("otherbrand"));
+		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent().getSkills().size() == 1);
+		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent().getSkills().get(0).equals("Teleport2"));
+	}
+	
+	@Test
 	public void testTournamentService() {
 		TournamentService tournamentService = new TournamentService();
 		Tournament currentTournament = tournamentService.getcurrentTournament();
@@ -238,16 +255,19 @@ public class GambleTests {
 		Map<String, Integer> data = dumpService.getHighScoreDump();
 		assertTrue(data != null);
 		
-		Map<String, ExpEvent> expData = dumpService.getDumpResourceManager().getHighExpDump();
-		assertTrue(expData != null);
+		/*
+		 * Map<String, ExpEvent> expData =
+		 * dumpService.getDumpResourceManager().getHighExpDump(); assertTrue(expData !=
+		 * null);
+		 */
 		
 		Collection<Music> musicData = dumpService.getPlaylist();
 		assertTrue(musicData != null);
 		
-		String portrait = dumpService.getDumpResourceManager().getPortraitForPlayer("otherbrand");
+		String portrait = dumpService.getDumpDataProvider().getPortraitForPlayer("otherbrand");
 		assertNotNull(portrait);
 		
-		BattleGroundTeam allegiance = dumpService.getDumpResourceManager().getAllegianceForPlayer("otherbrand");
+		BattleGroundTeam allegiance = dumpService.getDumpDataProvider().getAllegianceForPlayer("otherbrand");
 		assertTrue(allegiance != null && allegiance != BattleGroundTeam.NONE);
 	}
 	

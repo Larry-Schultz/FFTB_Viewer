@@ -15,6 +15,8 @@ public class BalanceEvent extends BattleGroundEvent {
 	private BalanceType balancetype;
 	private BalanceUpdateSource balanceUpdateSource;
 	
+	private Integer balanceChange;
+	
 	public BalanceEvent(BattleGroundEventType event, Integer amount, Integer spendable) {
 		super(event);
 		this.amount = amount;

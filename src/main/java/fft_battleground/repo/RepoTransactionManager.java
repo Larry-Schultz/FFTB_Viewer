@@ -287,6 +287,7 @@ public class RepoTransactionManager {
 			}
 			
 			event = new OtherPlayerBalanceEvent(player, newSimulatedAmount, BalanceType.SIMULATED, balanceUpdateSource);
+			event.getOtherPlayerBalanceEvents().get(0).setBalanceChange(balanceUpdate);
 		}
 		
 		return event;

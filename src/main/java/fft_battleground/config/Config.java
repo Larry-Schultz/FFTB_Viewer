@@ -31,6 +31,7 @@ import fft_battleground.event.detector.OtherPlayerBalanceDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
+import fft_battleground.event.detector.PrestigeAscensionDetector;
 import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.TwitchChatListenerAdapter;
@@ -93,6 +94,6 @@ public class Config {
 			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(),
 			new BettingBeginsDetector(), new MatchInfoDetector(), new AllegianceDetector(), new BetInfoEventDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),
-			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector()});
+			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()});
 	}
 }
