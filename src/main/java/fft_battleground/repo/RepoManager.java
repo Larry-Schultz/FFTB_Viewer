@@ -92,6 +92,8 @@ public class RepoManager extends Thread {
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
+			} catch(Exception e) {
+				log.error("error in RepoManager", e);
 			}
 		}
 	}

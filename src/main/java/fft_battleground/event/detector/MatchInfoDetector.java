@@ -8,7 +8,9 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class MatchInfoDetector implements EventDetector {
 
 	private static final String BEGIN_STRING = "Current match: ";
@@ -18,17 +20,22 @@ public class MatchInfoDetector implements EventDetector {
 	public BattleGroundEvent detect(ChatMessage message) {
 		MatchInfoEvent event = null;
 		if(StringUtils.contains(message.getMessage(), BEGIN_STRING)) {
-			String relevantString = StringUtils.substringBetween(message.getMessage(), BEGIN_STRING, END_STRING);
-			
-			//parse team
-			String teamString = StringUtils.substringBefore(relevantString, " on");
-			Pair<BattleGroundTeam, BattleGroundTeam> teamPair = this.parseTeams(teamString);
-			
-			//parse map
-			String mapString = StringUtils.substringBetween(relevantString, "on ", ".");
-			Pair<Integer, String> mapData = this.parseMap(mapString);
-			
-			event = new MatchInfoEvent(teamPair, mapData);
+			try {
+				String relevantString = StringUtils.substringBetween(message.getMessage(), BEGIN_STRING, END_STRING);
+				
+				//parse team
+				String teamString = StringUtils.substringBefore(relevantString, " on");
+				Pair<BattleGroundTeam, BattleGroundTeam> teamPair = this.parseTeams(teamString);
+				
+				//parse map
+				String mapString = StringUtils.substringBetween(relevantString, "on ", ".");
+				Pair<Integer, String> mapData = this.parseMap(mapString);
+				
+				event = new MatchInfoEvent(teamPair, mapData);
+			} catch(NullPointerException e) {
+				event = null;
+				log.error("Exception found in MatchInfoDetector, the ChatMessage was: {}", message, e);
+			}
 		}
 		return event;
 	}
