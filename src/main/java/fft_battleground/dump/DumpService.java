@@ -106,13 +106,18 @@ public class DumpService {
 	@SneakyThrows
 	private void setUpCaches() {
 		log.info("loading player data cache");
+		
 		List<PlayerRecord> playerRecords = this.playerRecordRepo.findAll();
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownAmount() == null).forEach(playerRecord -> playerRecord.setLastKnownAmount(GambleUtil.MINIMUM_BET));
-		this.balanceCache = new ConcurrentHashMap<>(playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getLastKnownAmount)));
+		log.info("finished loading player cache");
 		
+		log.info("started loading balance cache");
+		this.balanceCache = new ConcurrentHashMap<>(playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getLastKnownAmount)));
+		log.info("finished loading balance cache");
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownLevel() == null).forEach(playerRecord -> playerRecord.setLastKnownLevel((short) 1));
 		this.expCache = playerRecords.parallelStream().map(playerRecord -> new ExpEvent(playerRecord.getPlayer(), playerRecord.getLastKnownLevel(), playerRecord.getLastKnownRemainingExp()))
 							.collect(Collectors.toMap(ExpEvent::getPlayer, Function.identity()));
+		log.info("finished loading exp cache");
 		
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastActive() == null).forEach(playerRecord -> {
 			try {
@@ -123,24 +128,31 @@ public class DumpService {
 			}
 		});
 		this.lastActiveCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getLastActive));
+		log.info("finished loading last active cache");
 		
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getPortrait() == null).forEach(playerRecord -> playerRecord.setPortrait(""));
 		this.portraitCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getPortrait));
+		log.info("finished loading portrait cache");
 		
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getAllegiance() == null).forEach(playerRecord -> playerRecord.setAllegiance(BattleGroundTeam.NONE));
 		this.allegianceCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getAllegiance));
+		log.info("finished loading allegiance cache");
 		
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getPlayerSkills() == null).forEach(playerRecord -> playerRecord.setPlayerSkills(new ArrayList<>()));
 		this.userSkillsCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, 
 				playerRecord -> playerRecord.getPlayerSkills().stream().filter(playerSkill -> playerSkill.getSkillType() == SkillType.USER)
 				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
 				));
+		log.info("finished loading user skills cache");
+		
 		this.prestigeSkillsCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, 
 				playerRecord -> playerRecord.getPlayerSkills().stream().filter(playerSkill -> playerSkill.getSkillType() == SkillType.PRESTIGE)
 				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
 				));
+		log.info("finished loading prestige skills cache");
 		
 		this.botCache = this.dumpDataProvider.getBots();
+		log.info("finished loading bot cache");
 		
 		//run this at startup so leaderboard data works properly
 		this.getHighScoreDump();
