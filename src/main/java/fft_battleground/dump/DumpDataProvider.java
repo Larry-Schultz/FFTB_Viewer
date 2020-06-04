@@ -209,7 +209,7 @@ public class DumpDataProvider {
 		
 		Elements playerNodes = doc.select("a[href$=txt]");
 		for(Element element : playerNodes) {
-			String filename = element.text();
+			String filename = element.attr("href");
 			if(StringUtils.isNotBlank(filename)) {
 				String player = StringUtils.replace(filename, ".txt", "");
 				players.add(player);
