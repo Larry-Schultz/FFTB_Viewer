@@ -50,11 +50,13 @@ public class DumpScheduledTasks {
 	
 	Timer timer = new Timer();
 	
-	//@Scheduled(cron = "0 0 1 * * ?")
+	@Scheduled(cron = "0 0 1 * * ?")
 	public void runAllUpdates() {
 		DumpScheduledTask[] dumpScheduledTasks = new DumpScheduledTask[] {
-				new AllegianceTask(this), new UserSkillsTask(this),
-				new BotListTask(this),new PortraitsTask(this)
+				new AllegianceTask(this), 
+				new BotListTask(this),
+				new PortraitsTask(this),
+				new UserSkillsTask(this)
 			};
 		for(DumpScheduledTask task : dumpScheduledTasks) {
 			this.timer.schedule(task, 0);
@@ -136,8 +138,41 @@ public class DumpScheduledTasks {
 	}
 	
 	public void updateAllSkills() {
-		this.updatePrestigeSkills();
-		this.updateUserSkills();
+		//this.updateUserSkills();
+		//this.updatePrestigeSkills();
+		
+		log.info("updating user and prestige skills caches");
+		Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
+		Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
+		
+		//assume all players with prestige skills have user skills
+		for(String player: userSkillPlayers) {
+			//delete all skills
+			this.playerSkillRepo.deleteSkillsByPlayer(player);
+			this.dumpService.getUserSkillsCache().remove(player);
+			
+			//get user skills
+			List<String> userSkills = this.dumpDataProvider.getSkillsForPlayer(player);
+			
+			//store user skills
+			this.dumpService.getUserSkillsCache().put(player, userSkills);
+			PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
+			this.eventRouter.sendDataToQueues(userSkillsEvent);
+			
+			if(prestigeSkillPlayers.contains(player)) {
+				//get prestige skills
+				List<String> prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
+				
+				//store prestige skills
+				this.dumpService.getPrestigeSkillsCache().remove(player);
+				this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
+				PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
+				this.eventRouter.sendDataToQueues(prestigeEvent);
+			}
+			log.info("refreshed skills for player: {}", player);
+			
+		}
+		log.info("user and prestige skill cache updates complete");
 	}
 	
 	public Map<String, List<String>> updateUserSkills() {
