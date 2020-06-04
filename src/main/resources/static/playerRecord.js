@@ -94,7 +94,7 @@ function populateChart() {
 				options: {
 				    title: {
 				    	display: true,
-				        text: 'Top Player balance based on past participated tournaments (data where available)',
+				        text: 'Player balance based on past participated tournaments (data where available)',
 				        responsive: false,
 				    },
 				    plugins: {
