@@ -110,6 +110,40 @@ public class Images {
 		return result;
 	}
 	
+	public String getPortraitByName(String name, BattleGroundTeam allegiance) {
+		String result = null;
+		if(allegiance == null || allegiance == BattleGroundTeam.NONE) {
+			result = this.getPortraitByName(name);
+		} else {
+			result = this.getPortraitByNameAndAllegiance(name, allegiance);
+		}
+		
+		return result;
+	}
+	
+	protected String getPortraitByNameAndAllegiance(String name, BattleGroundTeam allegiance) {
+		String result = null;
+		
+		String nameCapitalized = StringUtils.capitalize(name);
+		List<Portrait> possibleMatches = this.potraits.parallelStream().filter(portraits -> StringUtils.startsWithIgnoreCase(StringUtils.replace(portraits.getLocation(), ".gif", ""), nameCapitalized)).collect(Collectors.toList());
+		
+		//if only one result, its either a monster, a hero or a portrait I don't have
+		if(possibleMatches.size() == 0) {
+			result = null;
+		} else if(possibleMatches.size() == 1) {
+			result = this.portraitsBaseUrl + possibleMatches.get(0).getLocation();
+		} else {
+			Optional<Portrait> maybeMoreSpecificMatch = possibleMatches.parallelStream().filter(portraits -> portraits.getColor() == allegiance).findFirst();
+			if(maybeMoreSpecificMatch.isPresent()) {
+				result = this.portraitsBaseUrl + maybeMoreSpecificMatch.get().getLocation();
+			} else {
+				result = null;
+			}
+		}
+		
+		return result;
+	}
+	
 	public String getPortraitLocationByTeamInfo(TeamInfo teamInfo) {
 		String result = null;
 		Optional<Portrait> possibleMatch = null;
@@ -168,6 +202,11 @@ class Portrait {
 		}
 		
 		this.location = fileName;
+	}
+	
+	public boolean isMonster() {
+		boolean result = StringUtils.equalsIgnoreCase(gender, "Monster");
+		return result;
 	}
 	
 	protected BattleGroundTeam getColor(String str) {

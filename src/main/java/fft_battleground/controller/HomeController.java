@@ -6,11 +6,14 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.apache.commons.compress.utils.IOUtils;
@@ -34,6 +37,7 @@ import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.Music;
+import fft_battleground.dump.model.PlayerLeaderboard;
 import fft_battleground.model.Images;
 import fft_battleground.repo.MatchRepo;
 import fft_battleground.repo.PlayerRecordRepo;
@@ -41,15 +45,11 @@ import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.tournament.TournamentService;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Controller
 @RequestMapping("/")
 public class HomeController {
-
-	private static final int HIGHEST_PLAYERS = 10;
-	private static final int TOP_PLAYERS = 100;
 	
 	@Autowired
 	private Images images;
@@ -101,7 +101,7 @@ public class HomeController {
 	}
 
 	@GetMapping({"/player/{playerName}"})
-	public String playerDataPage(@PathVariable(name="playerName") String playerName, Model model) {
+	public String playerDataPage(@PathVariable(name="playerName") String playerName, Model model, TimeZone timezone) {
 		if(playerName != null) {
 			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
@@ -112,15 +112,24 @@ public class HomeController {
 						playerSkill -> playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", "")));
 				playerData.setPlayerRecord(record);
 				
+				boolean isBot = this.dumpService.getBotCache().contains(record.getPlayer());
+				playerData.setBot(isBot);
+				
 				if(StringUtils.isNotBlank(record.getPortrait())) {
 					String portrait = record.getPortrait();
-					String portraitUrl = this.images.getPortraitByName(portrait);
+					String portraitUrl = this.images.getPortraitByName(portrait, record.getAllegiance());
 					playerData.setPortraitUrl(portraitUrl);
 				}
 				if(StringUtils.isBlank(record.getPortrait()) || playerData.getPortraitUrl() == null) {
 					List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(record.getPlayer(), PageRequest.of(0,1));
 					if(playerTeamInfo != null && playerTeamInfo.size() > 0) {
 						playerData.setPortraitUrl(this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0)));
+					} else {
+						if(playerData.isBot()) {
+							playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
+						} else {
+							playerData.setPortraitUrl(this.images.getPortraitByName("Ramza"));
+						}
 					}
 				}
 				
@@ -140,6 +149,10 @@ public class HomeController {
 				}
 				playerData.setContainsPrestige(containsPrestige);
 				playerData.setPrestigeLevel(prestigeLevel);
+				
+				if(record.getLastActive() != null) {
+					playerData.setTimezoneFormattedDateString(this.createDateStringWithTimezone(timezone, record.getLastActive()));
+				}
 				
 				Integer leaderboardRank = this.dumpReportsService.getLeaderboardPosition(playerName);
 				playerData.setLeaderboardPosition(leaderboardRank);
@@ -182,20 +195,24 @@ public class HomeController {
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
 	public String playerLeaderboardPage(Model model) {
-		Map<String, Integer> topPlayers = this.dumpReportsService.getTopPlayers(TOP_PLAYERS);
-		List<LeaderboardData> allPlayers =  topPlayers.keySet().parallelStream().map(player-> this.dumpReportsService.collectPlayerLeaderboardData(player)).filter(result -> result != null).sorted().collect(Collectors.toList());
-		Collections.reverse(allPlayers);
-		for(int i = 0; i < allPlayers.size(); i++) { 
-			allPlayers.get(i).setRank(i + 1); 
-		}
-		
-		List<LeaderboardData> highestPlayers = allPlayers.parallelStream().filter(leaderboardData -> leaderboardData.getRank() <= HIGHEST_PLAYERS).collect(Collectors.toList());
-		List<LeaderboardData> topPlayersList = allPlayers.parallelStream().filter(leaderboardData -> leaderboardData.getRank() > HIGHEST_PLAYERS && leaderboardData.getRank() <= TOP_PLAYERS).collect(Collectors.toList());
-		PlayerLeaderboard leaderboard = new PlayerLeaderboard(highestPlayers, topPlayersList);
+		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
 		model.addAttribute("leaderboard", leaderboard);
-		model.addAttribute("topPlayersCommaSplit", StringUtils.join(highestPlayers.stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
+		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
 		
 		return "playerLeaderboard.html";
+	}
+	
+	protected String createDateStringWithTimezone(TimeZone zone, Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
+
+		//Here you say to java the initial timezone. This is the secret
+		sdf.setTimeZone(zone);
+		//Will print in UTC
+		String result = sdf.format(calendar.getTime());    
+
+		return result;
 	}
 	
 }
@@ -209,15 +226,10 @@ class PlayerData {
 	private String fightRatio;
 	private String betRatio;
 	private boolean containsPrestige = false;
+	private boolean bot = false;
 	private int prestigeLevel = 0;
 	private Integer leaderboardPosition;
+	private String timezoneFormattedDateString;
 	
 	public PlayerData() {}
-}
-
-@Data
-@AllArgsConstructor
-class PlayerLeaderboard {
-	private List<LeaderboardData> highestPlayers;
-	private List<LeaderboardData> topPlayers;
 }

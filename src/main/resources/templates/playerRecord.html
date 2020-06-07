@@ -34,10 +34,10 @@
 									<div class="cell small-2">
 										<div class="grid-y">
 											<div class="cell small-2">
-												<span id="playerName" th:text="${playerData.playerRecord.player}" style="font-weight: bold;" />
+												<span id="playerName" th:text="${playerData.playerRecord.player}" style="font-weight: bold;" /><span th:if="${playerData.bot}" style="color: red"> (bot)</span>
 											</div>
 											<div class="cell small-6">
-												<img th:src="${playerData.portraitUrl}" style="height: 180px" />
+												<img th:src="${playerData.portraitUrl}" style="height: 250px" />
 											</div>
 											<div class="cell small-4"></div>
 										</div>
@@ -61,6 +61,7 @@
 											<span>Estimated Balance: </span><span id="estimatedBalanceSpan" th:text="${playerData.playerRecord.lastKnownAmount}" /> <span> Highest Known Amount: </span><span id="highestKnownAmount" th:text="${playerData.playerRecord.highestKnownAmount}" /><br />
 											<span>Estimated Level: </span><span id="estimatedLevelSpan" th:text="${playerData.playerRecord.lastKnownLevel}" /><span> Estimated Remaining Exp: </span><span id="estimatedRemainingExp" th:text="${playerData.playerRecord.lastKnownRemainingExp}" /><br />
 											<span>Allegiance: </span><span id="allegiance" th:text="${playerData.playerRecord.allegiance}" onload="setColor('allegiance');" /><span> Prestige Level: </span><span id="prestigeLevel" th:text="${playerData.prestigeLevel}" /><br />
+											<span>Last Active: </span><span id="lastActive" th:text="${playerData.timezoneFormattedDateString}" /><br />
 											<span>Leaderboard Rank: #</span><span id="rank" th:text="${playerData.leaderboardPosition}" />
 											</div>
 											<div class="cell small-2">

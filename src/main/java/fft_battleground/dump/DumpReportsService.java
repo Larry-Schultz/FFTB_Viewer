@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -19,15 +20,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 import fft_battleground.dump.model.LeaderboardBalanceData;
 import fft_battleground.dump.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.model.LeaderboardData;
+import fft_battleground.dump.model.PlayerLeaderboard;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.PlayerRecord;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,11 +40,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DumpReportsService {
 
+	private static final String LEADERBOARD_KEY = "leaderboard";
+	private static final String BOT_LEADERBOARD_KEY = "botleaderboard";
+	private static final int HIGHEST_PLAYERS = 10;
+	private static final int TOP_PLAYERS = 100;
+	
 	@Autowired
 	private DumpService dumpService;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
+	
+	private Cache<String, PlayerLeaderboard> leaderboardCache = Caffeine.newBuilder()
+			  .expireAfterWrite(12, TimeUnit.HOURS)
+			  .maximumSize(1)
+			  .build();
+	
+	private Cache<String, Map<String, Integer>> botLeaderboardCache = Caffeine.newBuilder()
+			  .expireAfterWrite(12, TimeUnit.HOURS)
+			  .maximumSize(1)
+			  .build();
 	
 	public Integer getLeaderboardPosition(String player) {
 		String lowercasePlayer = StringUtils.lowerCase(player);
@@ -48,6 +68,17 @@ public class DumpReportsService {
 	}
 	
 	public Map<String, Integer> getBotLeaderboard() {
+		Map<String, Integer> botLeaderboard = this.botLeaderboardCache.getIfPresent(BOT_LEADERBOARD_KEY);
+		if(botLeaderboard == null) {
+			log.warn("bot leaderboard cache was busted, creating new value");
+			botLeaderboard = this.generateBotLeaderboard();
+			this.botLeaderboardCache.put(BOT_LEADERBOARD_KEY, botLeaderboard);
+		}
+		
+		return botLeaderboard;
+	}
+	
+	protected Map<String, Integer> generateBotLeaderboard() {
 		Map<String, Integer> botBalances = new TreeMap<String, Integer>(this.dumpService.getBotCache().parallelStream().filter(botName -> this.dumpService.getBalanceCache().containsKey(botName))
 				.collect(Collectors.toMap(Function.identity(), bot -> this.dumpService.getBalanceCache().get(bot))));
 		return botBalances;
@@ -65,7 +96,34 @@ public class DumpReportsService {
 		return leaderboardWithoutBots;
 	}
 	
-	public LeaderboardData collectPlayerLeaderboardData(String player) {
+	
+	public PlayerLeaderboard getLeaderboard() {
+		PlayerLeaderboard leaderboard = this.leaderboardCache.getIfPresent(LEADERBOARD_KEY);
+		if(leaderboard == null) {
+			log.warn("Leaderboard cache was busted, creating new value");
+			leaderboard = this.generatePlayerLeaderboardData();
+			this.leaderboardCache.put(LEADERBOARD_KEY, leaderboard);
+		}
+		
+		return leaderboard;
+	}
+	
+	protected PlayerLeaderboard generatePlayerLeaderboardData() {
+		Map<String, Integer> topPlayers = this.getTopPlayers(TOP_PLAYERS);
+		List<LeaderboardData> allPlayers =  topPlayers.keySet().parallelStream().map(player-> this.collectPlayerLeaderboardDataByPlayer(player)).filter(result -> result != null).sorted().collect(Collectors.toList());
+		Collections.reverse(allPlayers);
+		for(int i = 0; i < allPlayers.size(); i++) { 
+			allPlayers.get(i).setRank(i + 1); 
+		}
+		
+		List<LeaderboardData> highestPlayers = allPlayers.parallelStream().filter(leaderboardData -> leaderboardData.getRank() <= HIGHEST_PLAYERS).collect(Collectors.toList());
+		List<LeaderboardData> topPlayersList = allPlayers.parallelStream().filter(leaderboardData -> leaderboardData.getRank() > HIGHEST_PLAYERS && leaderboardData.getRank() <= TOP_PLAYERS).collect(Collectors.toList());
+		PlayerLeaderboard leaderboard = new PlayerLeaderboard(highestPlayers, topPlayersList);
+		
+		return leaderboard;
+	}
+	
+	protected LeaderboardData collectPlayerLeaderboardDataByPlayer(String player) {
 		NumberFormat myFormat = NumberFormat.getInstance();
 		myFormat.setGroupingUsed(true);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
@@ -180,9 +238,39 @@ public class DumpReportsService {
 			entry.setBalanceHistory(truncatedHistory);
 		}
 		
+		//smooth out zero results.  0 is not possible for balances, so must be caused by missing data
+		for(LeaderboardBalanceHistoryEntry entry: extrapolatedData) {
+			this.smoothOutZeroes(entry);
+		}
+		
 		LeaderboardBalanceData data = new LeaderboardBalanceData(dateSlices, extrapolatedData);
 	    	
 		return data;
+	}
+	
+	/**
+	 * Zero is not a valid result for balance, and must be caused by missing data.
+	 * This function iterates over all balance history data backwards, setting any 0 value to
+	 * the first valid value that follows it.
+	 * 
+	 * @param extrapolatedData
+	 */
+	protected void smoothOutZeroes(LeaderboardBalanceHistoryEntry extrapolatedData) {
+		//increment in reverse
+		Integer previousAmount = null;
+		List<BalanceHistory> balanceHistory = extrapolatedData.getBalanceHistory();
+		for(int i = balanceHistory.size() - 1; i >= 0; i--) {
+			BalanceHistory currentBalanceHistory = balanceHistory.get(i);
+			if(previousAmount == null) {
+				previousAmount = currentBalanceHistory.getBalance();
+			} else if(currentBalanceHistory.getBalance().equals(0)) {
+				currentBalanceHistory.setBalance(previousAmount);
+			} else {
+				previousAmount = currentBalanceHistory.getBalance();
+			}
+		}
+
+		return;
 	}
 	    
 	protected boolean twoDatesMatchSameExactHour(Date currentSlice, Date currentBalanceHistoryDate) {
