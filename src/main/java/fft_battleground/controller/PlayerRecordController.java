@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -152,7 +153,8 @@ public class PlayerRecordController {
 	
 	@GetMapping("/playerList")
 	public ResponseEntity<GenericResponse<List<String>>> playerNames() {
-		List<String> playerNames = this.playerRecordRepo.findPlayerNames().stream().sorted().collect(Collectors.toList());
+		List<String> playerNames = this.playerRecordRepo.findPlayerNames().stream().map(player -> StringUtils.trim(StringUtils.lowerCase(player)))
+				.collect(Collectors.toSet()).stream().sorted().collect(Collectors.toList());
 		return GenericResponse.createGenericResponseEntity(playerNames);
 	}
 	
