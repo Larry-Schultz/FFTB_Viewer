@@ -182,6 +182,7 @@ public class RepoTransactionManager {
 	@Transactional
 	public void updatePlayerLevel(LevelUpEvent event) {
 		String id = StringUtils.lowerCase(event.getPlayer());
+		event.setPlayer(id);
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
 			maybeRecord.get().setLastKnownLevel(event.getLevel());
