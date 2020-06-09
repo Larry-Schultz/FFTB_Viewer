@@ -17,4 +17,10 @@ public interface PlayerRecordRepo extends JpaRepository<PlayerRecord, String> {
 	@Query("SELECT player.player AS playerName FROM PlayerRecord") 
     public List<String> findPlayerNames();
 	
+	//SELECT player_record FROM PlayerRecord player WHERE player.player LIKE :username
+	@Query("SELECT player_record FROM PlayerRecord player_record WHERE player_record.player LIKE %:username%")
+	public List<PlayerRecord> findLikePlayer(String username);
+	
+	@Query("SELECT player_record.player AS playerName FROM PlayerRecord player_record WHERE player_record.player LIKE %:username%")
+	public List<String> findPlayerNameByLike(String username);
 }

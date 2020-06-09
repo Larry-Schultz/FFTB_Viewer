@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.TeamInfoEvent;
+import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.PlayerRecordRepo;
@@ -160,6 +162,10 @@ public class EventParser extends Thread {
 						}
 					}
 					break;
+				case UNIT_INFO:
+					UnitInfoEvent unitEvent = (UnitInfoEvent) battleGroundEvent;
+					this.attachMetadataToUnitInfo(unitEvent);
+					break;
 				default:
 					break;
 					
@@ -209,23 +215,46 @@ public class EventParser extends Thread {
 	
 	protected void attachMetadataToTeamInfo(TeamInfoEvent event) {
 		List<PlayerRecord> metadataRecords = new ArrayList<>();
+		List<Pair<String, String>> replacementPairList = new ArrayList<>();
 		for(Pair<String, String> playerUnitData : event.getPlayerUnitPairs()) {
 			PlayerRecord metadata = new PlayerRecord();
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(playerUnitData.getLeft()));
-			if(maybeRecord.isPresent()) {
-				PlayerRecord record = maybeRecord.get();
-				metadata.setPlayer(playerUnitData.getLeft());
+			
+			//because names from the tournament api have '_' replaced with ' '.  multiple '_' are replaced with a single ' ' 
+			String playerName = playerUnitData.getLeft();
+			playerName = StringUtils.lowerCase(playerName);
+			String likePlayerNameString = StringUtils.replace(playerName, " ", "%"); 
+			List<PlayerRecord> records = this.playerRecordRepo.findLikePlayer(likePlayerNameString);
+			
+			if(records != null && records.size() > 0) {
+				PlayerRecord record = records.get(0);
+				metadata.setPlayer(record.getPlayer());
 				metadata.setFightWins(record.getFightWins());
 				metadata.setFightLosses(record.getFightLosses());
+				Pair<String, String> newPair = new ImmutablePair<>(record.getPlayer(), playerUnitData.getRight());
+				replacementPairList.add(newPair);
 			} else {
 				metadata.setPlayer(playerUnitData.getLeft());
 				metadata.setFightWins(0);
 				metadata.setFightLosses(0);
+				replacementPairList.add(playerUnitData);
 			}
 			metadataRecords.add(metadata);
 		}
+		event.setPlayerUnitPairs(replacementPairList);
 		
 		event.setMetaData(metadataRecords);
+	}
+	
+	protected void attachMetadataToUnitInfo(UnitInfoEvent event) {
+		String playerName = event.getPlayer();
+		playerName = StringUtils.lowerCase(playerName);
+		String likePlayerNameString = StringUtils.replace(playerName, " ", "%"); 
+		List<String> possiblePlayerNames = this.playerRecordRepo.findPlayerNameByLike(likePlayerNameString);
+		if(possiblePlayerNames != null && possiblePlayerNames.size() > 0) {
+			event.setPlayer(possiblePlayerNames.get(0));
+		} else {
+			event.setPlayer(playerName);
+		}
 	}
 	
 	protected void attachMetadataToPrestigeAscension(PrestigeAscensionEvent event) {
