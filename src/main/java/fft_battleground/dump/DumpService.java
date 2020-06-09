@@ -83,6 +83,9 @@ public class DumpService {
 	private DumpScheduledTasks dumpScheduledTasks;
 	
 	@Autowired
+	private DumpReportsService dumpReportsService;
+	
+	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
@@ -155,7 +158,13 @@ public class DumpService {
 		log.info("finished loading bot cache");
 		
 		//run this at startup so leaderboard data works properly
+		log.info("pre-cache leaderboard data");
 		this.getHighScoreDump();
+		
+		//run this at startup so the leaderboard caches are pre-loaded (and don't cause lag for the rest of the machine
+		this.dumpReportsService.getBotLeaderboard();
+		this.dumpReportsService.getLeaderboard();
+		log.info("leaderboard data cache complete");
 		
 		//this.dumpScheduledTasks.runAllUpdates();
 		
