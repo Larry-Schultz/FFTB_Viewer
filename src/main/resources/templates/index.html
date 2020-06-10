@@ -43,6 +43,41 @@
 </style>
 <head>
 	<link rel="icon" href="/img/bigbrain.png">
+	<script src="https://embed.twitch.tv/embed/v1.js"></script>
+	<script>
+		function createTwitchEmbed() {
+			var twitchEmbed = new Twitch.Embed("twitch-embed", {
+		        width: 620,
+		        height: 378,
+		        channel: "fftbattleground",
+		        layout: "video",
+		        theme: "dark",
+		        // only needed if your site is also embedded on embed.example.com and othersite.example.com 
+		        parent: ["theotherbrancomputer.asuscomm.com"]
+		      });
+			
+			return twitchEmbed;
+		}
+	
+		var twitchEnabled = true;
+		var twitchEmbed = null;
+		
+		function toggleTwitchStream() {
+			if(twitchEnabled) {
+				$('#twitch-embed').hide();
+				$('#twitch-hide-text').hide();
+				$('#twitch-show-text').show();
+				twitchEmbed.getPlayer().pause();
+				twitchEnabled = false;
+			} else {
+				$('#twitch-embed').show();
+				$('#twitch-hide-text').show();
+				$('#twitch-show-text').hide();
+				twitchEmbed.getPlayer().play();
+				twitchEnabled=true;
+			}
+		}
+	</script>
 </head>
 <body  style="background-color: white">
 <div th:replace="fragments/menu :: menu"></div>
@@ -53,7 +88,17 @@
 				<div class="grid-container">
 					<div class="cell small-5"><br /></div>
 					<div class="cell small-2">
-						<iframe src="https://player.twitch.tv/?channel=fftbattleground&parent=theotherbrancomputer.asuscomm.com&autoplay=false" frameborder="0" allowfullscreen="true" scrolling="no" height="378" width="620" style="display: block; margin-left: auto; margin-right: auto;"></iframe>
+						<input type="image" src="img/twitch.png" onclick="toggleTwitchStream();" style="height: 50px; width: auto; display: block; margin-left: auto; margin-right: auto;" />
+						<div style=" text-align: center;">
+							<span id="twitch-hide-text" style="display: block; margin-left: auto; margin-right: auto;">(hide stream)</span>
+							<span id="twitch-show-text" style="display: block; margin-left: auto; margin-right: auto;">(show stream)</span>
+						</div>
+						<br />
+						<div id="twitch-embed" style="display: block; margin-left: auto; margin-right: auto; text-align: center;"></div>
+						<script>
+							twitchEmbed = createTwitchEmbed();
+						</script>
+						<!-- <iframe src="https://player.twitch.tv/?channel=fftbattleground&parent=theotherbrancomputer.asuscomm.com&autoplay=false" frameborder="0" allowfullscreen="true" scrolling="no" height="378" width="620" style="display: block; margin-left: auto; margin-right: auto;"></iframe> -->
 					</div>
 					<div class="cell small-5"><br /></div>
 				</div>
@@ -293,7 +338,12 @@
     <script src="webjars/foundation/6.2.3/dist/foundation.min.js"></script>
 	<script src="https://unpkg.com/@popperjs/core@2"></script>
 	<script src="https://unpkg.com/tippy.js@6"></script>
-    <script>$(document).foundation();</script>
+	
+    <script>
+    $(document).foundation();
+    $('#twitch-hide-text').show();
+	$('#twitch-show-text').hide();
+    </script>
     <script src="app.js"></script>
     <script>
     </script>
