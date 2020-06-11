@@ -1,11 +1,22 @@
 package fft_battleground.repo;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import fft_battleground.repo.model.GlobalGilHistory;
+import lombok.SneakyThrows;
 
 public interface GlobalGilHistoryRepo extends JpaRepository<GlobalGilHistory, String> {
+	
+	public static final int RESULTS_COUNT = 10;
 
 	@Query(nativeQuery=true, value="select sum(amounts.amount) " + 
 			"from ( " + 
@@ -19,4 +30,37 @@ public interface GlobalGilHistoryRepo extends JpaRepository<GlobalGilHistory, St
 			") amounts ")
 	public Long getLiquidityFromLastWeek();
 	
+	@Query("SELECT globalGilHistory FROM GlobalGilHistory globalGilHistory WHERE globalGilHistory.date_string = :dateString")
+	public GlobalGilHistory getGlobalGilHistoryByDateString(@Param("dateString") String dateString);
+	
+	@SneakyThrows
+	public default GlobalGilHistory getFirstGlobalGilHistory() {
+		LocalDate today = LocalDate.now();
+		DateTimeFormatter sdf = DateTimeFormatter.ofPattern(GlobalGilHistory.dateFormatString);
+		String dateString = sdf.format(today);
+		GlobalGilHistory todaysHistory = this.getGlobalGilHistoryByDateString(dateString);
+		return todaysHistory;
+	}
+	
+	@Query("SELECT globalGilHistory FROM GlobalGilHistory globalGilHistory WHERE globalGilHistory.date_string IN :dateStringList")
+	public List<GlobalGilHistory> getGlobalGilMatchingDateStrings(@Param("dateStringList") List<String> dateStringList);
+	
+	@SneakyThrows
+	public default List<GlobalGilHistory> getGlobalGilHistoryByCalendarTimeType(ChronoUnit timeUnit) {
+		List<GlobalGilHistory> histories = new ArrayList<>();
+		LocalDate today = LocalDate.now();
+		DateTimeFormatter sdf = DateTimeFormatter.ofPattern(GlobalGilHistory.dateFormatString);
+		List<String> dateStrings = new ArrayList<>();
+		int i = 0;
+		do {
+			String dateString = sdf.format(today);
+			dateStrings.add(dateString);
+			today = today.plus(-1, timeUnit);
+			i++;
+		} while(i < RESULTS_COUNT);
+		
+		histories = this.getGlobalGilMatchingDateStrings(dateStrings);
+		Collections.sort(histories, Collections.reverseOrder());
+		return histories;
+	}
 }

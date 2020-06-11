@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.StringReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -43,7 +41,6 @@ import com.google.common.collect.Maps;
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BattleGroundEventType;
-import fft_battleground.botland.model.SkillType;
 import fft_battleground.dump.model.Music;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -59,6 +56,7 @@ import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,19 +84,19 @@ public class DumpService {
 	private DumpReportsService dumpReportsService;
 	
 	@Autowired
-	private PlayerRecordRepo playerRecordRepo;
+	@Getter private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
 	private Router<BattleGroundEvent> eventRouter;
 	
-	@Getter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
-	@Getter private Map<String, ExpEvent> expCache = new HashMap<>();
-	@Getter private Map<String, Date> lastActiveCache = new HashMap<>();
-	@Getter private Map<String, String> portraitCache = new HashMap<>();
-	@Getter private Map<String, BattleGroundTeam> allegianceCache = new HashMap<>();
-	@Getter private Map<String, List<String>> userSkillsCache = new HashMap<>();
-	@Getter private Map<String, List<String>> prestigeSkillsCache = new HashMap<>();
-	@Getter private Set<String> botCache;
+	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, ExpEvent> expCache = new HashMap<>();
+	@Getter @Setter private Map<String, Date> lastActiveCache = new HashMap<>();
+	@Getter @Setter private Map<String, String> portraitCache = new HashMap<>();
+	@Getter @Setter private Map<String, BattleGroundTeam> allegianceCache = new HashMap<>();
+	@Getter @Setter private Map<String, List<String>> userSkillsCache = new HashMap<>();
+	@Getter @Setter private Map<String, List<String>> prestigeSkillsCache = new HashMap<>();
+	@Getter @Setter private Set<String> botCache;
 	
 	@Getter private Map<String, Integer> leaderboard = new HashMap<>();
 	
@@ -110,50 +108,16 @@ public class DumpService {
 	private void setUpCaches() {
 		log.info("loading player data cache");
 		
+		
+		
 		List<PlayerRecord> playerRecords = this.playerRecordRepo.findAll();
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownAmount() == null).forEach(playerRecord -> playerRecord.setLastKnownAmount(GambleUtil.MINIMUM_BET));
 		log.info("finished loading player cache");
 		
-		log.info("started loading balance cache");
-		this.balanceCache = new ConcurrentHashMap<>(playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getLastKnownAmount)));
-		log.info("finished loading balance cache");
-		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownLevel() == null).forEach(playerRecord -> playerRecord.setLastKnownLevel((short) 1));
-		this.expCache = playerRecords.parallelStream().map(playerRecord -> new ExpEvent(playerRecord.getPlayer(), playerRecord.getLastKnownLevel(), playerRecord.getLastKnownRemainingExp()))
-							.collect(Collectors.toMap(ExpEvent::getPlayer, Function.identity()));
-		log.info("finished loading exp cache");
+		DumpCacheBuilder builder = new DumpCacheBuilder(this);
+		builder.buildCache(playerRecords);
 		
-		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastActive() == null).forEach(playerRecord -> {
-			try {
-				SimpleDateFormat dateFormatter = new SimpleDateFormat(dateActiveFormatString);
-				playerRecord.setLastActive(dateFormatter.parse("Wed Jan 01 00:00:00 EDT 2020"));
-			} catch (ParseException e) {
-				log.error("error parsing date for lastActive", e);
-			}
-		});
-		this.lastActiveCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getLastActive));
-		log.info("finished loading last active cache");
-		
-		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getPortrait() == null).forEach(playerRecord -> playerRecord.setPortrait(""));
-		this.portraitCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getPortrait));
-		log.info("finished loading portrait cache");
-		
-		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getAllegiance() == null).forEach(playerRecord -> playerRecord.setAllegiance(BattleGroundTeam.NONE));
-		this.allegianceCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getAllegiance));
-		log.info("finished loading allegiance cache");
-		
-		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getPlayerSkills() == null).forEach(playerRecord -> playerRecord.setPlayerSkills(new ArrayList<>()));
-		this.userSkillsCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, 
-				playerRecord -> playerRecord.getPlayerSkills().stream().filter(playerSkill -> playerSkill.getSkillType() == SkillType.USER)
-				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
-				));
-		log.info("finished loading user skills cache");
-		
-		this.prestigeSkillsCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, 
-				playerRecord -> playerRecord.getPlayerSkills().stream().filter(playerSkill -> playerSkill.getSkillType() == SkillType.PRESTIGE)
-				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
-				));
-		log.info("finished loading prestige skills cache");
-		
+		log.info("started loading bot cache");
 		this.botCache = this.dumpDataProvider.getBots();
 		log.info("finished loading bot cache");
 		

@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import fft_battleground.botland.model.SkillType;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.Music;
 import fft_battleground.dump.model.PlayerLeaderboard;
@@ -200,6 +201,14 @@ public class HomeController {
 		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
 		
 		return "playerLeaderboard.html";
+	}
+	
+	@GetMapping("/gilCount")
+	public String gilCountPage(Model model) {
+		GlobalGilPageData data = this.dumpReportsService.getGlobalGilData();
+		model.addAttribute("globalGilData", data);
+		return "globalGil.html";
+		
 	}
 	
 	protected String createDateStringWithTimezone(TimeZone zone, Date date) {

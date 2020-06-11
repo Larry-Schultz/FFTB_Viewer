@@ -3,6 +3,7 @@ package fft_battleground.dump;
 import java.sql.Timestamp;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -25,12 +26,15 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.LeaderboardBalanceData;
 import fft_battleground.dump.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.PlayerLeaderboard;
+import fft_battleground.repo.GlobalGilHistoryRepo;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.BalanceHistory;
+import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 
 import lombok.SneakyThrows;
@@ -51,6 +55,9 @@ public class DumpReportsService {
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
+	@Autowired
+	private GlobalGilHistoryRepo globalGilHistoryRepo;
+	
 	private Cache<String, PlayerLeaderboard> leaderboardCache = Caffeine.newBuilder()
 			  .expireAfterWrite(12, TimeUnit.HOURS)
 			  .maximumSize(1)
@@ -60,6 +67,18 @@ public class DumpReportsService {
 			  .expireAfterWrite(12, TimeUnit.HOURS)
 			  .maximumSize(1)
 			  .build();
+	
+	public GlobalGilPageData getGlobalGilData() {
+		GlobalGilPageData data = null;
+		GlobalGilHistory todaysData = this.globalGilHistoryRepo.getFirstGlobalGilHistory();
+		List<GlobalGilHistory> historyByDay = this.globalGilHistoryRepo.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.DAYS);
+		List<GlobalGilHistory> historyByWeek = this.globalGilHistoryRepo.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.WEEKS);
+		List<GlobalGilHistory> historyByMonth = this.globalGilHistoryRepo.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.MONTHS);
+		
+		data = new GlobalGilPageData(todaysData, historyByDay, historyByWeek, historyByMonth);
+		
+		return data;
+	}
 	
 	public Integer getLeaderboardPosition(String player) {
 		String lowercasePlayer = StringUtils.lowerCase(player);

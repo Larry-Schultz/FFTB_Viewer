@@ -4,31 +4,123 @@
 </head>
 <body>
 	<div th:replace="fragments/menu :: menu"></div>
-	<div class="grid-x fluid">
-		<div class="cell small-4"></div>
-		<div class="cell small-4">
-			<div class="grid-y fluid">
-				<div class="cell small-1"></div>
-				<div class="cell small-3">
-					<canvas id="global-gil-chart" width="400" height="225"></canvas>
-				</div>
-				<div class="cell small-3">
-					<canvas id="gil-per-player-chart" width="400" height="225"></canvas>
-				</div>
-				<div class="cell small-3">
-					<canvas id="line-chart" width="400" height="225"></canvas>
-				</div>
-				<div class="cell small-2"></div>
-			</div>
-		</div>
-		<div class="cell small-4">
+	<div class="grid-y fluid">
+		<div class="cell small-1"></div>
+		<div class="cell small-3" style=" text-align: center;">
+			<h1>Current Global Gil Count: </h1><br />
+			<h1 th:text="${globalGilData.todaysCount.displayGlobalGilCountWithWebFormat()}" />
+			<p>as of: <span th:text="${globalGilData.todaysCount.displayDateWithWebFormat()}" /></p>
 			<br />
 		</div>
+		<div class="cell small-2"></div>
+		<div class="cell small-4">
+			<div class="grid-x">
+				<div class="cell small-4"></div>
+				<div class="cell small-4" style=" text-align: center;">
+					<ul class="tabs" data-tabs id="global-gil-tabs">
+						<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">By Day</a></li>
+						<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">By Week</a></li>
+						<li class="tabs-title"><a data-tabs-target="panel3" href="#panel3">By Month</a></li>
+					</ul>
+					<div class="tabs-content" data-tabs-content="global-gil-tabs">
+						<div class="tabs-panel is-active" id="panel1">
+							<table>
+								<thead>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="globalGilCount: ${globalGilData.countByDay}">
+										<td th:text="${globalGilCount.displayDateWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGlobalGilCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayPlayerCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGilPerPlayerWithWebFormat()}" />
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+						<div class="tabs-panel" id="panel2">
+							<table>
+								<thead>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="globalGilCount: ${globalGilData.countByWeek}">
+										<td th:text="${globalGilCount.displayDateWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGlobalGilCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayPlayerCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGilPerPlayerWithWebFormat()}" />
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+						<div class="tabs-panel" id="panel3">
+							<table>
+								<thead>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="globalGilCount: ${globalGilData.countByMonth}">
+										<td th:text="${globalGilCount.displayDateWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGlobalGilCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayPlayerCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGilPerPlayerWithWebFormat()}" />
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="cell small-4"></div>
+			</div>
+		</div>
+		<div class="cell small-2"></div>
 	</div>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.5.1/dist/css/foundation.min.css" integrity="sha256-1mcRjtAxlSjp6XJBgrBeeCORfBp/ppyX4tsvpQVCcpA= sha384-b5S5X654rX3Wo6z5/hnQ4GBmKuIJKMPwrJXn52ypjztlnDK2w9+9hSMBz/asy9Gw sha512-M1VveR2JGzpgWHb0elGqPTltHK3xbvu3Brgjfg4cg5ZNtyyApxw/45yHYsZ/rCVbfoO5MSZxB241wWq642jLtA==" crossorigin="anonymous">
 	<link rel="stylesheet" href="/webjars/jquery-ui/1.12.1/jquery-ui.min.css" />
 	<script src="/webjars/jquery/1.8.3/jquery.min.js"></script>
 	<script src="/webjars/jquery-ui/1.12.1/jquery-ui.min.js"></script>
 	<script src="/webjars/foundation/6.2.3/dist/foundation.min.js"></script>
+	<script>
+		$(document).foundation();
+	</script>
 </body>
 </html>
