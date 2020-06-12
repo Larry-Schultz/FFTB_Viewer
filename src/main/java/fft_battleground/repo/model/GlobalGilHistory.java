@@ -59,10 +59,8 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 	
 	@SneakyThrows
 	public String displayDateWithWebFormat() {
-		String currentFormat = this.getDate_string();
-		SimpleDateFormat globalGilFormat = new SimpleDateFormat(GlobalGilHistory.dateFormatString);
 		SimpleDateFormat pageFormat = new SimpleDateFormat(DISPLAY_FORMAT);
-		Date historyDate = globalGilFormat.parse(currentFormat);
+		Date historyDate = this.getDate();
 		String newFormat = pageFormat.format(historyDate);
 		return newFormat;
 	}
@@ -94,6 +92,14 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 	public Long getGilPerPlayer() {
 		Long result = this.global_gil_count/this.player_count;
 		return result;
+	}
+	
+	@SneakyThrows
+	public Date getDate() {
+		String currentFormat = this.getDate_string();
+		SimpleDateFormat globalGilFormat = new SimpleDateFormat(GlobalGilHistory.dateFormatString);
+		Date historyDate = globalGilFormat.parse(currentFormat);
+		return historyDate;
 	}
 
 	@Override
