@@ -18,6 +18,7 @@
 								<th>Rank</th>
 								<th>Name</th>
 								<th>Balance</th>
+								<th>Percentage of Global Gil</th>
 								<th>Last Active</th>
 							</tr>	
 						</thead>
@@ -30,6 +31,7 @@
 									</a>
 								</td>
 								<td th:id="${bot.name} + 'Amount'" th:text="${bot.gil}" />
+								<td th:id="${bot.name} + 'PercentageOfGlobalGil'" th:text="${bot.percentageOfGlobalGil} + '%'" />
 								<td th:id="${bot.name} + 'LastActive'" th:text="${bot.lastActiveDate}" />
 							</tr>
 						</tbody>
