@@ -41,6 +41,7 @@ import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.Music;
 import fft_battleground.dump.model.PlayerLeaderboard;
+import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.model.Images;
 import fft_battleground.repo.MatchRepo;
 import fft_battleground.repo.PlayerRecordRepo;
@@ -217,7 +218,9 @@ public class HomeController {
 	@GetMapping("/expLeaderboard")
 	public String expLeaderboard(Model model) {
 		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
+		List<PrestigeTableEntry> prestigeEntries = this.dumpReportsService.generatePrestigeTable();
 		model.addAttribute("leaderboard", leaderboardEntries);
+		model.addAttribute("prestigeTable", prestigeEntries);
 		
 		return "expLeaderboard.html";
 	}

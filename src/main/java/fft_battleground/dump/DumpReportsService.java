@@ -33,6 +33,7 @@ import fft_battleground.dump.model.LeaderboardBalanceData;
 import fft_battleground.dump.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.PlayerLeaderboard;
+import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.repo.GlobalGilHistoryRepo;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.BalanceHistory;
@@ -203,6 +204,19 @@ public class DumpReportsService {
 				results.add(result);
 			}
 		}
+		
+		return results;
+	}
+	
+	@SneakyThrows
+	public List<PrestigeTableEntry> generatePrestigeTable() {
+		List<PrestigeTableEntry> results = this.dumpService.getPrestigeSkillsCache().keySet().parallelStream()
+			.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player) != null)
+			.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player).size() != 0)
+			.map(player -> new PrestigeTableEntry(player, this.dumpService.getPrestigeSkillsCache().get(player).size())).collect(Collectors.toList());
+		SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
+		results.stream().forEach(prestigeTableEntry -> prestigeTableEntry.setLastActive(format.format(this.dumpService.getLastActiveCache().get(prestigeTableEntry.getName()))));
+		Collections.sort(results);
 		
 		return results;
 	}

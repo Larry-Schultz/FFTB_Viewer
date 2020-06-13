@@ -12,6 +12,7 @@
 			<div class="grid-x fluid">
 				<div class="cell small-4"></div>
 				<div class="cell small-4">
+					<h3>Exp Leaderboard</h3>
 					<table class="hover">
 						<thead>
 							<tr>
@@ -56,12 +57,39 @@
 		</div>
 		<div class="cell small-5">
 			<div class="grid-x">
-				<div class="cell small-3"></div>
-				<div class="cell small-6">
-					<canvas id="line-chart" width="400" height="225"></canvas>
+				<div class="cell small-4"></div>
+				<div class="cell small-4">
 					<br />
+					<h3>The Ascended</h3>
+					<table class="hover">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Prestige Level</th>
+								<th>Last Active</th>
+							</tr>	
+						</thead>
+						<tbody th:each="player: ${prestigeTable}">
+							<tr>
+								<td th:id="${player.name} + 'NameCell'">
+									<a th:id="${player.name} + 'Link'" th:href="'/player/' + ${player.name}" target="_blank" style="color: inherit;" >
+										<span style="text-decoration: underline;" th:id="${player.name} + 'Name'" th:text="${player.name}" />
+									</a>
+								</td>
+								<td th:id="${player.name} + 'PrestigeLevel'" th:text="${player.prestigeLevel}" />
+								<td th:id="${player.name} + 'LastActive'" th:text="${player.lastActive}" />
+							</tr>
+						</tbody>
+						<tfoot>
+							<tr>
+								<th>Name</th>
+								<th>Prestige Level*</th>
+								<th>Last Active</th>
+							</tr>	
+						</tfoot>
+					</table>
 				</div>
-				<div class="cell small-3"></div>
+				<div class="cell small-4"></div>
 			</div>
 		</div>
 		<div class="cell small-2"></div>
