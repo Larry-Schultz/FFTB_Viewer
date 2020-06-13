@@ -39,6 +39,14 @@ public interface GlobalGilHistoryRepo extends JpaRepository<GlobalGilHistory, St
 		DateTimeFormatter sdf = DateTimeFormatter.ofPattern(GlobalGilHistory.dateFormatString);
 		String dateString = sdf.format(today);
 		GlobalGilHistory todaysHistory = this.getGlobalGilHistoryByDateString(dateString);
+		
+		//Looks like we haven't recalculated the history yet, likely just after midnight.  In this case use yesterday's values
+		if(todaysHistory == null) {
+			LocalDate yesterday = today.plus(-1, ChronoUnit.DAYS);
+			dateString = sdf.format(yesterday);
+			todaysHistory = this.getGlobalGilHistoryByDateString(dateString);
+		}
+		
 		return todaysHistory;
 	}
 	
