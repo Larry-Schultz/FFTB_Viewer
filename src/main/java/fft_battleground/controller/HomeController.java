@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import fft_battleground.botland.model.SkillType;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.model.ExpLeaderboardEntry;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.Music;
@@ -150,6 +152,11 @@ public class HomeController {
 				}
 				playerData.setContainsPrestige(containsPrestige);
 				playerData.setPrestigeLevel(prestigeLevel);
+				playerData.setExpRank(this.dumpService.getExpRankLeaderboardByPlayer().get(record.getPlayer()));
+				
+				DecimalFormat format = new DecimalFormat("##.#########");
+				String percentageOfTotalGil = format.format(this.dumpReportsService.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
+				playerData.setPercentageOfGlobalGil(percentageOfTotalGil);
 				
 				if(record.getLastActive() != null) {
 					playerData.setTimezoneFormattedDateString(this.createDateStringWithTimezone(timezone, record.getLastActive()));
@@ -178,13 +185,17 @@ public class HomeController {
 		NumberFormat myFormat = NumberFormat.getInstance();
 		myFormat.setGroupingUsed(true);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+		DecimalFormat decimalformat = new DecimalFormat("##.#########");
 		
 		List<LeaderboardData> output = botLeaderboard.keySet().stream().map(
 				botName -> { 
 					String player = botName;
 					String gil = myFormat.format(botLeaderboard.get(botName));
 					String activeDate = dateFormat.format(this.dumpService.getLastActiveDateFromCache(botName));
-					return new LeaderboardData(player, gil, activeDate); 
+					String percentageOfGlobalGil = decimalformat.format(this.dumpReportsService.percentageOfGlobalGil(botLeaderboard.get(botName)) * (double)100);
+					LeaderboardData data = new LeaderboardData(player, gil, activeDate); 
+					data.setPercentageOfGlobalGil(percentageOfGlobalGil);
+					return data;
 				}).sorted().collect(Collectors.toList());
 		Collections.reverse(output);
 		for(int i = 0; i < output.size(); i++) { 
@@ -201,6 +212,14 @@ public class HomeController {
 		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
 		
 		return "playerLeaderboard.html";
+	}
+	
+	@GetMapping("/expLeaderboard")
+	public String expLeaderboard(Model model) {
+		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
+		model.addAttribute("leaderboard", leaderboardEntries);
+		
+		return "expLeaderboard.html";
 	}
 	
 	@GetMapping("/gilCount")
@@ -239,6 +258,8 @@ class PlayerData {
 	private int prestigeLevel = 0;
 	private Integer leaderboardPosition;
 	private String timezoneFormattedDateString;
+	private Integer expRank;
+	private String percentageOfGlobalGil;
 	
 	public PlayerData() {}
 }

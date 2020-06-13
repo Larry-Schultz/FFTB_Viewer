@@ -1,6 +1,7 @@
 package fft_battleground.dump;
 
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
@@ -26,6 +27,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import fft_battleground.dump.model.ExpLeaderboardEntry;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.LeaderboardBalanceData;
 import fft_battleground.dump.model.LeaderboardBalanceHistoryEntry;
@@ -78,6 +80,16 @@ public class DumpReportsService {
 		data = new GlobalGilPageData(todaysData, historyByDay, historyByWeek, historyByMonth);
 		
 		return data;
+	}
+	
+	@SneakyThrows
+	public Double percentageOfGlobalGil(Integer balance) {
+		Double percentage = new Double(0);
+		if(balance != null) {
+			GlobalGilHistory todaysData = this.globalGilHistoryRepo.getFirstGlobalGilHistory();
+			percentage = ((new Double(balance)/new Double(todaysData.getGlobal_gil_count())));
+		}
+		return percentage;
 	}
 	
 	public Integer getLeaderboardPosition(String player) {
@@ -142,26 +154,57 @@ public class DumpReportsService {
 		return leaderboard;
 	}
 	
+	@SneakyThrows
 	protected LeaderboardData collectPlayerLeaderboardDataByPlayer(String player) {
 		NumberFormat myFormat = NumberFormat.getInstance();
 		myFormat.setGroupingUsed(true);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+		DecimalFormat decimalFormat = new DecimalFormat("##.#########");
 		
 		Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(StringUtils.lowerCase(player));
 		if(maybePlayer.isPresent()) {
 			PlayerRecord record = maybePlayer.get();
 			String gil = null;
 			String activeDate = null;
+			String percentageOfGlobalGil = decimalFormat.format(this.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
 			if(record.getLastKnownAmount() != null) {
 				gil = myFormat.format(record.getLastKnownAmount());
 			}
 			if(record.getLastActive() != null) {
 				activeDate = dateFormat.format(record.getLastActive());
 			}
-			return new LeaderboardData(player, gil, activeDate);
+			LeaderboardData data = new LeaderboardData(player, gil, activeDate);
+			data.setPercentageOfGlobalGil(percentageOfGlobalGil);
+			return data;
 		} else {
 			return null;
 		}
+	}
+	
+	public List<ExpLeaderboardEntry> generateExpLeaderboardData() {
+		List<ExpLeaderboardEntry> results = new ArrayList<>();
+		for(int rank = 1; rank <= TOP_PLAYERS; rank++) {
+			ExpLeaderboardEntry result = null;
+			String player = this.dumpService.getExpRankLeaderboardByRank().get(rank);
+			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(player);
+			if(maybePlayer.isPresent()) {
+				Short level = maybePlayer.get().getLastKnownLevel();
+				Short exp = maybePlayer.get().getLastKnownRemainingExp();
+				SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
+				String lastActive = format.format(maybePlayer.get().getLastActive());
+				
+				Integer prestigeLevel = 0;
+				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(player);
+				if(prestigeSkills != null) {
+					prestigeLevel = prestigeSkills.size();
+				}
+				
+				result = new ExpLeaderboardEntry(rank, player, level, exp, prestigeLevel, lastActive);
+				results.add(result);
+			}
+		}
+		
+		return results;
 	}
 	
 	//this time let's take it hour by hour, and then use my original date slice algorithm

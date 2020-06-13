@@ -13,6 +13,7 @@ public class LeaderboardData implements Comparable<LeaderboardData> {
 	private Integer rank;
 	private String gil;
 	private String lastActiveDate;
+	private String percentageOfGlobalGil;
 	
 	public LeaderboardData() {}
 	public LeaderboardData(String name, String gil, String lastActiveDate) {

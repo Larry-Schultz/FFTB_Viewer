@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DumpDataProvider {
 
+	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
 	private static final String DUMP_HIGH_EXP_URL = "http://www.fftbattleground.com/fftbg/highexp.txt";
 	private static final String DUMP_HIGH_LAST_ACTIVE_URL = "http://www.fftbattleground.com/fftbg/highdate.txt";
 	private static final String DUMP_BOT_URL = "http://www.fftbattleground.com/fftbg/bots.txt";
@@ -47,6 +48,30 @@ public class DumpDataProvider {
 	@Autowired
 	private DumpResourceManager dumpResourceManager;
 	
+	@Autowired
+	private DumpService dumpService;
+	
+	@SneakyThrows
+	public Map<String, Integer> getHighScoreDump() {
+		Map<String, Integer> data = new HashMap<>();
+		
+		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			highScoreReader.readLine(); //ignore the header
+			
+			while((line = highScoreReader.readLine()) != null) {
+				Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
+				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
+				Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
+				data.put(username, value);
+				this.dumpService.getLeaderboard().put(username, position);
+			}
+		}
+		
+		return data;
+	}
+	
 	@SneakyThrows
 	public Map<String, ExpEvent> getHighExpDump() {
 		Map<String, ExpEvent> data = new HashMap<>();
@@ -55,10 +80,13 @@ public class DumpDataProvider {
 			String line;
 			highScoreReader.readLine(); //ignore the header
 			while((line = highScoreReader.readLine()) != null) {
+				Integer position = Integer.valueOf(StringUtils.substringBefore(line, "."));
 				String username = StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":"));
 				Short level = Short.valueOf(StringUtils.substringBetween(line, "Level ", " (EXP:"));
 				Short exp = Short.valueOf(StringUtils.substringBetween(line, "(EXP: ", ")"));
 				data.put(username, new ExpEvent(username, level, exp));
+				this.dumpService.getExpRankLeaderboardByRank().put(position, username);
+				this.dumpService.getExpRankLeaderboardByPlayer().put(username, position);
 			}
 		}
 		

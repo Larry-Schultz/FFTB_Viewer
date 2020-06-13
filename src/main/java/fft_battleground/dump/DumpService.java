@@ -65,7 +65,6 @@ import lombok.extern.slf4j.Slf4j;
 @CacheConfig(cacheNames = {"music"})
 public class DumpService {
 	
-	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
 	private static final String DUMP_PLAYLIST_URL = "http://www.fftbattleground.com/fftbg/playlist.xml";
 	
 	// Wed Jan 01 00:00:00 EDT 2020
@@ -90,15 +89,17 @@ public class DumpService {
 	private Router<BattleGroundEvent> eventRouter;
 	
 	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, ExpEvent> expCache = new HashMap<>();
-	@Getter @Setter private Map<String, Date> lastActiveCache = new HashMap<>();
-	@Getter @Setter private Map<String, String> portraitCache = new HashMap<>();
-	@Getter @Setter private Map<String, BattleGroundTeam> allegianceCache = new HashMap<>();
-	@Getter @Setter private Map<String, List<String>> userSkillsCache = new HashMap<>();
-	@Getter @Setter private Map<String, List<String>> prestigeSkillsCache = new HashMap<>();
+	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, Date> lastActiveCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, String> portraitCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, BattleGroundTeam> allegianceCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, List<String>> userSkillsCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, List<String>> prestigeSkillsCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Set<String> botCache;
 	
-	@Getter private Map<String, Integer> leaderboard = new HashMap<>();
+	@Getter private Map<String, Integer> leaderboard = new ConcurrentHashMap<>();
+	@Getter private Map<Integer, String> expRankLeaderboardByRank = new ConcurrentHashMap<>();
+	@Getter private Map<String, Integer> expRankLeaderboardByPlayer = new ConcurrentHashMap<>(); 
 	
 	public DumpService() {}
 	
@@ -123,7 +124,8 @@ public class DumpService {
 		
 		//run this at startup so leaderboard data works properly
 		log.info("pre-cache leaderboard data");
-		this.getHighScoreDump();
+		this.dumpDataProvider.getHighScoreDump();
+		this.dumpDataProvider.getHighExpDump();
 		
 		//run this at startup so the leaderboard caches are pre-loaded (and don't cause lag for the rest of the machine
 		this.dumpReportsService.getBotLeaderboard();
@@ -139,7 +141,7 @@ public class DumpService {
 		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
 		
 		log.info("updating balance cache");
-		Map<String, Integer> newBalanceDataFromDump = this.getHighScoreDump();
+		Map<String, Integer> newBalanceDataFromDump = this.dumpDataProvider.getHighScoreDump();
 		Map<String, ValueDifference<Integer>> balanceDelta = Maps.difference(this.balanceCache, newBalanceDataFromDump).entriesDiffering();
 		OtherPlayerBalanceEvent otherPlayerBalance= new OtherPlayerBalanceEvent(BattleGroundEventType.OTHER_PLAYER_BALANCE, new ArrayList<BalanceEvent>());
 		//find differences in balance
@@ -244,27 +246,6 @@ public class DumpService {
 	
 	public void updateBalanceCache(BalanceEvent event) {
 		this.balanceCache.put(event.getPlayer(), event.getAmount());
-	}
-
-	@SneakyThrows
-	public Map<String, Integer> getHighScoreDump() {
-		Map<String, Integer> data = new HashMap<>();
-		
-		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
-		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
-			String line;
-			highScoreReader.readLine(); //ignore the header
-			
-			while((line = highScoreReader.readLine()) != null) {
-				Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
-				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
-				Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
-				data.put(username, value);
-				this.leaderboard.put(username, position);
-			}
-		}
-		
-		return data;
 	}
 
 	@SneakyThrows
