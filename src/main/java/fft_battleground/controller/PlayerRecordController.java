@@ -2,6 +2,7 @@ package fft_battleground.controller;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -180,6 +181,7 @@ public class PlayerRecordController {
 		
 		if(timeUnit != null) {
 			List<GlobalGilHistory> globalGilHistoryList = this.globalGilHistoryRepo.getGlobalGilHistoryByCalendarTimeType(timeUnit);
+			Collections.sort(globalGilHistoryList);
 			results = globalGilHistoryList.parallelStream().map(globalGilHistory -> new GlobalGilHistoryGraphEntry(globalGilHistory.getGlobal_gil_count(), globalGilHistory.getDate()))
 					.collect(Collectors.toList());
 		}
