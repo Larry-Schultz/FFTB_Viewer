@@ -12,7 +12,7 @@ import fft_battleground.model.ChatMessage;
 
 public class BuySkillDetector implements EventDetector {
 	
-	private static final String SEARCH_STRING = ", you successfully bought the ";
+	private static final String SEARCH_STRING = ", you bought the ";
 	
 	@Override
 	public BattleGroundEvent detect(ChatMessage message) {
