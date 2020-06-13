@@ -158,6 +158,7 @@ public class RepoTransactionManager {
 			record.setPortrait(event.getPortrait());
 			this.playerRecordRepo.saveAndFlush(record);
 		} else {
+			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
@@ -174,6 +175,7 @@ public class RepoTransactionManager {
 			}
 			this.playerRecordRepo.saveAndFlush(record);
 		} else {
+			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
@@ -214,6 +216,7 @@ public class RepoTransactionManager {
 			maybeRecord.get().setAllegiance(event.getTeam());
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
 		} else {
+			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
@@ -247,6 +250,7 @@ public class RepoTransactionManager {
 			maybeRecord.get().setLastActive(event.getLastActive());
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
 		} else {
+			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
