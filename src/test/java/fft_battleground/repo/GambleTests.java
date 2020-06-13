@@ -14,6 +14,7 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.Music;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
+import fft_battleground.event.detector.BuySkillDetector;
 import fft_battleground.event.detector.FightDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
 import fft_battleground.event.detector.LevelUpDetector;
@@ -28,6 +29,7 @@ import fft_battleground.event.detector.TeamInfoDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
+import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LevelUpEvent;
@@ -130,6 +132,15 @@ public class GambleTests {
 		message = new ChatMessage("fftbattleground", test2);
 		event = teamInfoDetector.detect(message);
 		assertTrue(event != null && event instanceof TeamInfoEvent);
+	}
+	
+	@Test
+	public void testBuySkillDetector() {
+		String test1 = " ShintaroNayaka, your bettable balance is: 14,691G (Spendable: 14,243G).; Angelomortis, unknown Team Name, should be: red, blue, green, yellow, white, black, purple, brown, or champion.; Baron_von_Scrub, you already own the EquipArmor skill!; OtherBrand, you bought the EquipArmor skill for 1,000G. Your new balance is 318G.";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		BuySkillDetector detector = new BuySkillDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof BuySkillEvent);
 	}
 	
 	@Test
