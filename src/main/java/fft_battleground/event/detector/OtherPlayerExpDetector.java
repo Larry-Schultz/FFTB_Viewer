@@ -45,7 +45,7 @@ public class OtherPlayerExpDetector implements EventDetector {
 		if(StringUtils.contains(splitString, SEARCH_STRING)) {
 			String player = StringUtils.substringBefore(splitString, ",");
 			String levelString = StringUtils.substringAfter(StringUtils.substringBefore(splitString, SEARCH_STRING), "Level ");
-			String remainingExpString = StringUtils.substringBefore(StringUtils.substringAfter(splitString, SEARCH_STRING), " EXP!");
+			String remainingExpString = StringUtils.substringBefore(StringUtils.substringAfter(splitString, SEARCH_STRING), " EXP.");
 			if(StringUtils.isNumeric(levelString) && StringUtils.isNumeric(remainingExpString)) {
 				Short level = this.parseLevel(levelString);
 				Short remainingExp = this.parseRemainingExp(remainingExpString);
