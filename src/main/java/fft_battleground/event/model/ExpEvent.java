@@ -18,7 +18,7 @@ public class ExpEvent extends LevelUpEvent {
 
 	@Override
 	public String toString() {
-		return "ExpEvent [level=" + level + ", remainingExp=" + remainingExp + "]";
+		return "ExpEvent [level=" + level + ", remainingExp=" + remainingExp + ", player=" + getPlayer() + "]";
 	}
 
 
