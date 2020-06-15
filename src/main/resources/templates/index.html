@@ -45,10 +45,12 @@
 	<link rel="icon" href="/img/bigbrain.png">
 	<script src="https://embed.twitch.tv/embed/v1.js"></script>
 	<script>
+		var twitchHeight = 378;
+		var tippyMap = new Map();
 		function createTwitchEmbed() {
 			var twitchEmbed = new Twitch.Embed("twitch-embed", {
 		        width: 620,
-		        height: 378,
+		        height: twitchHeight,
 		        channel: "fftbattleground",
 		        layout: "video",
 		        theme: "dark",
@@ -62,21 +64,37 @@
 		var twitchEnabled = true;
 		var twitchEmbed = null;
 		
+		function setAllTippyOffsets(offsetValue) {
+			for(const [key, value] of tippyMap.entries()) {
+				if(typeof value !== 'undefined' && value != null && typeof value[0].props !== 'undefined' && value[0].props != null ) {
+					var currentOffset = value[0].props.offset
+					currentOffset[1] = offsetValue;
+					value[0].setProps({offset: currentOffset});
+				} 
+			}
+		}
+		
 		function toggleTwitchStream() {
 			if(twitchEnabled) {
+				//then hide elements
 				$('#twitch-embed').hide();
 				$('#twitch-hide-text').hide();
 				$('#twitch-show-text').show();
 				twitchEmbed.getPlayer().pause();
 				twitchEnabled = false;
+				//offset decreases to zero
+				setAllTippyOffsets(0);
 			} else {
+				//then show elements
 				$('#twitch-embed').show();
 				$('#twitch-hide-text').show();
 				$('#twitch-show-text').hide();
 				twitchEmbed.getPlayer().play();
 				twitchEnabled=true;
+				setAllTippyOffsets(-110);
 			}
 		}
+		
 	</script>
 </head>
 <body  style="background-color: white">
@@ -338,7 +356,6 @@
     <script src="webjars/foundation/6.2.3/dist/foundation.min.js"></script>
 	<script src="https://unpkg.com/@popperjs/core@2"></script>
 	<script src="https://unpkg.com/tippy.js@6"></script>
-	
     <script>
     $(document).foundation();
     $('#twitch-hide-text').show();

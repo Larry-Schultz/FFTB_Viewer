@@ -462,6 +462,7 @@ function calculatePercentageForTeam(yourTeamTotalValue, theirTeamTotalValue) {
 function attachTippy(elementName, content) {
 	destroyTippyIfPresent(elementName.trim());
 	$('#' + elementName.trim()).data('tippy', tippy('#' + elementName.trim(), {content: content}));
+	tippyMap.set(elementName, $('#' + elementName.trim()).data('tippy'));
 }
 
 function destroyTippyIfPresent(elementName) {
@@ -469,6 +470,7 @@ function destroyTippyIfPresent(elementName) {
 		var instance = $('#' + elementName).data('tippy');
 		if(instance.length > 0) {
 			instance[0].destroy();
+			tippyMap.delete(elementName);
 		}
 	}
 }
