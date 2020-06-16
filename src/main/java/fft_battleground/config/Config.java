@@ -27,6 +27,7 @@ import fft_battleground.event.detector.FightDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
 import fft_battleground.event.detector.LevelUpDetector;
 import fft_battleground.event.detector.MatchInfoDetector;
+import fft_battleground.event.detector.MusicDetector;
 import fft_battleground.event.detector.OtherPlayerBalanceDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
@@ -38,6 +39,7 @@ import fft_battleground.irc.TwitchChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
 import fft_battleground.util.Router;
+
 import lombok.extern.slf4j.Slf4j;
 
 @EnableJpaRepositories("fft_battleground.repo")
@@ -91,7 +93,7 @@ public class Config {
 	public List<EventDetector> detectors(@Value("${irc.username}") String username) {
 		return Arrays.asList(new EventDetector[]{
 			new BetDetector(), new LevelUpDetector(), new ResultEventDetector(), new SkillWinEventDetector(),
-			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(),
+			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(), new MusicDetector(),
 			new BettingBeginsDetector(), new MatchInfoDetector(), new AllegianceDetector(), new BetInfoEventDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),
 			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()});
