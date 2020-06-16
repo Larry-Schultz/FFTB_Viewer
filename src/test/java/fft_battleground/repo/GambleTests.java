@@ -18,6 +18,7 @@ import fft_battleground.event.detector.BuySkillDetector;
 import fft_battleground.event.detector.FightDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
 import fft_battleground.event.detector.LevelUpDetector;
+import fft_battleground.event.detector.MusicDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
@@ -33,6 +34,7 @@ import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LevelUpEvent;
+import fft_battleground.event.model.MusicEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
@@ -70,12 +72,12 @@ public class GambleTests {
 
 	@Test
 	public void otherPlayerExpDetector() {
-		String test1 = " im4u2nvqt, your balance is: 4,330G (Spendable: 4,230G).; OtherBrand, You are Level 6. You will Level Up when you gain another 67 EXP!";
+		String test1 = "Mesmaster, you are Level 23. You will Level Up when you gain another 82 EXP. You earn your next skill at Level 25, with 26 level skills remaining.; OtherBrand, The current track is: Fatal Fury Special - Geese Howard Theme. It will play for another 17 seconds.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		OtherPlayerExpDetector detector = new OtherPlayerExpDetector();
 		BattleGroundEvent event = detector.detect(message);
 		assertTrue(event != null);
-		String test2 = "OtherBrand, You are Level 6. You will Level Up when you gain another 67 EXP!";
+		String test2 = "OtherBrand, you are Level 12. You will Level Up when you gain another 50 EXP. You earn your next skill at Level 13, with 30 level skills remaining.";
 		message = new ChatMessage("fftbattleground", test2);
 		event = detector.detect(message);
 		assertTrue(event != null);
@@ -255,6 +257,18 @@ public class GambleTests {
 		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent().getPlayer().equals("otherbrand"));
 		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent().getSkills().size() == 1);
 		assertTrue(prestigeAscensionEvent.getPrestigeSkillsEvent().getSkills().get(0).equals("Teleport2"));
+	}
+	
+	@Test
+	public void testMusicDetector() {
+		String test1 = "Mesmaster, you are Level 23. You will Level Up when you gain another 82 EXP. You earn your next skill at Level 25, with 26 level skills remaining.; OtherBrand, The current track is: Fatal Fury Special - Geese Howard Theme. It will play for another 17 seconds.";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		MusicDetector detector = new MusicDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof MusicEvent);
+		MusicEvent musicEvent = (MusicEvent) event;
+		assertTrue(musicEvent.getDurationInSeconds() == 17);
+		assertTrue(StringUtils.equals(musicEvent.getSongName(), "Fatal Fury Special - Geese Howard Theme"));
 	}
 
 	@Test
