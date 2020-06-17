@@ -102,7 +102,10 @@ function parseEvents(event) {
 			populateSkillDrop(event);
 			break;
 		case 'BAD_BET':
-
+			handleBadBet(event);
+			break;
+		case 'MUSIC':
+			handleMusicEvent(event);
 			break;
 	}
 	
@@ -189,6 +192,11 @@ function handleBadBet(event) {
 	$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
 }
 
+function handleMusicEvent(event) {
+	$('#trackImage').hide();
+	$('#trackName').text(event.songName);
+}
+
 function generatePlayerRecord(metadata, player, betText, betAmount, betType, team) {
 	var possiblePlayerElement = document.getElementById(player + 'Record');
 	if(possiblePlayerElement != null) {
@@ -264,6 +272,7 @@ function populateMatchInfo(event) {
 }
 
 function populateSkillDrop(event) {
+	$('#skillImage').hide();
 	$('#skilldropName').text(event.skill)
 	//$('#skilldropName').attr('title', event.skillDescription);
 	attachTippy('skilldropName', event.skillDescription);
