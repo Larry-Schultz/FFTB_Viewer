@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -55,6 +55,7 @@ import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -69,6 +70,9 @@ public class DumpService {
 	
 	// Wed Jan 01 00:00:00 EDT 2020
 	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
+	
+	@Value("${fft_battleground.enableCache}")
+	boolean isCacheEnabled;
 	
 	@Autowired
 	@Getter private DumpDataProvider dumpDataProvider;
@@ -107,33 +111,39 @@ public class DumpService {
 	@Transactional
 	@SneakyThrows
 	private void setUpCaches() {
+		if (this.isCacheEnabled) {
+			this.loadCache();
+		}
+	}
+	
+	private void loadCache() {
 		log.info("loading player data cache");
-		
-		
-		
+
 		List<PlayerRecord> playerRecords = this.playerRecordRepo.findAll();
-		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownAmount() == null).forEach(playerRecord -> playerRecord.setLastKnownAmount(GambleUtil.MINIMUM_BET));
+		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownAmount() == null)
+				.forEach(playerRecord -> playerRecord.setLastKnownAmount(GambleUtil.MINIMUM_BET));
 		log.info("finished loading player cache");
-		
+
 		DumpCacheBuilder builder = new DumpCacheBuilder(this);
 		builder.buildCache(playerRecords);
-		
+
 		log.info("started loading bot cache");
 		this.botCache = this.dumpDataProvider.getBots();
 		log.info("finished loading bot cache");
-		
-		//run this at startup so leaderboard data works properly
+
+		// run this at startup so leaderboard data works properly
 		log.info("pre-cache leaderboard data");
 		this.dumpDataProvider.getHighScoreDump();
 		this.dumpDataProvider.getHighExpDump();
-		
-		//run this at startup so the leaderboard caches are pre-loaded (and don't cause lag for the rest of the machine
+
+		// run this at startup so the leaderboard caches are pre-loaded (and don't cause
+		// lag for the rest of the machine
 		this.dumpReportsService.getBotLeaderboard();
 		this.dumpReportsService.getLeaderboard();
 		log.info("leaderboard data cache complete");
-		
-		//this.dumpScheduledTasks.runAllUpdates();
-		
+
+		// this.dumpScheduledTasks.runAllUpdates();
+
 		log.info("player data cache load complete");
 	}
 	
@@ -211,7 +221,8 @@ public class DumpService {
 	}
 	
 	public GlobalGilHistory recalculateGlobalGil() {
-		Long globalGilCount = this.balanceCache.keySet().stream().map(player -> this.balanceCache.get(player)).mapToLong(balanceInt -> balanceInt.longValue()).sum();
+		Set<String> players = this.balanceCache.keySet().parallelStream().map(name -> StringUtils.lowerCase(name)).collect(Collectors.toSet());
+		Long globalGilCount = players.stream().map(player -> this.balanceCache.get(player)).mapToLong(balanceInt -> balanceInt.longValue()).sum();
 		Integer globalPlayerCount = this.balanceCache.keySet().size();
 		
 		SimpleDateFormat sdf = new SimpleDateFormat(GlobalGilHistory.dateFormatString);
