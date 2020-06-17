@@ -29,7 +29,8 @@ public enum BattleGroundEventType {
 	LAST_ACTIVE("Last Active"), 
 	GIFT_SKILL("Gift Skill"), 
 	GLOBAL_GIL_COUNT_UPDATE("Global Gil Count Update"), 
-	PRESTIGE_ASCENSION("Prestige Ascension");
+	PRESTIGE_ASCENSION("Prestige Ascension"), 
+	MUSIC("Music");
 	
 	BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;
