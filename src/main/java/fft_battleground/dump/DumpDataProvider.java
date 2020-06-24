@@ -15,11 +15,14 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -70,6 +73,27 @@ public class DumpDataProvider {
 		}
 		
 		return data;
+	}
+	
+	@SneakyThrows
+	public Pair<Integer, Long> getHighScoreTotal() {
+		long globalGil = 0L;
+		int totalPlayers = 0;
+		
+		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			highScoreReader.readLine(); //ignore the header
+			while((line = highScoreReader.readLine()) != null) {
+				totalPlayers++;
+				long value = Long.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
+				globalGil += value;
+			}
+		}
+		
+		
+		Pair<Integer, Long> globalGilData = new ImmutablePair<>(totalPlayers, globalGil);
+		return globalGilData;
 	}
 	
 	@SneakyThrows
