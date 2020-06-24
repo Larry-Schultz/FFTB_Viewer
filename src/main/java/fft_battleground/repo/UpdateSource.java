@@ -1,0 +1,17 @@
+package fft_battleground.repo;
+
+public enum UpdateSource {
+
+	REPORT_AS_LOSS,
+	REPORT_AS_FIGHT_LOSS,
+	REPORT_AS_WIN,
+	REPORT_AS_FIGHT_WIN,
+	PORTRAIT,
+	PLAYER_AMOUNT,
+	PLAYER_LEVEL,
+	EXP,
+	ALLEGIANCE,
+	PLAYER_SKILLS,
+	LAST_ACTIVE,
+
+}

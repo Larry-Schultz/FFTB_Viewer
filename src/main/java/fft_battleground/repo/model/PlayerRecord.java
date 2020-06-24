@@ -9,6 +9,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -31,8 +33,10 @@ import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.repo.UpdateSource;
 import fft_battleground.util.BattleGroundTeamConverter;
 import fft_battleground.util.GambleUtil;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -97,17 +101,26 @@ public class PlayerRecord {
     @UpdateTimestamp
     private Date updateDateTime;
     
+    @Column(name="createdSource", nullable=true)
+    @Enumerated(EnumType.STRING)
+    private UpdateSource createdSource;
+    
+    @Column(name="updateSource", nullable=true)
+    @Enumerated(EnumType.STRING)
+    private UpdateSource updateSource;
+    
     public PlayerRecord() {}
     
-    public PlayerRecord(String name) {
-    	this.player = name;
+    public PlayerRecord(String name, UpdateSource createdSource) {
+    	this.player = GambleUtil.cleanString(name);
     	this.wins = 0;
     	this.losses = 0;
     	this.playerSkills = new ArrayList<>();
+    	this.createdSource = createdSource;
     }
     
-    public PlayerRecord(String name, Integer wins, Integer losses) {
-    	this.player = name;
+    public PlayerRecord(String name, Integer wins, Integer losses, UpdateSource createdSource) {
+    	this.player = GambleUtil.cleanString(name);
     	this.wins = wins;
     	this.losses = losses;
     	
@@ -115,56 +128,61 @@ public class PlayerRecord {
     	this.fightWins = 0;
     	
     	this.playerSkills = new ArrayList<>();
+    	this.createdSource = createdSource;
     }
     
-	public PlayerRecord(BalanceEvent event) {
-		this.player = event.getPlayer();
+	public PlayerRecord(BalanceEvent event, UpdateSource createdSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.lastKnownAmount = event.getAmount();
 		this.highestKnownAmount = event.getAmount();
+		this.createdSource = createdSource;
 		
 		this.setDefaults();
 	}
 	
-	public PlayerRecord(LevelUpEvent event) {
-		this.player = event.getPlayer();
+	public PlayerRecord(LevelUpEvent event, UpdateSource createdSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.lastKnownLevel = event.getLevel();
+		this.createdSource = createdSource;
 		
 		this.setDefaults();
 	}
 	
-	public PlayerRecord(ExpEvent event) {
-		this.player = event.getPlayer();
+	public PlayerRecord(ExpEvent event, UpdateSource createdSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.lastKnownLevel = event.getLevel();
 		this.lastKnownRemainingExp = event.getRemainingExp();
+		this.createdSource = createdSource;
 		
 		this.setDefaults();
 	}
 	
-	public PlayerRecord(AllegianceEvent event) {
-		this.player = event.getPlayer();
+	public PlayerRecord(AllegianceEvent event, UpdateSource createdSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.allegiance = event.getTeam();
+		this.createdSource = createdSource;
 		
 		this.setDefaults();
 	}
 	
-	public PlayerRecord(PortraitEvent event) {
-		this.player = event.getPlayer();
+	public PlayerRecord(PortraitEvent event, UpdateSource createdSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.portrait = event.getPortrait();
+		this.createdSource = createdSource;
 		
 		this.setDefaults();
 	}
 	
-	public PlayerRecord(LastActiveEvent event) {
-		this.player = event.getPlayer();
+	public PlayerRecord(LastActiveEvent event, UpdateSource createdSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.lastActive = event.getLastActive();
+		this.createdSource = createdSource;
 		
 		this.setDefaults();
 	}
     
     public void addPlayerSkill(String skill, SkillType type) {
-    	if(!this.playerSkills.contains(skill)) {
-    		this.playerSkills.add(new PlayerSkills(skill, type, this));
-    	}
+    	this.playerSkills.add(new PlayerSkills(skill, type, this));
     }
     
     protected void setDefaults() {
