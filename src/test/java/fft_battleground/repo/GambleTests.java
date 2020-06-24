@@ -14,6 +14,8 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.Music;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
+import fft_battleground.event.detector.BettingBeginsDetector;
+import fft_battleground.event.detector.BettingEndsDetector;
 import fft_battleground.event.detector.BuySkillDetector;
 import fft_battleground.event.detector.FightDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
@@ -30,6 +32,7 @@ import fft_battleground.event.detector.TeamInfoDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
+import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.GiftSkillEvent;
@@ -221,6 +224,15 @@ public class GambleTests {
 		assertTrue(betInfoEvent.getBetAmount() != null && betInfoEvent.getBetAmount().equals(1297));
 		assertTrue(betInfoEvent.getPercentage() != null && betInfoEvent.getPercentage().equals("5.0"));
 		assertTrue(betInfoEvent.getPossibleEarnings() != null && betInfoEvent.getPossibleEarnings().equals(617));
+	}
+	
+	@Test
+	public void testBettingEndsEventDetector() {
+		String test1 = "Betting is closed. Final Bets: white - 95 bets for 746,141G; black - 78 bets for 286,413G... Good luck!";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		BettingEndsDetector detector = new BettingEndsDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof BettingEndsEvent);
 	}
 
 	@Test
