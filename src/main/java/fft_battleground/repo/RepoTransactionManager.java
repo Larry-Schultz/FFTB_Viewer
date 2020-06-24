@@ -33,6 +33,7 @@ import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.GambleUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,9 @@ public class RepoTransactionManager {
 	
 	@Autowired
 	private GlobalGilHistoryRepo globalGilHistoryRepo;
+	
+	@Autowired
+	private PlayerSkillRepo playerSkillRepo;
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
@@ -78,12 +82,13 @@ public class RepoTransactionManager {
 	public void reportAsLoss(List<BetEvent> bets, Float teamBettingOdds) {
 		for(BetEvent bet : bets) {
 			PlayerRecord player = null;
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(bet.getPlayer()));
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(bet.getPlayer()));
 			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord(StringUtils.lowerCase(bet.getPlayer()), 0, 1);
+				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 0, 1, UpdateSource.REPORT_AS_LOSS);
 			} else {
 				player = maybeRecord.get();
 				player.setLosses(player.getLosses() + 1);
+				player.setUpdateSource(UpdateSource.REPORT_AS_LOSS);
 			}
 			this.playerRecordRepo.saveAndFlush(player);
 			
@@ -96,13 +101,19 @@ public class RepoTransactionManager {
 	@Transactional
 	public void reportAsFightLoss(TeamInfoEvent team) {
 		for(Pair<String, String> teamMemberInfo: team.getPlayerUnitPairs()) {
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(teamMemberInfo.getLeft()));
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(teamMemberInfo.getLeft()));
 			if(maybeRecord.isPresent()) {
 				PlayerRecord record = maybeRecord.get();
 				Integer currentFightLosses = record.getFightLosses();
 				currentFightLosses = currentFightLosses + 1;
 				record.setFightLosses(currentFightLosses);
+				record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_LOSS);
 				
+				this.playerRecordRepo.saveAndFlush(record);
+			} else {
+				PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_LOSS);
+				record.setFightLosses(1);
+				record.setFightWins(0);
 				this.playerRecordRepo.saveAndFlush(record);
 			}
 		}
@@ -112,12 +123,13 @@ public class RepoTransactionManager {
 	public void reportAsWin(List<BetEvent> bets, Float teamBettingOdds) {
 		for(BetEvent bet : bets) {
 			PlayerRecord player = null;
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(bet.getPlayer()));
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(bet.getPlayer()));
 			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord(StringUtils.lowerCase(bet.getPlayer()), 1, 0);
+				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 1, 0, UpdateSource.REPORT_AS_WIN);
 			} else {
 				player = maybeRecord.get();
 				player.setWins(player.getWins() + 1);
+				player.setUpdateSource(UpdateSource.REPORT_AS_WIN);
 			}
 			
 			this.playerRecordRepo.saveAndFlush(player);
@@ -131,13 +143,19 @@ public class RepoTransactionManager {
 	@Transactional
 	public void reportAsFightWin(TeamInfoEvent team) {
 		for(Pair<String, String> teamMemberInfo: team.getPlayerUnitPairs()) {
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(teamMemberInfo.getLeft()));
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(teamMemberInfo.getLeft()));
 			if(maybeRecord.isPresent()) {
 				PlayerRecord record = maybeRecord.get();
 				Integer currentFightWins = record.getFightWins();
 				currentFightWins = currentFightWins + 1;
 				record.setFightWins(currentFightWins);
+				record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_WIN);
 				
+				this.playerRecordRepo.saveAndFlush(record);
+			} else {
+				PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_WIN);
+				record.setFightWins(1);
+				record.setFightLosses(0);
 				this.playerRecordRepo.saveAndFlush(record);
 			}
 		}
@@ -152,38 +170,40 @@ public class RepoTransactionManager {
 	
 	@Transactional
 	public void updatePlayerPortrait(PortraitEvent event) {
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPlayer()));
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(event.getPlayer()));
 		if(maybeRecord.isPresent()) {
 			PlayerRecord record = maybeRecord.get();
 			record.setPortrait(event.getPortrait());
+			record.setUpdateSource(UpdateSource.PORTRAIT);
 			this.playerRecordRepo.saveAndFlush(record);
 		} else {
-			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event);
+			event.setPlayer(this.cleanString(event.getPlayer()));
+			PlayerRecord record = new PlayerRecord(event, UpdateSource.PORTRAIT);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
 	}
 	
 	@Transactional
 	public void updatePlayerAmount(BalanceEvent event) {
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPlayer()));
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(event.getPlayer()));
 		if(maybeRecord.isPresent()) {
 			PlayerRecord record = maybeRecord.get();
 			record.setLastKnownAmount(event.getAmount());
+			record.setUpdateSource(UpdateSource.PLAYER_AMOUNT);
 			if(record.getHighestKnownAmount() == null || event.getAmount() > record.getHighestKnownAmount()) {
 				record.setHighestKnownAmount(event.getAmount());
 			}
 			this.playerRecordRepo.saveAndFlush(record);
 		} else {
-			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event);
+			event.setPlayer(this.cleanString(event.getPlayer()));
+			PlayerRecord record = new PlayerRecord(event, UpdateSource.PLAYER_AMOUNT);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
 	}
 	
 	@Transactional
 	public void updatePlayerLevel(LevelUpEvent event) {
-		String id = StringUtils.lowerCase(event.getPlayer());
+		String id = this.cleanString(event.getPlayer());
 		event.setPlayer(id);
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
@@ -191,17 +211,19 @@ public class RepoTransactionManager {
 			if(event instanceof ExpEvent) {
 				Short remainingExp = ((ExpEvent)event).getRemainingExp();
 				maybeRecord.get().setLastKnownRemainingExp(remainingExp);
+				maybeRecord.get().setUpdateSource(UpdateSource.EXP);
 			} else {
 				maybeRecord.get().setLastKnownRemainingExp(GambleUtil.DEFAULT_REMAINING_EXP);
+				maybeRecord.get().setUpdateSource(UpdateSource.PLAYER_LEVEL);
 			}
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
 		} else {
 			PlayerRecord record = null;
 			if(event instanceof ExpEvent) {
 				ExpEvent expEvent = (ExpEvent) event;
-				record = new PlayerRecord(expEvent);
+				record = new PlayerRecord(expEvent, UpdateSource.EXP);
 			} else {
-				record = new PlayerRecord(event);
+				record = new PlayerRecord(event, UpdateSource.PLAYER_LEVEL);
 			}
 			
 			this.playerRecordRepo.saveAndFlush(record);
@@ -210,21 +232,27 @@ public class RepoTransactionManager {
 	
 	@Transactional
 	public void updatePlayerAllegiance(AllegianceEvent event) {
-		String id = StringUtils.lowerCase(event.getPlayer());
+		String id = this.cleanString(event.getPlayer());
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
 			maybeRecord.get().setAllegiance(event.getTeam());
+			maybeRecord.get().setUpdateSource(UpdateSource.ALLEGIANCE);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
 		} else {
-			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event);
+			event.setPlayer(this.cleanString(event.getPlayer()));
+			PlayerRecord record = new PlayerRecord(event, UpdateSource.ALLEGIANCE);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
 	}
 	
+	@Transactional
+	public void clearPlayerSkillsForPlayer(String player) {
+		this.playerSkillRepo.deleteSkillsByPlayer(this.cleanString(player));
+	}
+	
 	@Transactional(propagation=Propagation.REQUIRED)
 	public void updatePlayerSkills(PlayerSkillEvent event) {
-		String id = StringUtils.lowerCase(event.getPlayer());
+		String id = this.cleanString(event.getPlayer());
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
 			Hibernate.initialize(maybeRecord.get().getPlayerSkills());
@@ -233,25 +261,40 @@ public class RepoTransactionManager {
 				if(!currentSkills.contains(possibleNewSkill)) {
 					if(event instanceof PrestigeSkillsEvent) {
 						maybeRecord.get().addPlayerSkill(possibleNewSkill, SkillType.PRESTIGE);
+						this.playerRecordRepo.save(maybeRecord.get());
 					} else {
 						maybeRecord.get().addPlayerSkill(possibleNewSkill, SkillType.USER);
+						this.playerRecordRepo.save(maybeRecord.get());
+					}
+				} else {
+					if(event instanceof PrestigeSkillsEvent) {
+						for(String skillName : event.getSkills()) {
+							PlayerSkills playerSkill = this.playerSkillRepo.getSkillsByPlayerAndSkillName(id, skillName);
+							if(playerSkill != null) {
+								playerSkill.setSkillType(SkillType.PRESTIGE);
+								this.playerSkillRepo.save(playerSkill);
+							}
+						}
 					}
 				}
 			}
-			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+			
+			this.playerRecordRepo.flush();
+			this.playerSkillRepo.flush();
 		}
 	}
 	
 	@Transactional
 	public void updatePlayerLastActive(LastActiveEvent event) {
-		String id = StringUtils.lowerCase(event.getPlayer());
+		String id = this.cleanString(event.getPlayer());
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
 			maybeRecord.get().setLastActive(event.getLastActive());
+			maybeRecord.get().setUpdateSource(UpdateSource.LAST_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
 		} else {
-			event.setPlayer(StringUtils.lowerCase(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event);
+			event.setPlayer(this.cleanString(event.getPlayer()));
+			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
 	}
@@ -276,7 +319,7 @@ public class RepoTransactionManager {
 	public BattleGroundEvent generateSimulatedBalanceEvent(String player, int balanceUpdate, BalanceUpdateSource balanceUpdateSource) {
 		OtherPlayerBalanceEvent event = null;
 		
-		String id = StringUtils.lowerCase(player);
+		String id = this.cleanString(player);
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
 			Integer currentKnownBalance = maybeRecord.get().getLastKnownAmount();
@@ -300,10 +343,15 @@ public class RepoTransactionManager {
 	
 	@Transactional(propagation=Propagation.REQUIRED)
 	public void addEntryToBalanceHistory(BalanceEvent event) {
-		String id = StringUtils.lowerCase(event.getPlayer());
+		String id = this.cleanString(event.getPlayer());
 		BalanceHistory newBalance = new BalanceHistory(event);
 		this.balanceHistoryRepo.saveAndFlush(newBalance);
 		
 		return;
+	}
+	
+	protected String cleanString(String str) {
+		String result = GambleUtil.cleanString(str);
+		return result;
 	}
 }

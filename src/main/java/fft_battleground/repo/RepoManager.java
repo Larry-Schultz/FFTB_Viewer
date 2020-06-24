@@ -10,6 +10,7 @@ import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
+import fft_battleground.event.PlayerSkillRefresh;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -75,6 +76,8 @@ public class RepoManager extends Thread {
 					this.handlePrestigeSkillsEvent((PrestigeSkillsEvent) newResults);
 				} else if(newResults instanceof PlayerSkillEvent) {
 					this.handlePlayerSkillEvent((PlayerSkillEvent) newResults);
+				} else if(newResults instanceof PlayerSkillRefresh) {
+					this.handlePlayerSkillRefresh((PlayerSkillRefresh) newResults);
 				} else if(newResults instanceof BuySkillEvent) {
 					this.handleBuySkillEvent((BuySkillEvent) newResults);
 				} else if(newResults instanceof SkillWinEvent) {
@@ -157,6 +160,14 @@ public class RepoManager extends Thread {
 	
 	protected void handlePlayerSkillEvent(PlayerSkillEvent event) {
 		this.repoTransactionManager.updatePlayerSkills(event);
+	}
+	
+	protected void handlePlayerSkillRefresh(PlayerSkillRefresh event) {
+		this.repoTransactionManager.clearPlayerSkillsForPlayer(event.getPlayer());
+		this.repoTransactionManager.updatePlayerSkills(event.getPlayerSkillEvent());
+		if(event.getPrestigeSkillEvent() != null) {
+			this.repoTransactionManager.updatePlayerSkills(event.getPrestigeSkillEvent());
+		}
 	}
 	
 	protected void handleGlobalGilHistoryUpdateEvent(GlobalGilHistoryUpdateEvent newResults) {

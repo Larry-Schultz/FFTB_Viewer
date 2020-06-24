@@ -60,7 +60,7 @@ public class RepManagerTest {
 		for(int i = 0; i < 2; i++) {
 			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById("OtherBrand");
 			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord("OtherBrand", 0, 1);
+				player = new PlayerRecord("OtherBrand", 0, 1, UpdateSource.REPORT_AS_LOSS);
 			} else {
 				player = maybeRecord.get();
 				player.setLosses(player.getLosses() + 1);

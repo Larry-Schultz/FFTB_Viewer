@@ -1,6 +1,5 @@
 package fft_battleground.dump;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,11 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeSet;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,15 +16,16 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MapDifference.ValueDifference;
 
+import fft_battleground.botland.model.DatabaseResultsData;
+import fft_battleground.event.PlayerSkillRefresh;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.PlayerSkillRepo;
-import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.Router;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -46,7 +42,7 @@ public class DumpScheduledTasks {
 	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
-	private PlayerSkillRepo playerSkillRepo;
+	private Router<DatabaseResultsData> betResultsRouter;
 	
 	Timer timer = new Timer();
 	
@@ -54,7 +50,7 @@ public class DumpScheduledTasks {
 	public void runAllUpdates() {
 		DumpScheduledTask[] dumpScheduledTasks = new DumpScheduledTask[] {
 				new AllegianceTask(this), 
-				new BotListTask(this),
+				new BotListTask(this), 
 				new PortraitsTask(this),
 				new UserSkillsTask(this)
 			};
@@ -147,8 +143,8 @@ public class DumpScheduledTasks {
 		
 		//assume all players with prestige skills have user skills
 		for(String player: userSkillPlayers) {
-			//delete all skills
-			this.playerSkillRepo.deleteSkillsByPlayer(player);
+			PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
+			//delete all skills from cache
 			this.dumpService.getUserSkillsCache().remove(player);
 			
 			//get user skills
@@ -157,7 +153,7 @@ public class DumpScheduledTasks {
 			//store user skills
 			this.dumpService.getUserSkillsCache().put(player, userSkills);
 			PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
-			this.eventRouter.sendDataToQueues(userSkillsEvent);
+			refresh.setPlayerSkillEvent(userSkillsEvent);
 			
 			if(prestigeSkillPlayers.contains(player)) {
 				//get prestige skills
@@ -167,93 +163,13 @@ public class DumpScheduledTasks {
 				this.dumpService.getPrestigeSkillsCache().remove(player);
 				this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
 				PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
-				this.eventRouter.sendDataToQueues(prestigeEvent);
+				refresh.setPrestigeSkillEvent(prestigeEvent);
 			}
+			this.betResultsRouter.sendDataToQueues(refresh);
 			log.info("refreshed skills for player: {}", player);
 			
 		}
 		log.info("user and prestige skill cache updates complete");
-	}
-	
-	public Map<String, List<String>> updateUserSkills() {
-		log.info("updating user skills cache");
-		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
-		Map<String, List<String>> userSkillsFromDump = new HashMap<>();
-		for(String player: playerNamesSet) {
-			List<String> prestigeSkills = this.dumpDataProvider.getSkillsForPlayer(player);
-			if(prestigeSkills.size() > 0) {
-				userSkillsFromDump.put(player, prestigeSkills);
-			}
-		}
-		
-		Map<String, List<String>> differences = this.dumpService.getUserSkillsCache().keySet().parallelStream().collect(Collectors.toMap(Function.identity(), 
-													key -> ListUtils.<String>subtract(userSkillsFromDump.get(key), this.dumpService.getUserSkillsCache().get(key))));
-		List<BattleGroundEvent> skillEvents = new ArrayList<>();
-		//find differences
-		for(String key : differences.keySet()) {
-			if(differences.get(key).size() > 0) {
-				skillEvents.add(new PlayerSkillEvent(key, differences.get(key)));
-				this.dumpService.getUserSkillsCache().get(key).addAll(userSkillsFromDump.get(key));
-			}
-		}
-		
-		//find missing players
-		for(String key: userSkillsFromDump.keySet()) {
-			if(!this.dumpService.getUserSkillsCache().containsKey(key)) {
-				skillEvents.add(new PlayerSkillEvent(key, userSkillsFromDump.get(key)));
-				this.dumpService.getUserSkillsCache().get(key).addAll(userSkillsFromDump.get(key));
-			}
-		}
-		
-		skillEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.eventRouter.sendAllDataToQueues(skillEvents);
-		log.info("user skills cache update complete");
-		
-		return userSkillsFromDump;
-	}
-	
-	public Map<String, List<String>> updatePrestigeSkills() {
-		log.info("updating prestige skills cache");
-		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
-		Map<String, List<String>> prestigeSkillsFromDump = new HashMap<>();
-		for(String player: playerNamesSet) {
-			List<String> prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
-			if(prestigeSkills.size() > 0) {
-				prestigeSkillsFromDump.put(player, prestigeSkills);
-			}
-		}
-		
-		Map<String, List<String>> differences = this.dumpService.getPrestigeSkillsCache().keySet().parallelStream().collect(Collectors.toMap(Function.identity(), 
-													key -> ListUtils.<String>subtract(prestigeSkillsFromDump.get(key), this.dumpService.getPrestigeSkillsCache().get(key))));
-		List<BattleGroundEvent> skillEvents = new ArrayList<>();
-		Set<String> playersWithNewPrestige = new TreeSet<>();
-		//find differences
-		for(String key : differences.keySet()) {
-			if(differences.get(key).size() > 0) {
-				skillEvents.add(new PrestigeSkillsEvent(key, differences.get(key)));
-				playersWithNewPrestige.add(key);
-				this.dumpService.getPrestigeSkillsCache().get(key).addAll(differences.get(key));
-			}
-		}
-		
-		//find missing players
-		for(String key: prestigeSkillsFromDump.keySet()) {
-			if(!this.dumpService.getPrestigeSkillsCache().containsKey(key)) {
-				skillEvents.add(new PrestigeSkillsEvent(key, prestigeSkillsFromDump.get(key)));
-				this.dumpService.getPrestigeSkillsCache().get(key).addAll(differences.get(key));
-			}
-		}
-		
-		skillEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		playersWithNewPrestige.forEach(player -> {
-			List<PlayerSkills> playerSkills = this.playerSkillRepo.getSkillsByPlayer(player);
-			playerSkills.parallelStream().forEach(skill -> this.playerSkillRepo.delete(skill));
-			log.info("deleting skills for {}", player);
-		});
-		this.eventRouter.sendAllDataToQueues(skillEvents);
-		log.info("prestige skills cache update complete");
-		
-		return prestigeSkillsFromDump;
 	}
 	
 	public Set<String> updateBotList() {
