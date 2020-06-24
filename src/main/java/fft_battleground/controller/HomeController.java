@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +52,11 @@ import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.tournament.TournamentService;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequestMapping("/")
+@Slf4j
 public class HomeController {
 	
 	@Autowired
@@ -90,22 +94,26 @@ public class HomeController {
 	}
 	
 	@GetMapping("/")
-	public String homePage(Model model) {
+	public String homePage(Model model, HttpServletRequest request) {
+		log.info("index page accessed from user: {}", request.getRemoteAddr());
 		return "index.html";
 	}
 	
 	@GetMapping("/apidocs")
-	public String apiDocsPage(Model Model) {
+	public String apiDocsPage(Model Model, HttpServletRequest request) {
+		log.info("apidocs page accessed from user: {}", request.getRemoteAddr());
 		return "api.html";
 	}
 	
 	@GetMapping({"/player", "/player/"})
-	public String playerDataPage(Model model) {
+	public String playerDataPage(Model model, HttpServletRequest request) {
+		log.info("player search page accessed from user: {}", request.getRemoteAddr());
 		return "playerRecord.html";
 	}
 
 	@GetMapping({"/player/{playerName}"})
-	public String playerDataPage(@PathVariable(name="playerName") String playerName, Model model, TimeZone timezone) {
+	public String playerDataPage(@PathVariable(name="playerName") String playerName, Model model, TimeZone timezone, HttpServletRequest request) {
+		log.info("player page accessed for {}  from user: {}", playerName, request.getRemoteAddr());
 		if(playerName != null) {
 			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
@@ -173,7 +181,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/music")
-	public String musicPage(Model model) {
+	public String musicPage(Model model, HttpServletRequest request) {
+		log.info("music search page accessed from user: {}", request.getRemoteAddr());
 		Collection<Music> music = this.dumpService.getPlaylist();
 		model.addAttribute("playlist", music);
 		
@@ -181,7 +190,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/botleaderboard")
-	public String botLeaderboardPage(Model model) {
+	public String botLeaderboardPage(Model model, HttpServletRequest request) {
+		log.info("bot leaderboard accessed from user: {}", request.getRemoteAddr());
 		Map<String, Integer> botLeaderboard = this.dumpReportsService.getBotLeaderboard();
 		NumberFormat myFormat = NumberFormat.getInstance();
 		myFormat.setGroupingUsed(true);
@@ -207,7 +217,8 @@ public class HomeController {
 	}
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
-	public String playerLeaderboardPage(Model model) {
+	public String playerLeaderboardPage(Model model, HttpServletRequest request) {
+		log.info("player leaderboard accessed from user: {}", request.getRemoteAddr());
 		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
 		model.addAttribute("leaderboard", leaderboard);
 		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
@@ -216,7 +227,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/expLeaderboard")
-	public String expLeaderboard(Model model) {
+	public String expLeaderboard(Model model, HttpServletRequest request) {
+		log.info("exp leaderboard accessed from user: {}", request.getRemoteAddr());
 		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
 		List<PrestigeTableEntry> prestigeEntries = this.dumpReportsService.generatePrestigeTable();
 		model.addAttribute("leaderboard", leaderboardEntries);
@@ -226,7 +238,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/gilCount")
-	public String gilCountPage(Model model) {
+	public String gilCountPage(Model model, HttpServletRequest request) {
+		log.info("global gil count page accessed from user: {}", request.getRemoteAddr());
 		GlobalGilPageData data = this.dumpReportsService.getGlobalGilData();
 		model.addAttribute("globalGilData", data);
 		return "globalGil.html";
