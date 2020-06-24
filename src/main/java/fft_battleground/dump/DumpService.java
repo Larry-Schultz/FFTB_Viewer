@@ -22,6 +22,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
@@ -84,7 +85,7 @@ public class DumpService {
 	private DumpScheduledTasks dumpScheduledTasks;
 	
 	@Autowired
-	private DumpReportsService dumpReportsService;
+	@Getter private DumpReportsService dumpReportsService;
 	
 	@Autowired
 	@Getter private PlayerRecordRepo playerRecordRepo;
@@ -131,18 +132,7 @@ public class DumpService {
 		this.botCache = this.dumpDataProvider.getBots();
 		log.info("finished loading bot cache");
 
-		// run this at startup so leaderboard data works properly
-		log.info("pre-cache leaderboard data");
-		this.dumpDataProvider.getHighScoreDump();
-		this.dumpDataProvider.getHighExpDump();
-
-		// run this at startup so the leaderboard caches are pre-loaded (and don't cause
-		// lag for the rest of the machine
-		this.dumpReportsService.getBotLeaderboard();
-		this.dumpReportsService.getLeaderboard();
-		log.info("leaderboard data cache complete");
-
-		// this.dumpScheduledTasks.runAllUpdates();
+		//this.dumpScheduledTasks.runAllUpdates();
 
 		log.info("player data cache load complete");
 	}
@@ -221,9 +211,9 @@ public class DumpService {
 	}
 	
 	public GlobalGilHistory recalculateGlobalGil() {
-		Set<String> players = this.balanceCache.keySet().parallelStream().map(name -> StringUtils.lowerCase(name)).collect(Collectors.toSet());
-		Long globalGilCount = players.stream().map(player -> this.balanceCache.get(player)).mapToLong(balanceInt -> balanceInt.longValue()).sum();
-		Integer globalPlayerCount = this.balanceCache.keySet().size();
+		Pair<Integer, Long> globalGilData = this.dumpDataProvider.getHighScoreTotal();
+		Long globalGilCount = globalGilData.getRight();
+		Integer globalPlayerCount = globalGilData.getLeft();
 		
 		SimpleDateFormat sdf = new SimpleDateFormat(GlobalGilHistory.dateFormatString);
 		String currentDateString = sdf.format(new Date());
