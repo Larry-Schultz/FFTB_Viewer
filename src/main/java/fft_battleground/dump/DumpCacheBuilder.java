@@ -76,9 +76,15 @@ public class DumpCacheBuilder {
 
 	}
 	
+	@SneakyThrows
+	public void buildLeaderboard() {
+		this.threadPool.submit(new LeaderboardBuilder(this.dumpService));
+	}
+	
 }
 
-class PlayerRecordFindTask implements Callable<List<PlayerRecord>> {
+class PlayerRecordFindTask 
+implements Callable<List<PlayerRecord>> {
 	
 	private List<String> players;
 	private PlayerRecordRepo playerRepo;
@@ -265,6 +271,36 @@ implements Callable<Map<String, List<String>>> {
 		log.info("finished loading prestige skills cache");
 		
 		return prestigeSkillsCache;
+	}
+	
+}
+
+@Slf4j
+class LeaderboardBuilder
+implements Runnable {
+	
+	private DumpService dumpServiceRef;
+	
+	public LeaderboardBuilder(DumpService dumpService) {
+		this.dumpServiceRef = dumpService;
+	}
+	
+	@Override
+	public void run() {
+		// run this at startup so leaderboard data works properly
+		log.info("pre-cache leaderboard data");
+		this.dumpServiceRef.getDumpDataProvider().getHighScoreDump();
+		this.dumpServiceRef.getDumpDataProvider().getHighExpDump();
+
+		// run this at startup so the leaderboard caches are pre-loaded (and don't cause
+		// lag for the rest of the machine
+		log.info("calling bot leaderboard");
+		this.dumpServiceRef.getDumpReportsService().getBotLeaderboard();
+		
+		log.info("calling player leaderboard");
+		this.dumpServiceRef.getDumpReportsService().getLeaderboard();
+		
+		log.info("leaderboard data cache complete");
 	}
 	
 }
