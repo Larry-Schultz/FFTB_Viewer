@@ -26,4 +26,7 @@ public interface PlayerSkillRepo extends JpaRepository<PlayerSkills, Long> {
 		 + " ) ")
 	public void deleteSkillsByPlayer(@Param("player") String player);
 	
+	@Query("Select playerSkills FROM PlayerSkills playerSkills LEFT JOIN playerSkills.player_record playerRecord WHERE playerRecord.player = :player AND playerSkills.skill = :skillName")
+	public PlayerSkills getSkillsByPlayerAndSkillName(@Param("player") String player, @Param("skillName") String skillName);
+	
 }
