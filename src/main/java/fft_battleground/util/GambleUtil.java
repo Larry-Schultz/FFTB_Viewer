@@ -95,4 +95,12 @@ public class GambleUtil {
 		return minimumBet;
 	}
 	
+	public static String cleanString(String str) {
+		String result = str;
+		result = StringUtils.lowerCase(result);
+		result = StringUtils.replace(result, ",", "");
+		result = StringUtils.trim(result);
+		return result;
+	}
+	
 }
