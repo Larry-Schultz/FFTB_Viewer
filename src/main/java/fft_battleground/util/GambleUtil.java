@@ -76,6 +76,13 @@ public class GambleUtil {
 				value = MINIMUM_BET;
 			}
 			break;
+		case FLOOR:
+			if(player.getLastKnownLevel() != null) {
+				value = getMinimumBetForLevel(player.getLastKnownLevel());
+			} else {
+				value = MINIMUM_BET;
+			}
+			break;
 		default:
 			break;
 		}

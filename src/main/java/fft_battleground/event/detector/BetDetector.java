@@ -15,7 +15,23 @@ public class BetDetector implements EventDetector
 	public BattleGroundEvent detect(ChatMessage message) {
 		BetEvent event = null;
 		String messageText = message.getMessage();
-		if(StringUtils.contains(messageText, "!bet")) {
+		if(StringUtils.contains(messageText, "!betf")) {
+			String amount = "0"; 
+			String teamName = null;
+			String[] textSplit = StringUtils.split(messageText, ' ');
+			if(textSplit.length > 1) {
+				teamName = textSplit[1];
+				amount="floor";
+			}
+			String betText = amount;
+			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
+			
+			if(this.validateBet(amount)) {
+				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.FLOOR);
+			} else {
+				event = null;
+			}
+		} else if(StringUtils.contains(messageText, "!bet")) {
 			String amount = "0";
 			String betText = "";
 			String teamName = null;
@@ -71,6 +87,8 @@ public class BetDetector implements EventDetector
 			type = BetType.VALUE;
 		} else if (StringUtils.contains(bet, "half")) {
 			type=BetType.HALF;
+		} else if(StringUtils.contains(bet, "floor")) {
+			type = BetType.FLOOR;
 		}
 	
 		return type;

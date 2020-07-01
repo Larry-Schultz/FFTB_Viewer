@@ -4,5 +4,6 @@ public enum BetType {
 	VALUE,
 	PERCENTAGE,
 	HALF,
-	ALLIN;
+	ALLIN,
+	FLOOR;
 }

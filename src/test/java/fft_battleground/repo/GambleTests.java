@@ -103,6 +103,8 @@ public class GambleTests {
 		ChatMessage message2 = new ChatMessage("allinbot", "!bet all blue");
 		ChatMessage message3 = new ChatMessage("omnibotgamma", "!bet 100 random");
 		ChatMessage message4 = new ChatMessage("minbetbot", "!allin yellow");
+		ChatMessage message5 = new ChatMessage("magicbottle", "!betf red");
+		ChatMessage message6 = new ChatMessage("thekillernacho", "!bet floor purple");
 
 		BetEvent event = (BetEvent) detector.detect(message);
 		assertTrue(event != null);
@@ -119,6 +121,14 @@ public class GambleTests {
 		event = (BetEvent) detector.detect(message4);
 		assertTrue(event != null);
 		assertTrue(event.getBetType() == BetType.ALLIN);
+		
+		event = (BetEvent) detector.detect(message5);
+		assertTrue(event != null);
+		assertTrue(event.getBetType() == BetType.FLOOR);
+		
+		event = (BetEvent) detector.detect(message6);
+		assertTrue(event != null);
+		assertTrue(event.getBetType() == BetType.FLOOR);
 	}
 
 	@Test
@@ -173,6 +183,12 @@ public class GambleTests {
 		BattleGroundEvent event = detector.detect(message);
 		SkillDropEvent skillDropEvent = (SkillDropEvent) event;
 		assertTrue(event != null && skillDropEvent.getSkill() != null && skillDropEvent.getSkillDescription() != null);
+		
+		String test2 = "The current Skill Drop is: FloatingEye (Allows you to use the monster: FloatingEye. Use !class to get info on the monster's stats. This is a normal monster (costs 200G). Rarity: Common.).";
+		ChatMessage message2 = new ChatMessage("fftbattleground", test2); 
+		event = detector.detect(message2);
+		skillDropEvent = (SkillDropEvent) event;
+		assertTrue(event != null && skillDropEvent.getSkill() != null);
 	}
 
 	@Test
