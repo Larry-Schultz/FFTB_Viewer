@@ -2,13 +2,13 @@ package fft_battleground.repo.model;
 
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
@@ -24,7 +24,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Entity
-@Table(name = "player_skills")
+@Table(name = "player_skills", indexes= {
+		@Index(columnList = "player_record_player", name = "player_name_skill_table_idx")})
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Data
