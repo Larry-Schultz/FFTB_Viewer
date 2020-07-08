@@ -20,11 +20,12 @@ public class MatchInfoDetector implements EventDetector {
 	public BattleGroundEvent detect(ChatMessage message) {
 		MatchInfoEvent event = null;
 		if(StringUtils.contains(message.getMessage(), BEGIN_STRING)) {
+			String teamString = null;
 			try {
 				String relevantString = StringUtils.substringBetween(message.getMessage(), BEGIN_STRING, END_STRING);
 				
 				//parse team
-				String teamString = StringUtils.substringBefore(relevantString, " on");
+				teamString = StringUtils.substringBefore(relevantString, " on");
 				Pair<BattleGroundTeam, BattleGroundTeam> teamPair = this.parseTeams(teamString);
 				
 				//parse map
@@ -35,6 +36,7 @@ public class MatchInfoDetector implements EventDetector {
 			} catch(NullPointerException e) {
 				event = null;
 				log.error("Exception found in MatchInfoDetector, the ChatMessage was: {}", message, e);
+				log.error("team string was: {}", teamString);
 			}
 		}
 		return event;

@@ -143,7 +143,7 @@ function handleBetBegins(event) {
 
 function handleBet(event) {
 	if(event.team == team1Name || event.team == 'LEFT') {
-		generatePlayerRecord(event.metadata, event.player, event.betText, event.betAmount, event.betType, 'team1');
+		$("#team1").prepend(generatePlayerRecord(event.metadata, event.player, event.betText, event.betAmount, event.betType, 'team1', event.allinbutFlag));
 		sortList('team1');
 		attachTabindexToGridElements(1000, 'team1');
 		if(!isNaN(event.betAmount)) {
@@ -154,7 +154,7 @@ function handleBet(event) {
 			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
 		}
 	} else if(event.team == team2Name || event.team == 'RIGHT') {
-		$("#team2").prepend(generatePlayerRecord(event.metadata, event.player, event.betText, event.betAmount, event.betType, 'team2'));
+		$("#team2").prepend(generatePlayerRecord(event.metadata, event.player, event.betText, event.betAmount, event.betType, 'team2', event.allinbutFlag));
 		sortList('team2');
 		attachTabindexToGridElements(2000, 'team2');
 		if(!isNaN(event.betAmount)) {
@@ -197,14 +197,14 @@ function handleMusicEvent(event) {
 	$('#trackName').text(event.songName);
 }
 
-function generatePlayerRecord(metadata, player, betText, betAmount, betType, team) {
+function generatePlayerRecord(metadata, player, betText, betAmount, betType, team, allinbutFlag) {
 	var possiblePlayerElement = document.getElementById(player + 'Record');
 	if(possiblePlayerElement != null) {
 		$('#' + player + 'Record').remove();
 	}
 	
 	
-	var possibleStar = betType =='ALLIN' || betType == 'PERCENTAGE' || betType == 'HALF' ? '<span class="example" id="' + player + 'Example">*</span>' : '';
+	var possibleStar = betType =='ALLIN' || betType == 'PERCENTAGE' || betType == 'HALF' || betType == 'FLOOR' || allinbutFlag ? '<span class="example" id="' + player + 'Example">*</span>' : '';
 	var possibleStarTooltip = 'Based on current data';
 	
 	var playerTooltip = "";
@@ -218,6 +218,9 @@ function generatePlayerRecord(metadata, player, betText, betAmount, betType, tea
 	var playerRecord = '<span id="'+ player + 'Name" class="player" tabindex="" ><a id="' + player + 'DataLink" href="/player/'+ player + '" target="_blank" style="color: inherit;" >' + player + '</a></span>';
 	
 	var betTip = betText;
+	if(allinbutFlag) {
+		betTip = "allinbut " + betTip;
+	}
 	var betRecord = '<span id="' + player + 'BetAmount" class="betAmount">' + betAmount + '</span>';
 	
 	var record = '<li id="' + player + 'Record">' + playerRecord + '-' + betRecord + possibleStar + '</li>';
@@ -236,7 +239,7 @@ function generatePlayerRecord(metadata, player, betText, betAmount, betType, tea
 
 function handleBetInfo(event) {
 	if(event.team == team1Name || event.team == 'LEFT') {
-		$("#team1").prepend(generatePlayerRecord(event.metadata, event.player, event.betAmount, event.betAmount, 'VALUE', 'team1'));
+		$("#team1").prepend(generatePlayerRecord(event.metadata, event.player, event.betAmount, event.betAmount, 'VALUE', 'team1', false));
 		sortList('team1');
 		attachTabindexToGridElements(1000, 'team1');
 		if(!isNaN(event.betAmount)) {
@@ -247,7 +250,7 @@ function handleBetInfo(event) {
 			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
 		}
 	} else if(event.team == team2Name || event.team == 'RIGHT') {
-		$("#team2").prepend(generatePlayerRecord(event.metadata, event.player, event.betAmount, event.betAmount, 'VALUE', 'team2'));
+		$("#team2").prepend(generatePlayerRecord(event.metadata, event.player, event.betAmount, event.betAmount, 'VALUE', 'team2', false));
 		sortList('team2');
 		attachTabindexToGridElements(2000, 'team2');
 		if(!isNaN(event.betAmount)) {
@@ -470,18 +473,11 @@ function calculatePercentageForTeam(yourTeamTotalValue, theirTeamTotalValue) {
 
 function attachTippy(elementName, content) {
 	destroyTippyIfPresent(elementName.trim());
-	$('#' + elementName.trim()).data('tippy', tippy('#' + elementName.trim(), {content: content}));
-	tippyMap.set(elementName, $('#' + elementName.trim()).data('tippy'));
+	$('#' + elementName.trim()).attr('title', content);
 }
 
 function destroyTippyIfPresent(elementName) {
-	if(typeof $('#' + elementName).data('tippy') !== 'undefined') {
-		var instance = $('#' + elementName).data('tippy');
-		if(instance.length > 0) {
-			instance[0].destroy();
-			tippyMap.delete(elementName);
-		}
-	}
+	$('#' + elementName.trim()).attr('title', null);
 }
 
 

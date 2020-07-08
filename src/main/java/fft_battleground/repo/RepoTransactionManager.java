@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BetResults;
@@ -30,11 +30,13 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.repo.model.BalanceHistory;
+import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.GambleUtil;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +58,9 @@ public class RepoTransactionManager {
 	
 	@Autowired
 	private PlayerSkillRepo playerSkillRepo;
+	
+	@Autowired
+	private BotsRepo botsRepo;
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
@@ -158,6 +163,42 @@ public class RepoTransactionManager {
 				record.setFightLosses(0);
 				this.playerRecordRepo.saveAndFlush(record);
 			}
+		}
+	}
+	
+	@Transactional
+	public void reportBotWin(BetterBetBot bot, Float winningOdds) {
+		Bots botData = this.botsRepo.getBotByDateStringAndName(bot.getDateFormat(), this.cleanString(bot.getName()));
+		if(botData != null) {
+			Integer wonGil = GambleUtil.getAmountUpdateFromBet(bot.getResult().getBetAmount(botData.getBalance()), winningOdds, true);
+			Integer newBalance = botData.getBalance() + wonGil;
+			botData.setBalance(newBalance);
+			
+			Short newWins = (short) (botData.getWins() + 1);
+			botData.setWins(newWins);
+			
+			this.botsRepo.saveAndFlush(botData);
+			
+			log.info("updated bot {} with new balance {} with state {}", bot.getName(), botData.getBalance(), "win");
+		}
+	}
+	
+	@Transactional
+	public void reportBotLoss(BetterBetBot bot) {
+		Bots botData = this.botsRepo.getBotByDateStringAndName(bot.getDateFormat(), this.cleanString(bot.getName()));
+		if(botData != null) {
+			Integer newBalance = botData.getBalance() - bot.getResult().getBetAmount(botData.getBalance());
+			if(newBalance < GambleUtil.MINIMUM_BET) {
+				newBalance = GambleUtil.MINIMUM_BET;
+			}
+			botData.setBalance(newBalance);
+			
+			Short newWins = (short) (botData.getLosses() + 1);
+			botData.setLosses(newWins);
+			
+			this.botsRepo.saveAndFlush(botData);
+			
+			log.info("updated bot {} with new balance {} with state {}", bot.getName(), botData.getBalance(), "loss");
 		}
 	}
 	

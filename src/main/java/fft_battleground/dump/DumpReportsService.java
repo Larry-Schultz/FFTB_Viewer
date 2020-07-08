@@ -99,7 +99,7 @@ public class DumpReportsService {
 		return position;
 	}
 	
-	public Map<String, Integer> getBotLeaderboard() {
+	public synchronized Map<String, Integer> getBotLeaderboard() {
 		Map<String, Integer> botLeaderboard = this.botLeaderboardCache.getIfPresent(BOT_LEADERBOARD_KEY);
 		if(botLeaderboard == null) {
 			log.warn("bot leaderboard cache was busted, creating new value");
@@ -129,7 +129,7 @@ public class DumpReportsService {
 	}
 	
 	
-	public PlayerLeaderboard getLeaderboard() {
+	public synchronized PlayerLeaderboard getLeaderboard() {
 		PlayerLeaderboard leaderboard = this.leaderboardCache.getIfPresent(LEADERBOARD_KEY);
 		if(leaderboard == null) {
 			log.warn("Leaderboard cache was busted, creating new value");
@@ -161,25 +161,18 @@ public class DumpReportsService {
 		myFormat.setGroupingUsed(true);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
 		DecimalFormat decimalFormat = new DecimalFormat("##.#########");
+		 
+		LeaderboardData data = null;
+		Integer gil = this.dumpService.getBalanceFromCache(player);
+		Date lastActive = this.dumpService.getLastActiveDateFromCache(player);
 		
-		Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(StringUtils.lowerCase(player));
-		if(maybePlayer.isPresent()) {
-			PlayerRecord record = maybePlayer.get();
-			String gil = null;
-			String activeDate = null;
-			String percentageOfGlobalGil = decimalFormat.format(this.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
-			if(record.getLastKnownAmount() != null) {
-				gil = myFormat.format(record.getLastKnownAmount());
-			}
-			if(record.getLastActive() != null) {
-				activeDate = dateFormat.format(record.getLastActive());
-			}
-			LeaderboardData data = new LeaderboardData(player, gil, activeDate);
-			data.setPercentageOfGlobalGil(percentageOfGlobalGil);
-			return data;
-		} else {
-			return null;
-		}
+		String gilString = myFormat.format(gil);
+		String percentageOfGlobalGil = decimalFormat.format(this.percentageOfGlobalGil(gil) * (double) 100);
+		String activeDate = dateFormat.format(lastActive);
+		data = new LeaderboardData(player, gilString, activeDate);
+		data.setPercentageOfGlobalGil(percentageOfGlobalGil);
+		
+		return data;
 	}
 	
 	public List<ExpLeaderboardEntry> generateExpLeaderboardData() {

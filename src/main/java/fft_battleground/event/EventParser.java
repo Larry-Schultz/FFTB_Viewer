@@ -29,6 +29,7 @@ import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.tournament.Tips;
 import fft_battleground.tournament.Tournament;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
@@ -98,9 +99,13 @@ public class EventParser extends Thread {
 							FightBeginsEvent fightEvent = (FightBeginsEvent) event;
 							SkillDropEvent skillDropEvent = fightEvent.generateSkillDropEvent();
 							this.eventRouter.sendDataToQueues(fightEvent);
+							this.attachMetadataToSkillDropEvent(skillDropEvent);
 							this.eventRouter.sendDataToQueues(skillDropEvent);
 						} else if(event instanceof PrestigeAscensionEvent) {
 							this.attachMetadataToPrestigeAscension((PrestigeAscensionEvent) event);
+							this.eventRouter.sendDataToQueues(event);
+						} else if(event instanceof SkillDropEvent) {
+							this.attachMetadataToSkillDropEvent((SkillDropEvent) event);
 							this.eventRouter.sendDataToQueues(event);
 						} else if(event instanceof BettingBeginsEvent) {
 							BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
@@ -266,6 +271,16 @@ public class EventParser extends Thread {
 		return;
 	}
 	
+	protected void attachMetadataToSkillDropEvent(SkillDropEvent event) {
+		if(event != null) {
+			Tips tipFromTournamentService = this.tournamentService.getCurrentTips();
+			String description = tipFromTournamentService.getUserSkill().get(event.getSkill());
+			description = StringUtils.replace(description, "\"", "");
+			event.setSkillDescription(description);
+			return;
+		}
+	}
+	
 	protected void sendScheduledMessage(String message, Long waitTime) {
 		this.eventTimer.schedule(new MessageSenderTask(this.messageSenderRouter, message), waitTime);
 	}
@@ -273,14 +288,4 @@ public class EventParser extends Thread {
 	protected void startEventUpdate() {
 		this.eventTimer.schedule(this.dumpService.getDataUpdateTask(), BattleGroundEventBackPropagation.delayIncrement);
 	}
-	
-	/*
-	 * need to come up with logic to determine the current teams that are playing purely from the tournament api
-	protected void startUpInformationPull() {
-		this.currentTournament = this.tournamentService.getcurrentTournament();
-		
-		List<BattleGroundEvent> tournamentRelatedEvents = currentTournament.getEventsFromTournament(bettingBeginsEvent.getTeam1(), bettingBeginsEvent.getTeam2());
-		this.handleTournamentEvents(tournamentRelatedEvents);
-	}
-	*/
 }

@@ -1,30 +1,47 @@
 package fft_battleground.botland.bot;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import fft_battleground.botland.BetBot;
+import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
-import fft_battleground.util.Router;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Data
-public class DataBetBot extends BetBot {
+public class DataBetBot extends BetterBetBot {
 	
-	protected final String Name = "DataBetBot";
+	protected String Name = "DataBetBot";
+	protected Map<String, PlayerRecord> playerBetRecords;
 	
-	public DataBetBot(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BattleGroundTeam left,
+	public DataBetBot(Integer currentAmountToBetWith, BattleGroundTeam left,
 			BattleGroundTeam right) {
-		super( currentAmountToBetWith, otherPlayerBets, left, right);
+		super(currentAmountToBetWith, left, right);
 		// TODO Auto-generated constructor stub
+	}
+	
+	@Override
+	public void initParams(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setName(String name) {
+		this.Name = name;
+	}
+	
+	@Override
+	public String getName() {
+		return this.Name;
 	}
 
 	@Override
@@ -40,7 +57,7 @@ public class DataBetBot extends BetBot {
 	}
 
 	@Override
-	protected Integer generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
+	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
 		Float betAmount = GambleUtil.MINIMUM_BET.floatValue();
 		if(chosenTeam == this.left) {
 			float betRatio = leftScore / (leftScore + rightScore);
@@ -50,13 +67,26 @@ public class DataBetBot extends BetBot {
 			betAmount = betRatio * (this.currentAmountToBetWith);
 		}
 		
-		return betAmount.intValue();
+		Bet result = new Bet(chosenTeam, betAmount.intValue());
+		
+		return result;
 	}
 
 	protected Float findScoreOfBets(List<BetEvent> bets) {
 		float scoreSum = 0f;
 		for(BetEvent bet: bets) {
-			PlayerRecord playerRecord = this.playerBetRecords.get(bet.getPlayer());
+			PlayerRecord playerRecord = null;
+			try {
+				playerRecord = this.playerBetRecords.get(bet.getPlayer());
+			}catch(NullPointerException e) {
+				if(this.playerBetRecords == null) {
+					log.error("this*.playerBetRecords is null");
+				}
+				if(bet == null) {
+					log.error("the current bet is null");
+				}
+				
+			}
 			Integer amount = GambleUtil.MINIMUM_BET;
 			if(playerRecord != null) {
 				amount = GambleUtil.getBetAmountFromBetString(playerRecord, bet);
@@ -84,6 +114,23 @@ public class DataBetBot extends BetBot {
 			score = betAmount.floatValue() * winLossRatio * betRatio;
 		}
 		return score;
+	}
+	
+	protected Map<String, PlayerRecord> generatePlayerRecordMap(List<BetEvent> otherPlayerBets) {
+		Map<String, PlayerRecord> playerRecordMap = new HashMap<String, PlayerRecord>();
+		for(BetEvent betEvent : otherPlayerBets) {
+			Optional<PlayerRecord> maybePlayer = this.playerRecordRepoRef.findById(betEvent.getPlayer());
+			if(maybePlayer.isPresent()) {
+				playerRecordMap.put(betEvent.getPlayer(), maybePlayer.get());
+			}
+		}
+		this.playerBetRecords = playerRecordMap;
+		return playerRecordMap;
+	}
+
+	@Override
+	public void init() {
+		this.playerBetRecords = this.generatePlayerRecordMap(getOtherPlayerBets());
 	}
 
 }

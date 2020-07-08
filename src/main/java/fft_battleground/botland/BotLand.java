@@ -9,7 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.thymeleaf.util.StringUtils;
 
 import fft_battleground.botland.model.Bet;
-import fft_battleground.botland.model.BetType;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.model.BadBetEvent;
 import fft_battleground.event.model.BetEvent;
@@ -18,15 +17,18 @@ import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
-import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
+import fft_battleground.repo.BotsRepo;
 import fft_battleground.repo.PlayerRecordRepo;
+import fft_battleground.repo.model.Bots;
 import fft_battleground.util.Router;
 
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 public class BotLand extends TimerTask {
 	private BotlandHelper helper;
 	private String ircName;
@@ -35,6 +37,7 @@ public class BotLand extends TimerTask {
 	//references
 	protected Router<ChatMessage> chatMessageRouterRef;
 	protected PlayerRecordRepo playerRecordRepo;
+	protected BotsRepo botsRepo;
 	protected BattleGroundEventBackPropagation battleGroundEventBackPropagationRef;
 	
 	//state data
@@ -52,13 +55,30 @@ public class BotLand extends TimerTask {
 		Pair<List<BetEvent>, List<BetEvent>> betsBySide = this.helper.sortBetsBySide();
 		this.primaryBot.setBetsBySide(betsBySide);
 		this.primaryBot.setCurrentAmountToBetWith(helper.getCurrentAmountToBetWith());
+		this.primaryBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
 		//get results from main bot
 		Bet bet = primaryBot.call();
 		//send results to irc
 		this.sendBet(bet);
 		
 		//call subordinate bots
-		
+		if (this.subordinateBots != null) {
+			for (int i = 0; i < this.subordinateBots.size(); i++) {
+				try {
+					BetterBetBot currentSubordinateBot = this.subordinateBots.get(i);
+					currentSubordinateBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
+					currentSubordinateBot.setBetsBySide(betsBySide);
+					Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(currentSubordinateBot.getDateFormat(), currentSubordinateBot.getName());
+					currentSubordinateBot.setCurrentAmountToBetWith(botDataFromDatabase.getBalance());
+					Bet secondaryBet = currentSubordinateBot.call();
+					log.info("Subordinate bot {} created bet with {}", currentSubordinateBot.getName(), secondaryBet.generateBetString());
+				} catch(Exception e) {
+					log.error("something went wrong with one of the subordinate bots", e);
+				}
+			}
+		} else {
+			log.warn("no secondary bots found");
+		}
 		
 		//send all data to repo manager
 		
@@ -121,8 +141,8 @@ public class BotLand extends TimerTask {
 	
 	@SneakyThrows
 	protected void sendBet(Bet bet) {
-		String betString = String.format("!bet %1$s %2$s", BattleGroundTeam.getTeamName(bet.getTeam()), bet.getAmount());
+		String betString = bet.generateBetString();
 		this.chatMessageRouterRef.sendDataToQueues(new ChatMessage(betString));
-		this.battleGroundEventBackPropagationRef.SendUnitThroughTimer(new BetEvent(this.ircName, bet.getTeam(), bet.getAmount().toString(), bet.getAmount().toString(), BetType.VALUE));
+		this.battleGroundEventBackPropagationRef.SendUnitThroughTimer(new BetEvent(this.ircName, bet.getTeam(), String.valueOf(bet.getAmount()), String.valueOf(bet.getAmount()), bet.getType()));
 	}
 }

@@ -12,6 +12,7 @@ import fft_battleground.model.ChatMessage;
 public class PlayerSkillDetector implements EventDetector {
 
 	private static final String SEARCH_STRING = ", your skills: ";
+	private static final String FILTER_STRING = "None!";
 	
 	@Override
 	public BattleGroundEvent detect(ChatMessage message) {
@@ -20,11 +21,14 @@ public class PlayerSkillDetector implements EventDetector {
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			for(String str : StringUtils.split(message.getMessage(), ";")) {
 				if(StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
+					
 					String player = StringUtils.substringBefore(str, SEARCH_STRING);
 					String skillsString = this.getSkillsString(str);
 					List<String> skills = new LinkedList<String>();
 					for(String singleSkillString : StringUtils.split(skillsString, ",")) {
-						skills.add(StringUtils.trim(StringUtils.replace(singleSkillString, ".", "")));
+						if(!StringUtils.equalsIgnoreCase(singleSkillString, FILTER_STRING)) {
+							skills.add(StringUtils.trim(StringUtils.replace(singleSkillString, ".", "")));
+						}
 					}
 					
 					if(skills.size() > 0) {

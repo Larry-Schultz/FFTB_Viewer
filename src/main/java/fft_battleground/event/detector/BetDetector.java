@@ -10,7 +10,8 @@ import fft_battleground.model.ChatMessage;
 
 public class BetDetector implements EventDetector
 {
-
+	private static final String ALLINBUT_FLAG_SEARCH_STRING = "allbut"; 
+	
 	@Override
 	public BattleGroundEvent detect(ChatMessage message) {
 		BetEvent event = null;
@@ -18,6 +19,12 @@ public class BetDetector implements EventDetector
 		if(StringUtils.contains(messageText, "!betf")) {
 			String amount = "0"; 
 			String teamName = null;
+			boolean allinbutFlag = false;
+			//if the flag is there, remove the text entirely and set the flag.  This allows the rest of the code to work without change
+			if(StringUtils.contains(messageText, ALLINBUT_FLAG_SEARCH_STRING)) {
+				allinbutFlag = true;
+				StringUtils.replace(messageText, ALLINBUT_FLAG_SEARCH_STRING +" ", "");
+			}
 			String[] textSplit = StringUtils.split(messageText, ' ');
 			if(textSplit.length > 1) {
 				teamName = textSplit[1];
@@ -28,13 +35,21 @@ public class BetDetector implements EventDetector
 			
 			if(this.validateBet(amount)) {
 				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.FLOOR);
+				event.setAllinbutFlag(allinbutFlag);
 			} else {
 				event = null;
 			}
-		} else if(StringUtils.contains(messageText, "!bet")) {
+		} else if(StringUtils.contains(messageText, "!bet") || StringUtils.startsWithIgnoreCase(messageText, "!" + ALLINBUT_FLAG_SEARCH_STRING)) {
 			String amount = "0";
 			String betText = "";
 			String teamName = null;
+			
+			boolean allinbutFlag = false;
+			
+			if(StringUtils.startsWithIgnoreCase(messageText, "!" + ALLINBUT_FLAG_SEARCH_STRING)) {
+				allinbutFlag = true;
+			}
+			
 			String[] textSplit = StringUtils.split(messageText, ' ');
 			BetType type = null;
 			if(textSplit.length > 2) {
@@ -52,9 +67,11 @@ public class BetDetector implements EventDetector
 			}
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 			if(type != null) {
-				return new BetEvent(message.getUsername(), team, amount, betText, type);
+				event = new BetEvent(message.getUsername(), team, amount, betText, type);
+				event.setAllinbutFlag(allinbutFlag);
+				return event;
 			} else {
-				return null;
+				return event;
 			}
 		} else if(StringUtils.contains(messageText, "!allin")) {
 			String amount = "0"; 

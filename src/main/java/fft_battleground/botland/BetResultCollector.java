@@ -1,6 +1,9 @@
 package fft_battleground.botland;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.event.model.ResultEvent;
@@ -21,8 +24,19 @@ public class BetResultCollector {
 	
 	public BetResults getResult(ResultEvent event) {
 		BetResults results = null;
+		
+		List<BetterBetBot> subordinateBotsWithResults = new ArrayList<>();
+		for(BetterBetBot bot : this.subordinateBots) {
+			if(bot.getResult() != null) {
+				subordinateBotsWithResults.add(bot);
+			}
+		}
+		
 		results = new BetResults(helper.sortBetsBySide(), event.getWinner(), helper.getLeft(), helper.getRight(), helper.getBettingEndsEvent(), 
-				helper.getMatchInfo(), helper.getTeamData());
+				helper.getMatchInfo(), helper.getTeamData(), subordinateBotsWithResults);
+
+		
 		return results;
 	}
+	 
 }

@@ -1,13 +1,10 @@
 package fft_battleground.event.model;
 
-import java.util.Date;
-
-import org.apache.commons.lang3.StringUtils;
-
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.botland.model.BetType;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
+
 import lombok.Data;
 
 @Data
@@ -20,6 +17,7 @@ public class BetEvent extends BattleGroundEvent {
 	private String betAmount;
 	private String betText;
 	private BetType betType;
+	private boolean allinbutFlag;
 	
 	private PlayerRecord metadata;
 	

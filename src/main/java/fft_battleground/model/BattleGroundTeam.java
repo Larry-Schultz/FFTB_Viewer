@@ -17,8 +17,8 @@ public enum BattleGroundTeam {
 	PURPLE(new String[] {"purple"}, 6),
 	BROWN(new String[] {"brown"}, 7),
 	CHAMPION(new String[] {"champ", "champion", "champs", "orange"}, 8),
-	LEFT(new String[] {"left"}, null),
-	RIGHT(new String[] {"right"}, null),
+	LEFT(new String[] {"left", "p1", "t1"}, null),
+	RIGHT(new String[] {"right", "p2", "t2"}, null),
 	RANDOM(new String[] {"random"}, null), 
 	NONE(new String[] {"None"}, -1);
 	
@@ -88,4 +88,5 @@ public enum BattleGroundTeam {
 	protected String getTeamName() {
 		return (String) this.teamNames.toArray()[0];
 	}
+	
 }

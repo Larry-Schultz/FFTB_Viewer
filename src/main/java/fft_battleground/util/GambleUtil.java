@@ -5,6 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.repo.model.PlayerRecord;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class GambleUtil {
 	
 	public static final Integer MINIMUM_BET = 100;
@@ -49,6 +52,9 @@ public class GambleUtil {
 		switch(event.getBetType()) {
 		case VALUE:
 			value = Integer.valueOf(event.getBetAmount());
+			if(event.isAllinbutFlag()) {
+				value = player.getLastKnownAmount() - value;
+			}
 			break;
 		case PERCENTAGE:
 			String filteredValue = StringUtils.remove(event.getBetAmount(), '%');
@@ -56,6 +62,9 @@ public class GambleUtil {
 			if(lastKnownAmount != null && StringUtils.isNumeric(filteredValue)) {
 				Integer percentage = Integer.valueOf(filteredValue);
 				value = new Integer( (int) (lastKnownAmount.floatValue() * percentage.floatValue() * 0.01f));
+				if(event.isAllinbutFlag()) {
+					value = lastKnownAmount - value;
+				}
 			}
 			break;
 		case ALLIN:
@@ -75,6 +84,7 @@ public class GambleUtil {
 			} else {
 				value = MINIMUM_BET;
 			}
+			//no need to implement allinbut code here, since allinbut half is the same as bet half.
 			break;
 		case FLOOR:
 			if(player.getLastKnownLevel() != null) {
@@ -82,9 +92,16 @@ public class GambleUtil {
 			} else {
 				value = MINIMUM_BET;
 			}
+			if(event.isAllinbutFlag()) {
+				value = player.getLastKnownAmount() - value;
+			}
 			break;
 		default:
 			break;
+		}
+		
+		if(value < 0) {
+			log.warn("player had bet value below zero {}", player.getPlayer());
 		}
 		
 		return value;

@@ -1,5 +1,7 @@
 package fft_battleground.tournament;
 
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
@@ -7,6 +9,9 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +26,11 @@ public class TournamentService {
 	
 	private static final String tipsApiUrl = "https://fftbg.com/api/tips";
 	
+	private Cache<String, Tips> tipsCache = Caffeine.newBuilder()
+			  .expireAfterWrite(1, TimeUnit.HOURS)
+			  .maximumSize(1)
+			  .build();
+	
 	public Tournament getcurrentTournament() {
 		Tournament currentTournament = null;
 		
@@ -33,10 +43,15 @@ public class TournamentService {
 	@SneakyThrows
 	@Cacheable("tips")
 	public Tips getCurrentTips() {
-		Resource resource = new UrlResource(tipsApiUrl);
-		Tips tips = new Tips(resource);
+		Tips currentTip = tipsCache.getIfPresent("tips");
+		if(currentTip == null) {
+			Resource resource = new UrlResource(tipsApiUrl);
+			Tips tips = new Tips(resource);
+			this.tipsCache.put("tips", tips);
+			currentTip = tips;
+		}
 		
-		return tips;
+		return currentTip;
 	}
 	
 	protected TournamentInfo getLatestTournamentInfo() {

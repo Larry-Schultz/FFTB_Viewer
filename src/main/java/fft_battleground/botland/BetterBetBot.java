@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.TeamData;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.MatchInfoEvent;
@@ -24,7 +25,6 @@ public abstract class BetterBetBot
 implements Callable<Bet> {
 	protected Integer currentAmountToBetWith;
 	protected List<BetEvent> otherPlayerBets;
-	protected Map<String, PlayerRecord> playerBetRecords;
 	protected BattleGroundTeam left;
 	protected BattleGroundTeam right;
 
@@ -36,6 +36,7 @@ implements Callable<Bet> {
 	protected Bet result;
 	
 	protected Date startTime;
+	protected String dateFormat;
 	
 	public BetterBetBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right) {
 		this.currentAmountToBetWith = currentAmountToBetWith;
@@ -51,6 +52,7 @@ implements Callable<Bet> {
 	@Override
 	public Bet call() throws Exception {
 		// TODO Auto-generated method stub
+		this.init();
 		Bet bet =  this.determineBet();
 		this.ensureBetIsWithinParameters(bet);
 		this.result = bet;
@@ -67,17 +69,20 @@ implements Callable<Bet> {
 		Float rightScore = this.generateRightScore();
 		
 		BattleGroundTeam winningTeam = this.determineWinningTeam(leftScore, rightScore);
-		Integer betAmount = this.generateBetAmount(leftScore, rightScore, winningTeam);
+		Bet result = this.generateBetAmount(leftScore, rightScore, winningTeam);
 		
-		Bet result = new Bet(winningTeam, betAmount);
 		return result;
 	}
 	
 	protected void ensureBetIsWithinParameters(Bet bet) {
-		if(bet.getAmount() > GambleUtil.MAX_BET) {
-			bet.setAmount(GambleUtil.MAX_BET);
-		} else if(bet.getAmount() < GambleUtil.MINIMUM_BET) {
-			bet.setAmount(GambleUtil.MINIMUM_BET);
+		if (bet.getType() == BetType.VALUE) {
+			if (bet.getAmount() > GambleUtil.MAX_BET) {
+				bet.setAmount(GambleUtil.MAX_BET);
+			} else if (bet.getAmount() < GambleUtil.MINIMUM_BET) {
+				bet.setAmount(GambleUtil.MINIMUM_BET);
+			}
+		} else if (bet.getType() == null) {
+			bet.setType(BetType.FLOOR);
 		}
 	}
 	
@@ -89,7 +94,7 @@ implements Callable<Bet> {
 	 * @return
 	 */
 	protected BattleGroundTeam determineWinningTeam(Float leftScore, Float rightScore) {
-		log.info("The leftScore is {} and the rightScore is {}", leftScore, rightScore);
+		log.info("Bot {}: The leftScore is {} and the rightScore is {}", this.getName(), leftScore, rightScore);
 		BattleGroundTeam winningTeam = null;
 		if(leftScore > rightScore) {
 			winningTeam = this.left;
@@ -102,11 +107,17 @@ implements Callable<Bet> {
 		return winningTeam;
 	}
 
+	public abstract void initParams(Map<String, String> map);
+	
+	public abstract void init();
+	
 	public abstract String getName();
+	
+	public abstract void setName(String name);
 
 	protected abstract Float generateLeftScore();
 
 	protected abstract Float generateRightScore();
 
-	protected abstract Integer generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam);
+	protected abstract Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam);
 }

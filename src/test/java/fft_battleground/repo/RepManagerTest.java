@@ -85,9 +85,9 @@ public class RepManagerTest {
 		BettingEndsEvent endsEvent3 = new BettingEndsEvent(BattleGroundTeam.BLACK, 1, 2000, BattleGroundTeam.GREEN, 6, 750);
 		sampleBetEvents.getLeft().add(leftEvent);
 		sampleBetEvents.getRight().add(rightEvent);
-		BetResults testResult = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN.BLACK, endsEvent, null, null);
-		BetResults testResult2 = new BetResults(sampleBetEvents, BattleGroundTeam.RIGHT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent2, null, null);
-		BetResults testResult3 = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent3, null, null);
+		BetResults testResult = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN.BLACK, endsEvent, null, null, null);
+		BetResults testResult2 = new BetResults(sampleBetEvents, BattleGroundTeam.RIGHT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent2, null, null, null);
+		BetResults testResult3 = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent3, null, null, null);
 		
 		this.repoManager.updatePlayerData(testResult);
 		this.repoManager.updatePlayerData(testResult2);
@@ -108,7 +108,7 @@ public class RepManagerTest {
 		sampleBetEvents.getRight().add(rightEvent);
 		
 		BettingEndsEvent endsEvent = new BettingEndsEvent(BattleGroundTeam.BLACK, 3, 1000, BattleGroundTeam.GREEN, 4, 1750);
-		BetResults testResult = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent, null, null);
+		BetResults testResult = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent, null, null, null);
 		
 		this.repoManager.getRepoTransactionManager().updateMatchData(testResult);
 		List<Match> matches = this.matchRepo.findAll();

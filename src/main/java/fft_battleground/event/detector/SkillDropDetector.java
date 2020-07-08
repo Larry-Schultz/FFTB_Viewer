@@ -13,7 +13,7 @@ public class SkillDropDetector implements EventDetector {
 	@Override
 	public BattleGroundEvent detect(ChatMessage message) {
 		SkillDropEvent event = null;
-		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
+		if(StringUtils.equalsIgnoreCase(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			for(String str : StringUtils.split(message.getMessage(), ";")) {
 				if(StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 					String skill = StringUtils.substringBetween(str, SEARCH_STRING, " ");

@@ -141,7 +141,7 @@ public abstract class BetBot extends TimerTask {
 		BetResults results = null;
 		if(type == BattleGroundEventType.WIN) {
 			results = new BetResults(this.betsBySide, this.getLeftOrRightFromTeam(this.getResult().getTeam()), this.left, this.right, this.betEndEvent, 
-					this.matchInfo, this.teamData);
+					this.matchInfo, this.teamData, null);
 		} else if(type == BattleGroundEventType.LOSS) {
 			BattleGroundTeam winningTeam = null;
 			BattleGroundTeam resultsTeam = this.getResult().getTeam();
@@ -153,7 +153,7 @@ public abstract class BetBot extends TimerTask {
 			
 			if(winningTeam != null) {
 				results = new BetResults(this.betsBySide, winningTeam, this.left, this.right, this.betEndEvent, 
-						this.matchInfo, this.teamData);
+						this.matchInfo, this.teamData, null);
 			}
 		}
 		return results;
@@ -162,7 +162,7 @@ public abstract class BetBot extends TimerTask {
 	public BetResults getBetResult(ResultEvent event) {
 		BetResults results = null;
 		results = new BetResults(this.betsBySide, event.getWinner(), this.left, this.right, this.betEndEvent, 
-				this.matchInfo, this.teamData);
+				this.matchInfo, this.teamData, null);
 		
 		return results;
 	}

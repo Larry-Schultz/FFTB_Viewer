@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bots>
+	<bot id="minbetbot" classname="betcountbot" canPrimary="true">
+	</bot>
+	<bot id="allinbetcountbot" classname="betcountbot" canPrimary="false">
+		<param id="betType">allin</param>
+	</bot>
+	<bot id="datadrivenbot" classname="databetbot" canPrimary="true">
+	</bot>
+	<bot id="oddsbot" classname="oddsbot"  canPrimary="true">
+	</bot>
+	<bot id="betcount10increment" classname="betcountbot" canPrimary="true">
+		<param id="betExpression">min(maxBet, minBet + 10 * (max(leftScore, rightScore) - min(leftScore, rightScore)))</param>
+	</bot>
+	<bot id="allinrandombot" classname="arbitrarybot" canPrimary="false">
+		<param id="betType">allin</param>
+		<param id="choice">random</param>
+	</bot>
+	<bot id="halfrandombot" classname="arbitrarybot" canPrimary="false">
+		<param id="betType">half</param>
+		<param id="choice">random</param>
+	</bot>
+	<bot id="40percentrandombot" classname="arbitrarybot" canPrimary="false">
+		<param id="betType">percentage</param>
+		<param id="choice">random</param>
+		<param id="betAmount">40</param>
+	</bot>
+	<bot id="leftminimumbot" classname="arbitrarybot" canPrimary="false">
+		<param id="betType">floor</param>
+		<param id="choice">left</param>
+	</bot>
+	<bot id="rightminimumbot" classname="arbitrarybot" canPrimary="false">
+		<param id="betType">floor</param>
+		<param id="choice">right</param>
+	</bot>
+</bots>

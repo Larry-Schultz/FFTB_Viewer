@@ -1,24 +1,24 @@
 package fft_battleground.botland.bot;
 
-import java.util.List;
+import java.util.Map;
 
-import fft_battleground.botland.BetBot;
-import fft_battleground.event.model.BetEvent;
+import fft_battleground.botland.BetterBetBot;
+import fft_battleground.botland.model.Bet;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
-public class OddsBot extends BetBot {
+public class OddsBot extends BetterBetBot {
 
-	private static final String NAME = "oddsBot";
+	private String NAME = "oddsBot";
 	
-	public OddsBot(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BattleGroundTeam team1,
-			BattleGroundTeam team2) {
-		super(currentAmountToBetWith, otherPlayerBets, team1, team2);
+	public OddsBot(Integer currentAmountToBetWith, BattleGroundTeam left,
+			BattleGroundTeam right) {
+		super(currentAmountToBetWith, left, right);
 	}
 
 	@Override
 	public String getName() {
-		return OddsBot.NAME;
+		return this.NAME;
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class OddsBot extends BetBot {
 	}
 
 	@Override
-	protected Integer generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
+	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
 		Integer result = null;
 		Integer leftSum = this.getSumOfLeftTeam();
 		Integer rightSum = this.getSumOfRightTeam();
@@ -55,7 +55,10 @@ public class OddsBot extends BetBot {
 				result = GambleUtil.MAX_BET; //if we somehow go over, just use the maximum
 			}
 		}
-		return result;
+		
+		Bet bet = new Bet(chosenTeam, result);
+		
+		return bet;
 	}
 	
 	
@@ -67,6 +70,24 @@ public class OddsBot extends BetBot {
 	protected Integer getSumOfRightTeam() {
 		Integer result = this.betsBySide.getRight().stream().mapToInt(betEvent -> betEvent.getBetAmountInteger()).sum();
 		return result;
+	}
+
+	@Override
+	public void initParams(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setName(String name) {
+		this.NAME = name;
+		
+	}
+
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

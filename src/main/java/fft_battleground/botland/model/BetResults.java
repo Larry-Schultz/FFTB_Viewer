@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import fft_battleground.botland.BetterBetBot;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.MatchInfoEvent;
@@ -26,6 +27,8 @@ public class BetResults implements DatabaseResultsData {
 	
 	private MatchInfoEvent matchInfo;
 	private TeamData teamData;
+	
+	private List<BetterBetBot> botsWithResults;
 	
 	public BetResults() {
 		this.teamData = new TeamData();

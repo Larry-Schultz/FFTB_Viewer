@@ -105,6 +105,7 @@ public class GambleTests {
 		ChatMessage message4 = new ChatMessage("minbetbot", "!allin yellow");
 		ChatMessage message5 = new ChatMessage("magicbottle", "!betf red");
 		ChatMessage message6 = new ChatMessage("thekillernacho", "!bet floor purple");
+		ChatMessage message7 = new ChatMessage("lydian_c", "!allinbut 10% champ");
 
 		BetEvent event = (BetEvent) detector.detect(message);
 		assertTrue(event != null);
@@ -129,6 +130,11 @@ public class GambleTests {
 		event = (BetEvent) detector.detect(message6);
 		assertTrue(event != null);
 		assertTrue(event.getBetType() == BetType.FLOOR);
+		
+		event = (BetEvent) detector.detect(message7);
+		assertTrue(event != null);
+		assertTrue(event.isAllinbutFlag());
+		assertTrue(event.getBetType() == BetType.PERCENTAGE);
 	}
 
 	@Test

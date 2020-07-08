@@ -132,6 +132,7 @@ public class DumpService {
 		this.botCache = this.dumpDataProvider.getBots();
 		log.info("finished loading bot cache");
 
+		builder.buildLeaderboard();
 		//this.dumpScheduledTasks.runAllUpdates();
 
 		log.info("player data cache load complete");

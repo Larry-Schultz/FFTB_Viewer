@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.DatabaseResultsData;
@@ -115,6 +116,9 @@ public class RepoManager extends Thread {
 			
 			//update match data
 			this.repoTransactionManager.updateMatchData(newResults);
+			
+			//update bot data
+			this.updateBotData(newResults);
 		} catch( NullPointerException e) {
 			log.error("There was an error updating player data due to a NullPointException, skipping match data update", e);
 		}
@@ -230,6 +234,20 @@ public class RepoManager extends Thread {
 			this.repoTransactionManager.reportAsFightLoss(newResults.getTeamData().getRightTeamData());
 		} else if(newResults.getWinningTeam() == newResults.getRightTeam()){
 			this.repoTransactionManager.reportAsFightWin(newResults.getTeamData().getRightTeamData());
+		}
+	}
+	
+	protected void updateBotData(BetResults newResults) {
+		Float leftTeamOdds = GambleUtil.bettingOdds(newResults.getFullBettingData().getTeam1Amount(), newResults.getFullBettingData().getTeam2Amount());
+		Float rightTeamOdds = GambleUtil.bettingOdds(newResults.getFullBettingData().getTeam2Amount(), newResults.getFullBettingData().getTeam1Amount());
+		
+		for(BetterBetBot bot: newResults.getBotsWithResults()) {
+			if(bot.getResult().getTeam() == newResults.getWinningTeam()) {
+				Float winningOdds = newResults.getWinningTeam() == newResults.getLeftTeam() ? leftTeamOdds : rightTeamOdds;
+				this.repoTransactionManager.reportBotWin(bot, winningOdds);
+			} else {
+				this.repoTransactionManager.reportBotLoss(bot);
+			}
 		}
 	}
 
