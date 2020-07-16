@@ -9,23 +9,25 @@ public class BotData {
 	private String name;
 	private String classname;
 	private boolean canPrimary;
-	private Map<String, String> params;
+	private String description;
+	private Map<String, BotParam> params;
 	
 	public BotData() {}
 	
-	public BotData(String name, String classname, Map<String, String> params) {
+	public BotData(String name, String classname, Map<String, BotParam> params, String description) {
 		this.name = name;
 		this.classname = classname;
 		this.params = params;
+		this.description = description;
 		
 		this.canPrimary = true;
 	}
 	
-	public BotData(String name, String classname, Map<String, String> params, boolean qualifierForPrimary) {
+	public BotData(String name, String classname, Map<String, BotParam> params, boolean qualifierForPrimary, String description) {
 		this.name = name;
 		this.classname = classname;
 		this.params = params;
-		
+		this.description = description;
 		this.canPrimary = true;
 	}
 }

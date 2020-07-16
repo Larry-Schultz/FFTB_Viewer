@@ -26,12 +26,14 @@ import lombok.Data;
 
 @Entity
 @Table(name = "bot_record", indexes= {
-		@Index(columnList = "date_string,player", name = "date_string_player_idx")})
+	@Index(columnList = "date_string,player", name = "date_string_player_idx"),
+	@Index(columnList="date_string", name="date_string_idx")
+	})
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Data
 @AllArgsConstructor
-public class Bots {
+public class Bots implements Comparable<Bots> {
 	
 	public static final String dateFormat = "MM-dd-yyyy";
 	
@@ -59,6 +61,9 @@ public class Bots {
     @Column(name = "losses", nullable = true)
     private Short losses;
     
+    @Column(name="highest_known_value", nullable=true)
+    private Integer highestKnownValue;
+    
     @JsonIgnore
     @CreationTimestamp
     private Date createDateTime;
@@ -79,5 +84,24 @@ public class Bots {
 		this.losses = 0;
 		this.wins = 0;
 		this.balance = GambleUtil.MINIMUM_BET;
+		this.highestKnownValue = GambleUtil.MINIMUM_BET;
+	}
+
+	@Override
+	public int compareTo(Bots arg0) {
+		int result = this.balance.compareTo(arg0.getBalance());
+		if(result == 0) {
+			result = this.player.compareTo(arg0.getPlayer());
+		}
+		
+		return result;
+	}
+	
+	public int getWinPercentage() {
+		float wins = this.wins != null ? this.wins.floatValue() : 0f;
+		float losses = this.losses != null ? this.losses.floatValue() : 0f;
+		int result = (int) (( (wins + 1) / (losses + wins + 1) ) * 100);
+		
+		return result;
 	}
 }

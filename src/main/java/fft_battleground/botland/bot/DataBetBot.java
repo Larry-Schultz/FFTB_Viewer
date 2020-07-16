@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.model.BotParam;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
@@ -18,9 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DataBetBot extends BetterBetBot {
+	private static final String PLAYER_SCORE_EXPRESSION_PARAMETER = "playerScoreExpression";
 	
 	protected String Name = "DataBetBot";
 	protected Map<String, PlayerRecord> playerBetRecords;
+	
+	private String playerScoreExpression;
 	
 	public DataBetBot(Integer currentAmountToBetWith, BattleGroundTeam left,
 			BattleGroundTeam right) {
@@ -29,8 +33,10 @@ public class DataBetBot extends BetterBetBot {
 	}
 	
 	@Override
-	public void initParams(Map<String, String> map) {
-		// TODO Auto-generated method stub
+	public void initParams(Map<String, BotParam> map) {
+		if(map.containsKey(PLAYER_SCORE_EXPRESSION_PARAMETER)) {
+			this.playerScoreExpression = map.get(PLAYER_SCORE_EXPRESSION_PARAMETER).getValue();
+		}
 		
 	}
 
@@ -132,5 +138,7 @@ public class DataBetBot extends BetterBetBot {
 	public void init() {
 		this.playerBetRecords = this.generatePlayerRecordMap(getOtherPlayerBets());
 	}
+
+
 
 }

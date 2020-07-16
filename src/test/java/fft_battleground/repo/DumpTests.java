@@ -8,12 +8,17 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
+import org.mariuszgromada.math.mxparser.Argument;
+import org.mariuszgromada.math.mxparser.Expression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import fft_battleground.botland.SecondaryBotConfig;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.dump.DumpDataProvider;
+import fft_battleground.tournament.Tournament;
+import fft_battleground.tournament.TournamentService;
+import fft_battleground.util.GambleUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -27,6 +32,31 @@ public class DumpTests {
 		assertTrue(config != null && botData != null);
 		assertTrue(botData.size() > 0);
 	}
+	
+	@Test
+	public void testTournamentService() {
+		TournamentService tournamentService = new TournamentService();
+		Tournament currentTournament = tournamentService.getcurrentTournament();
+		assertTrue(currentTournament != null);
+	}
+	
+	@Test
+	public void testExpressions() {
+		Integer result = null;
 		
+		Argument leftScoreArg = new Argument("leftScore", 5f);
+		Argument rightScoreArg = new Argument("rightScore", 10f);
+		Argument minBet = new Argument("mnBet", GambleUtil.MINIMUM_BET);
+		Argument maxBet = new Argument("mxBet", GambleUtil.MAX_BET);
+		Argument balanceArg = new Argument("balance", 600);
+		
+		Expression exp = new Expression("min(mxBet, mnBet + 10 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)", leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
+		if(!exp.checkSyntax() || !exp.checkLexSyntax()) {
+			log.error("error with syntax: {}", exp.getErrorMessage());
+			assertTrue(false);
+		}
+		
+		result = new Double(exp.calculate()).intValue();
+	}
 	
 }

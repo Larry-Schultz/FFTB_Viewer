@@ -3,7 +3,6 @@ package fft_battleground.controller;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
+import fft_battleground.controller.model.GilDateGraphEntry;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.LeaderboardBalanceData;
@@ -40,7 +40,6 @@ import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GenericResponse;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -167,9 +166,9 @@ public class PlayerRecordController {
 	}
 	
 	@GetMapping("/globalGilHistoryGraphData")
-	public ResponseEntity<GenericResponse<List<GlobalGilHistoryGraphEntry>>> 
+	public ResponseEntity<GenericResponse<List<GilDateGraphEntry>>> 
 	getGlobalGilHistoryGraphData(@RequestParam("timeUnit") String unit) {
-		List<GlobalGilHistoryGraphEntry> results = null;
+		List<GilDateGraphEntry> results = null;
 		ChronoUnit timeUnit = null;
 		if(StringUtils.equalsIgnoreCase(unit, "day")) {
 			timeUnit = ChronoUnit.DAYS;
@@ -182,22 +181,11 @@ public class PlayerRecordController {
 		if(timeUnit != null) {
 			List<GlobalGilHistory> globalGilHistoryList = this.globalGilHistoryRepo.getGlobalGilHistoryByCalendarTimeType(timeUnit);
 			Collections.sort(globalGilHistoryList);
-			results = globalGilHistoryList.parallelStream().map(globalGilHistory -> new GlobalGilHistoryGraphEntry(globalGilHistory.getGlobal_gil_count(), globalGilHistory.getDate()))
+			results = globalGilHistoryList.parallelStream().map(globalGilHistory -> new GilDateGraphEntry(globalGilHistory.getGlobal_gil_count(), globalGilHistory.getDate()))
 					.collect(Collectors.toList());
 		}
 		
 		return GenericResponse.createGenericResponseEntity(results);
 		
-	}
-}
-
-@Data
-class GlobalGilHistoryGraphEntry {
-	private Long globalGilCount;
-	private Date date;
-	
-	public GlobalGilHistoryGraphEntry(Long globalGilCount, Date date) {
-		this.globalGilCount = globalGilCount;
-		this.date = date;
 	}
 }

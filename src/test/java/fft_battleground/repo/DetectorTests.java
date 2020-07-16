@@ -4,17 +4,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import fft_battleground.botland.model.BetType;
-import fft_battleground.dump.DumpService;
-import fft_battleground.dump.model.Music;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
-import fft_battleground.event.detector.BettingBeginsDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
 import fft_battleground.event.detector.BuySkillDetector;
 import fft_battleground.event.detector.FightDetector;
@@ -26,6 +21,7 @@ import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
 import fft_battleground.event.detector.PrestigeAscensionDetector;
 import fft_battleground.event.detector.ResultEventDetector;
+import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.event.detector.TeamInfoDetector;
@@ -34,7 +30,6 @@ import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.BuySkillEvent;
-import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.MusicEvent;
@@ -42,19 +37,18 @@ import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.ResultEvent;
+import fft_battleground.event.model.RiserSkillWinEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.SkillWinEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.tournament.Tournament;
-import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GambleTests {
+public class DetectorTests {
 
 	@Test
 	public void testLevelUpDetector() {
@@ -105,7 +99,7 @@ public class GambleTests {
 		ChatMessage message4 = new ChatMessage("minbetbot", "!allin yellow");
 		ChatMessage message5 = new ChatMessage("magicbottle", "!betf red");
 		ChatMessage message6 = new ChatMessage("thekillernacho", "!bet floor purple");
-		ChatMessage message7 = new ChatMessage("lydian_c", "!allinbut 10% champ");
+		ChatMessage message7 = new ChatMessage("lydian_c", "!allbut 10% champ");
 
 		BetEvent event = (BetEvent) detector.detect(message);
 		assertTrue(event != null);
@@ -304,36 +298,19 @@ public class GambleTests {
 		assertTrue(musicEvent.getDurationInSeconds() == 17);
 		assertTrue(StringUtils.equals(musicEvent.getSongName(), "Fatal Fury Special - Geese Howard Theme"));
 	}
-
+	
 	@Test
-	public void testTournamentService() {
-		TournamentService tournamentService = new TournamentService();
-		Tournament currentTournament = tournamentService.getcurrentTournament();
-		assertTrue(currentTournament != null);
+	public void testRiserSkillWinEvent() {
+		String test1 = "TheKillerNacho, you learned the skill: BladeGrasp!";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		RiserSkillWinDetector detector = new RiserSkillWinDetector();
+		BattleGroundEvent event = detector.detect(message);
+		assertTrue(event != null && event instanceof RiserSkillWinEvent);
+		RiserSkillWinEvent riserSkillEvent = (RiserSkillWinEvent) event;
+		assertTrue(riserSkillEvent.getSkillEvents().size() > 0);
+		assertTrue(StringUtils.equals("thekillernacho", riserSkillEvent.getSkillEvents().get(0).getPlayer()));
+		assertTrue(riserSkillEvent.getSkillEvents().get(0).getSkills().size() > 0);
+		assertTrue(StringUtils.equals("BladeGrasp", riserSkillEvent.getSkillEvents().get(0).getSkills().get(0)));
 	}
-
-	/*
-	 * @Test public void testDumpService() {
-	 * 
-	 * DumpService dumpService = new DumpService(); Map<String, Integer> data =
-	 * dumpServicegetHighScoreDump(); assertTrue(data != null);
-	 * 
-	 * 
-	 * Map<String, ExpEvent> expData =
-	 * dumpService.getDumpResourceManager().getHighExpDump(); assertTrue(expData !=
-	 * null);
-	 * 
-	 * 
-	 * Collection<Music> musicData = dumpService.getPlaylist(); assertTrue(musicData
-	 * != null);
-	 * 
-	 * String portrait =
-	 * dumpService.getDumpDataProvider().getPortraitForPlayer("otherbrand");
-	 * assertNotNull(portrait);
-	 * 
-	 * BattleGroundTeam allegiance =
-	 * dumpService.getDumpDataProvider().getAllegianceForPlayer("otherbrand");
-	 * assertTrue(allegiance != null && allegiance != BattleGroundTeam.NONE); }
-	 */
 
 }

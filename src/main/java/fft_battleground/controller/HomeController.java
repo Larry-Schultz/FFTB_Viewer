@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +34,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.controller.model.PlayerData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.ExpLeaderboardEntry;
@@ -45,13 +46,14 @@ import fft_battleground.dump.model.Music;
 import fft_battleground.dump.model.PlayerLeaderboard;
 import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.model.Images;
+import fft_battleground.repo.BotsRepo;
 import fft_battleground.repo.MatchRepo;
 import fft_battleground.repo.PlayerRecordRepo;
+import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.tournament.TournamentService;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -69,6 +71,9 @@ public class HomeController {
 	private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
+	private BotsRepo botsRepo;
+	
+	@Autowired
 	private MatchRepo matchRepo;
 	
 	@Autowired
@@ -76,6 +81,9 @@ public class HomeController {
 	
 	@Autowired
 	private DumpReportsService dumpReportsService;
+	
+	@Autowired
+	private BetBotFactory betBotFactory;
 	
 	@GetMapping(value = "/images/characters/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
@@ -246,6 +254,18 @@ public class HomeController {
 		
 	}
 	
+	@GetMapping("/botland")
+	public String botland(Model model, HttpServletRequest request) {
+		log.info("botland page accessed from user: {}", request.getRemoteAddr());
+		List<Bots> botData = this.botsRepo.getBotsForToday();
+		Collections.sort(botData, Collections.reverseOrder());
+		model.addAttribute("botData", botData);
+		model.addAttribute("primaryBotAccountName", this.betBotFactory.getIrcName());
+		model.addAttribute("primaryBotName", this.betBotFactory.getPrimaryBotName());
+		model.addAttribute("botConfigData", this.betBotFactory.getBotDataMap());
+		return "botland.html";
+	}
+	
 	protected String createDateStringWithTimezone(TimeZone zone, Date date) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -259,23 +279,4 @@ public class HomeController {
 		return result;
 	}
 	
-}
-
-	
-
-@Data
-class PlayerData {
-	private PlayerRecord playerRecord;
-	private String portraitUrl;
-	private String fightRatio;
-	private String betRatio;
-	private boolean containsPrestige = false;
-	private boolean bot = false;
-	private int prestigeLevel = 0;
-	private Integer leaderboardPosition;
-	private String timezoneFormattedDateString;
-	private Integer expRank;
-	private String percentageOfGlobalGil;
-	
-	public PlayerData() {}
 }

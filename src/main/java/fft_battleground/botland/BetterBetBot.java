@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.model.TeamData;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.MatchInfoEvent;
@@ -75,14 +76,19 @@ implements Callable<Bet> {
 	}
 	
 	protected void ensureBetIsWithinParameters(Bet bet) {
-		if (bet.getType() == BetType.VALUE) {
-			if (bet.getAmount() > GambleUtil.MAX_BET) {
+		if(bet == null) {
+			//bet = new Bet(this.left, GambleUtil.MINIMUM_BET);
+			log.warn("The bot {} provided a null bet", this.getName());
+		} else if (bet.getType() == BetType.VALUE) {
+			if(bet.getAmount() == null) {
+				bet.setAmount(GambleUtil.MINIMUM_BET);
+			} else if (bet.getAmount() > GambleUtil.MAX_BET) {
+				log.warn("The bot {} provided a bet over the maximum value", this.getName());
 				bet.setAmount(GambleUtil.MAX_BET);
 			} else if (bet.getAmount() < GambleUtil.MINIMUM_BET) {
+				log.warn("The bot {} provided a bet under the minimum value", this.getName());
 				bet.setAmount(GambleUtil.MINIMUM_BET);
 			}
-		} else if (bet.getType() == null) {
-			bet.setType(BetType.FLOOR);
 		}
 	}
 	
@@ -107,7 +113,7 @@ implements Callable<Bet> {
 		return winningTeam;
 	}
 
-	public abstract void initParams(Map<String, String> map);
+	public abstract void initParams(Map<String, BotParam> map);
 	
 	public abstract void init();
 	

@@ -7,7 +7,8 @@ public enum BetType {
 	PERCENTAGE("percentage"),
 	HALF("half"),
 	ALLIN("allin"),
-	FLOOR("floor")
+	FLOOR("floor"),
+	RANDOM("random")
 	;
 	
 	private String str;

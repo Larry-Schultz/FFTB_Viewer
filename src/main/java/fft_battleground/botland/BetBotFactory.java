@@ -2,12 +2,20 @@ package fft_battleground.botland;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.botland.bot.DataBetBot;
 import fft_battleground.botland.bot.ArbitraryBot;
@@ -30,11 +38,16 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class BetBotFactory {
+	private static final String BOT_DATA_CACHE_KEY = "botDataCacheKey";
 	
 	@Value("${irc.username}")
 	private String ircName;
 	
-	private Class primaryBotClassName = BetCountBot.class;
+	@Value("${botfactory.primaryBotName}")
+	private String primaryBotName;
+	
+	@Value("${botfactory.botFile}")
+	private String botFile;
 	
 	@Autowired
 	private Router<ChatMessage> messageSenderRouter;
@@ -47,6 +60,11 @@ public class BetBotFactory {
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
+	
+	private Cache<String, Map<String, BotData>> botDataCache = Caffeine.newBuilder()
+			  .expireAfterWrite(5, TimeUnit.MINUTES)
+			  .maximumSize(1)
+			  .build();
 
 	
 	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent) {
@@ -56,47 +74,66 @@ public class BetBotFactory {
 		land.setPlayerRecordRepo(this.playerRecordRepo);
 		land.setBotsRepo(this.botsRepo);
 		land.setBattleGroundEventBackPropagationRef(this.battleGroundEventBackPropagation);
-		land.setPrimaryBot(this.createPrimaryBot(currentAmountToBetWith, otherPlayerBets, beginEvent));
 		land.setIrcName(this.ircName);
 		
-		land.setSubordinateBots(new ArrayList<>());
-		
-		try {
-			List<BetterBetBot> subordinateBots = this.createSecondaryBots(otherPlayerBets, beginEvent);
-			land.setSubordinateBots(subordinateBots);
-		} catch (Exception e) {
-			log.error("Exception creating secondary bots", e);
-			land.setSubordinateBots(new ArrayList<>());
-		}
+		this.attachBots(land, currentAmountToBetWith, otherPlayerBets, beginEvent);
 		
 		return land;
 	}
 	
-	public BetterBetBot createPrimaryBot(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent) {
-		BetterBetBot betBot = null;
-		if(primaryBotClassName.equals(BetCountBot.class)) {
-			betBot = new BetCountBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+	public synchronized Map<String, BotData> getBotDataMap() {
+		Map<String, BotData> botData = this.botDataCache.getIfPresent(BOT_DATA_CACHE_KEY);
+		if(botData == null) {
+			botData = this.getBotDataMapFromXmlFile();
+			this.botDataCache.put(BOT_DATA_CACHE_KEY, botData);
 		}
-		betBot.setPlayerRecordRepoRef(this.playerRecordRepo);
 		
-		return betBot;
+		return botData;
+	}
+	
+	private void attachBots(BotLand botland, Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent) {
+		List<BotData> botData = this.getBotConfig();
+		String botDateString = this.botsRepo.currentDateString();
+		List<BetterBetBot> secondaryBots = this.createSecondaryBots(otherPlayerBets, beginEvent, botData, botDateString);
+		
+		Optional<BotData> maybePrimaryBotData = botData.stream().filter(botDataEntry -> StringUtils.equalsIgnoreCase(botDataEntry.getName(), this.primaryBotName)).findFirst();
+		BetterBetBot primaryBot = null;
+		if(!maybePrimaryBotData.isPresent() ) {
+			log.error("No primary bot configuration found!");
+		} else {
+			primaryBot = this.createBot(otherPlayerBets, beginEvent, maybePrimaryBotData.get(), botDateString);
+			log.info("primary bot is minbetbot");
+		}
+		
+		botland.setPrimaryBot(primaryBot);
+		botland.setSubordinateBots(secondaryBots);
+		
+		return;
+	}
+	
+	private Map<String, BotData> getBotDataMapFromXmlFile() {
+		Map<String, BotData> botDataMap = this.getBotConfig().parallelStream().collect(Collectors.toMap(BotData::getName, Function.identity()));
+		return botDataMap;
+	}
+	
+	private List<BotData> getBotConfig() {
+		SecondaryBotConfig botConfig = new SecondaryBotConfig(this.botFile);
+		List<BotData> botData = botConfig.parseXmlFile();
+		
+		return botData;
 	}
 	
 	
-	public List<BetterBetBot> createSecondaryBots(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent) {
+	private List<BetterBetBot> createSecondaryBots(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, List<BotData> botData, String botDateString) {
 		List<BetterBetBot> secondaryBots = new ArrayList<>();
-		String botDateString = this.botsRepo.currentDateString();
-		
-		SecondaryBotConfig botConfig = new SecondaryBotConfig("Botland.xml");
-		List<BotData> botData = botConfig.parseXmlFile();
 		for(BotData data: botData) {
-			BetterBetBot newBot = this.createSecondaryBot(otherPlayerBets, beginEvent, data, botDateString);
+			BetterBetBot newBot = this.createBot(otherPlayerBets, beginEvent, data, botDateString);
 			secondaryBots.add(newBot);
 		}
 		return secondaryBots;
 	}
 	
-	public BetterBetBot createSecondaryBot(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, BotData botData, String botDateString) {
+	private BetterBetBot createBot(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, BotData botData, String botDateString) {
 		BetterBetBot betBot = null;
 		
 		Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(botDateString, botData.getName());

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,6 +22,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import fft_battleground.botland.model.BotData;
+import fft_battleground.botland.model.BotParam;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -58,23 +61,26 @@ public class SecondaryBotConfig {
 				String name = element.getAttribute("id");
 				String classname = element.getAttribute("classname");
 				String canPrimaryString = element.getAttribute("canPrimary");
+				String botDescription= element.getAttribute("description");
 				Boolean canPrimary = Boolean.valueOf(canPrimaryString);
 				NodeList params = node.getChildNodes();
-				Map<String, String> paramMap = new HashMap<String, String>();
+				Map<String, BotParam> paramMap = new HashMap<>();
 				for(int j = 0; j < params.getLength(); j++) {
 					Node paramNode = params.item(j);
 					if(paramNode.getNodeType() == Node.ELEMENT_NODE) {
 						Element paramElement = (Element) paramNode;
 						String paramName = paramElement.getAttribute("id");
+						String paramDescription = paramElement.getAttribute("description");
 						String parameter = paramElement.getTextContent();
-						paramMap.put(paramName, parameter);
+						paramMap.put(paramName, new BotParam(paramName, parameter, paramDescription));
 					}
 				}
-				botData.add(new BotData(name, classname, paramMap, canPrimary));
+				botData.add(new BotData(name, classname, paramMap, canPrimary, botDescription));
 			}
 			
 		}
 		
 		return botData;
 	}
+	
 }

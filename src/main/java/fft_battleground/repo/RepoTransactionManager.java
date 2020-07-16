@@ -30,6 +30,7 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.repo.model.BalanceHistory;
+import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.Match;
@@ -61,6 +62,9 @@ public class RepoTransactionManager {
 	
 	@Autowired
 	private BotsRepo botsRepo;
+	
+	@Autowired
+	private BotsHourlyDataRepo botsHourlyDataRepo;
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
@@ -173,11 +177,15 @@ public class RepoTransactionManager {
 			Integer wonGil = GambleUtil.getAmountUpdateFromBet(bot.getResult().getBetAmount(botData.getBalance()), winningOdds, true);
 			Integer newBalance = botData.getBalance() + wonGil;
 			botData.setBalance(newBalance);
+			if(newBalance > botData.getHighestKnownValue()) {
+				botData.setHighestKnownValue(newBalance);
+			}
 			
 			Short newWins = (short) (botData.getWins() + 1);
 			botData.setWins(newWins);
 			
 			this.botsRepo.saveAndFlush(botData);
+			this.addBotHourlyData(bot, newBalance);
 			
 			log.info("updated bot {} with new balance {} with state {}", bot.getName(), botData.getBalance(), "win");
 		}
@@ -197,9 +205,22 @@ public class RepoTransactionManager {
 			botData.setLosses(newWins);
 			
 			this.botsRepo.saveAndFlush(botData);
+			this.addBotHourlyData(bot, newBalance);
 			
 			log.info("updated bot {} with new balance {} with state {}", bot.getName(), botData.getBalance(), "loss");
 		}
+	}
+	
+	@Transactional
+	public void addBotHourlyData(BetterBetBot bot, Integer balance) {
+		BotHourlyData currentData = this.botsHourlyDataRepo.getBotHourlyDataForBotAndCurrentTime(bot.getName(), BotHourlyData.getHourValueForCurrentTime());
+		if(currentData != null) {
+			currentData.setBalance(balance);
+		} else {
+			currentData = new BotHourlyData(bot.getName(), balance);
+		}
+		
+		this.botsHourlyDataRepo.saveAndFlush(currentData);
 	}
 	
 	@Transactional

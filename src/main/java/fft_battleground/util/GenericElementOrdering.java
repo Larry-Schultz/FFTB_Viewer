@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class GenericElementOrdering<T> implements Comparable {
+public class GenericElementOrdering<T> implements Comparable<T> {
 	long id;
 	T element;
 	

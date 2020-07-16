@@ -54,7 +54,7 @@ public class WebsocketThread extends Thread {
 						break;
 					case LEVEL_UP: case BALANCE: case EXP: case OTHER_PLAYER_BALANCE: case OTHER_PLAYER_EXP:
 					case ALLEGIANCE: case PLAYER_SKILL: case BUY_SKILL: case PORTRAIT: case SKILL_WIN: case PRESTIGE_SKILLS:
-					case LAST_ACTIVE: case GIFT_SKILL: case PRESTIGE_ASCENSION:
+					case LAST_ACTIVE: case GIFT_SKILL: case PRESTIGE_ASCENSION: case RISER_SKILL_WIN:
 						//do nothing
 						break;
 					default:

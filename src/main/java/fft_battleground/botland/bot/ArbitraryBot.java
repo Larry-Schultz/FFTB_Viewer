@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.model.BotParam;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -37,15 +38,15 @@ public class ArbitraryBot extends BetterBetBot {
 	}
 
 	@Override
-	public void initParams(Map<String, String> map) {
+	public void initParams(Map<String, BotParam> map) {
 		if(map.containsKey(BET_AMOUNT_PARAMETER)) {
-			this.betAmount = Integer.valueOf(map.get(BET_AMOUNT_PARAMETER));
+			this.betAmount = Integer.valueOf(map.get(BET_AMOUNT_PARAMETER).getValue());
 		}
 		if(map.containsKey(BET_TYPE_PARAMETER)) {
-			this.betType = BetType.getBetType(map.get(BET_TYPE_PARAMETER));
+			this.betType = BetType.getBetType(map.get(BET_TYPE_PARAMETER).getValue());
 		}
 		if(map.containsKey(CHOICE_PARAMETER)) {
-			this.choice = BetChoice.getChoiceFromString(map.get(CHOICE_PARAMETER));
+			this.choice = BetChoice.getChoiceFromString(map.get(CHOICE_PARAMETER).getValue());
 		}
 		
 	}
@@ -89,6 +90,10 @@ public class ArbitraryBot extends BetterBetBot {
 			bet = new Bet(chosenTeam, this.betAmount);
 		} else if(this.betType == BetType.PERCENTAGE) { 
 			bet = new Bet(chosenTeam, this.betAmount, this.betType); //if type is percentage, use amount as the percent
+		} else if(this.betType == BetType.RANDOM) {
+			Integer randomValue = random.nextInt(Math.min(this.currentAmountToBetWith, GambleUtil.MAX_BET)) + GambleUtil.MINIMUM_BET;
+			randomValue = Math.min(randomValue, this.currentAmountToBetWith);
+			bet = new Bet(chosenTeam, randomValue);
 		} else {
 			bet = new Bet(chosenTeam, GambleUtil.MINIMUM_BET);
 		}

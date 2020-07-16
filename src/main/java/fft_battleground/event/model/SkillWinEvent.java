@@ -18,12 +18,27 @@ implements DatabaseResultsData {
 	
 	public SkillWinEvent() {}
 	
+	public SkillWinEvent(BattleGroundEventType type) {
+		super(type);
+	}
+	
+	public SkillWinEvent(String player1, String skill, BattleGroundEventType type) {
+		super(type);
+		this.skillEvents = new ArrayList<>();
+		this.skillEvents.add(this.createEvent(player1, skill));
+	}
+	
 	public SkillWinEvent(String player1, String player2, String skill) {
 		super(event);
 		this.skillEvents = new ArrayList<>();
 		
-		this.skillEvents.add(new PlayerSkillEvent(player1, Arrays.asList(new String[] {skill})));
-		this.skillEvents.add(new PlayerSkillEvent(player2, Arrays.asList(new String[] {skill})));
+		this.skillEvents.add(this.createEvent(player1, skill));
+		this.skillEvents.add(this.createEvent(player2, skill));
+	}
+	
+	protected PlayerSkillEvent createEvent(String player, String skill) {
+		PlayerSkillEvent event = new PlayerSkillEvent(player, Arrays.asList(new String[] {skill}));
+		return event;
 	}
 
 	@Override

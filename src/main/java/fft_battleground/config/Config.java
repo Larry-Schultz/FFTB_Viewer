@@ -34,6 +34,7 @@ import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
 import fft_battleground.event.detector.PrestigeAscensionDetector;
 import fft_battleground.event.detector.ResultEventDetector;
+import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.TwitchChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
@@ -92,7 +93,7 @@ public class Config {
 	@Bean
 	public List<EventDetector> detectors(@Value("${irc.username}") String username) {
 		return Arrays.asList(new EventDetector[]{
-			new BetDetector(), new LevelUpDetector(), new ResultEventDetector(), new SkillWinEventDetector(),
+			new BetDetector(), new LevelUpDetector(), new ResultEventDetector(), new SkillWinEventDetector(), new RiserSkillWinDetector(),
 			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(), new MusicDetector(),
 			new BettingBeginsDetector(), new MatchInfoDetector(), new AllegianceDetector(), new BetInfoEventDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),

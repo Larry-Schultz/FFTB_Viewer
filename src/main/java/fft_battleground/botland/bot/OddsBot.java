@@ -1,15 +1,21 @@
 package fft_battleground.botland.bot;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.model.BotParam;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
 public class OddsBot extends BetterBetBot {
 
 	private String NAME = "oddsBot";
+	protected BetType type;
+	protected String betAmountExpression;
 	
 	public OddsBot(Integer currentAmountToBetWith, BattleGroundTeam left,
 			BattleGroundTeam right) {
@@ -20,39 +26,45 @@ public class OddsBot extends BetterBetBot {
 	public String getName() {
 		return this.NAME;
 	}
+	
+	@Override
+	public void initParams(Map<String, BotParam> map) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
 
 	@Override
 	protected Float generateLeftScore() {
-		Float score = (float) this.betsBySide.getLeft().size();
-		return score;
+		Integer leftSum = this.getSumOfLeftTeam();
+		return leftSum.floatValue();
 	}
 
 	@Override
 	protected Float generateRightScore() {
-		Float score = (float) this.betsBySide.getRight().size();
-		return score;
+		Integer rightSum = this.getSumOfRightTeam();
+		return rightSum.floatValue();
 	}
 
 	@Override
 	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
 		Integer result = null;
-		Integer leftSum = this.getSumOfLeftTeam();
-		Integer rightSum = this.getSumOfRightTeam();
+		Integer leftSum = leftScore.intValue();
+		Integer rightSum = rightScore.intValue();
 		if(leftScore > rightScore) {
-			Float betAmountFloat =  GambleUtil.bettingPercentage(leftSum, rightSum) * ((float)GambleUtil.MAX_BET);
-			Integer betAmountInt = betAmountFloat.intValue();
-			Integer currentAmountToBetWith = this.currentAmountToBetWith;
-			result = Math.min(currentAmountToBetWith, betAmountInt);
-			if(result > GambleUtil.MAX_BET) {
-				result = GambleUtil.MAX_BET; //if we somehow go over, just use the maximum
+			if(this.type == BetType.ALLIN) {
+				Float betAmountFloat =  GambleUtil.bettingPercentage(leftSum, rightSum) * ((float)GambleUtil.MAX_BET);
+				result = Collections.min(Arrays.asList(new Integer[] {this.currentAmountToBetWith, betAmountFloat.intValue(), GambleUtil.MAX_BET}));
 			}
 		} else {
-			Float betAmountFloat =  GambleUtil.bettingPercentage(rightSum, leftSum) * ((float)GambleUtil.MAX_BET);
-			Integer betAmountInt = betAmountFloat.intValue();
-			Integer currentAmountToBetWith = this.currentAmountToBetWith;
-			result = Math.min(currentAmountToBetWith, betAmountInt);
-			if(result > GambleUtil.MAX_BET) {
-				result = GambleUtil.MAX_BET; //if we somehow go over, just use the maximum
+			if(this.type == BetType.ALLIN) {
+				Float betAmountFloat =  GambleUtil.bettingPercentage(rightSum, leftSum) * ((float)GambleUtil.MAX_BET);
+				result = Collections.min(Arrays.asList(new Integer[] {this.currentAmountToBetWith, betAmountFloat.intValue(), GambleUtil.MAX_BET}));
 			}
 		}
 		
@@ -73,20 +85,8 @@ public class OddsBot extends BetterBetBot {
 	}
 
 	@Override
-	public void initParams(Map<String, String> map) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void setName(String name) {
 		this.NAME = name;
-		
-	}
-
-	@Override
-	public void init() {
-		// TODO Auto-generated method stub
 		
 	}
 
