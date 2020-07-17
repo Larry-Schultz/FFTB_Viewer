@@ -5,6 +5,8 @@
 		.botName {
 			 text-decoration: underline;
 	}
+
+</style>
 	</style>
 </head> 
 <body>
@@ -65,11 +67,11 @@
 		</div>
 		<div class="cell small-3"></div>
 	</div>
-	<div th:each="bot: ${botData}" th:id="${bot.player} + 'Modal'" class="reveal-modal large" data-reveal aria-labelledby="firstModalTitle" aria-hidden="true" role="dialog" style="background-color: white;">
+	<div th:each="bot: ${botData}" th:id="${bot.player} + 'Modal'" class="reveal-modal small" data-reveal aria-labelledby="firstModalTitle" aria-hidden="true" role="dialog" style="background-color: white;">
 		<h2 th:id="${bot.player}+'ModalTitle'" th:text="'Bot: ' + ${bot.player}" />
 		<p th:id="${bot.player}+'ModalBotDescription'" th:text="${botConfigData.get(bot.player).description}"/>
 		</br>
-		<div th:if="not ${botConfigData.get(bot.player).params.isEmpty()}">
+		<div th:if="not ${botConfigData.get(bot.player).params.isEmpty()}" th:id="${bot.player} + 'FieldDescriptions'">
 			<p>Field Descriptions:</p>
 			<div th:each="botParamMapEntry: ${botConfigData.get(bot.player).params}" >
 				<p><b>Field Name: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldName'" th:text="${botParamMapEntry.value.name}" /></p>
@@ -78,7 +80,14 @@
 				<br />
 			</div>
 		</div>
+		<div th:id="${bot.player}+'BotHourlyDataEntries'" style="display: none;">
+			<input type="hidden" th:each="botHourlyEntry: ${botHourlyDataMap.get(bot.player)}" th:id="${bot.player} +'HourlyDataEntry' + ${botHourlyEntry.id}" th:value="${botHourlyEntry.element.hourString}" th:balance="${botHourlyEntry.element.balance}" />
+		</div>
 		<a class="close-reveal-modal" aria-label="Close">&#215;</a>
+		<div width="400px" height="225px" style="max-height:225px; max-width:400px;">
+			<canvas th:id="${bot.player}+'Chart'" width="400px" height="225px" />
+		</div>
+		<br />
 	</div>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.5.1/dist/css/foundation.min.css" integrity="sha256-1mcRjtAxlSjp6XJBgrBeeCORfBp/ppyX4tsvpQVCcpA= sha384-b5S5X654rX3Wo6z5/hnQ4GBmKuIJKMPwrJXn52ypjztlnDK2w9+9hSMBz/asy9Gw sha512-M1VveR2JGzpgWHb0elGqPTltHK3xbvu3Brgjfg4cg5ZNtyyApxw/45yHYsZ/rCVbfoO5MSZxB241wWq642jLtA==" crossorigin="anonymous">
 	<link rel="stylesheet" href="/webjars/jquery-ui/1.12.1/jquery-ui.min.css" />
@@ -90,8 +99,9 @@
 	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
 	<script th:src="@{/js/botland.js}"></script>
 	<script>
-		populateBotAccountChart();
 		$(document).foundation();
+		populateBotAccountChart();
+		populateBotCharts();
 	</script>
 </body>
 </html>

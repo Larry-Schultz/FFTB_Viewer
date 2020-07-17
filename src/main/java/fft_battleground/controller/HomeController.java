@@ -46,14 +46,17 @@ import fft_battleground.dump.model.Music;
 import fft_battleground.dump.model.PlayerLeaderboard;
 import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.model.Images;
+import fft_battleground.repo.BotsHourlyDataRepo;
 import fft_battleground.repo.BotsRepo;
 import fft_battleground.repo.MatchRepo;
 import fft_battleground.repo.PlayerRecordRepo;
+import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.tournament.TournamentService;
+import fft_battleground.util.GenericElementOrdering;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -72,6 +75,9 @@ public class HomeController {
 	
 	@Autowired
 	private BotsRepo botsRepo;
+	
+	@Autowired
+	private BotsHourlyDataRepo botsHourlyDataRepo;
 	
 	@Autowired
 	private MatchRepo matchRepo;
@@ -263,6 +269,10 @@ public class HomeController {
 		model.addAttribute("primaryBotAccountName", this.betBotFactory.getIrcName());
 		model.addAttribute("primaryBotName", this.betBotFactory.getPrimaryBotName());
 		model.addAttribute("botConfigData", this.betBotFactory.getBotDataMap());
+		
+		List<String> botNames = botData.parallelStream().map(bots -> bots.getPlayer()).collect(Collectors.toList());
+		Map<String, List<GenericElementOrdering<BotHourlyData>>> botHourlyDataMap = this.botsHourlyDataRepo.getOrderedBotHourlyDataForBots(botNames);
+		model.addAttribute("botHourlyDataMap", botHourlyDataMap);
 		return "botland.html";
 	}
 	
