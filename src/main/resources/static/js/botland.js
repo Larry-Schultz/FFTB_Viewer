@@ -100,3 +100,72 @@ function populateBotChart(name) {
 		  }
 		});
 }
+
+var stompClient = null;
+
+function connect() {
+	var url = window.location.href  + 'gs-guide-websocket';
+	url = url.replace('botland', '');
+    var socket = new SockJS(url);
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+        stompClient.subscribe('/matches/events', function (chatMessages) {
+        	try {
+        		var jsonData = JSON.parse(chatMessages.body);
+        		var events = checkAndPossiblyResend(jsonData);
+        		if(events != null) {
+	        		for(event of events) {
+	        			parseEvents(event.element);
+	        		}
+        		}
+        		var jsonData = JSON.parse(chatMessages.body);
+        		parseEvents(jsonData.element);
+        	} catch(error) {
+        		console.log("error found for chatMessages: " + chatMessages.body + " with error " + error);
+        		console.log(error.stack);
+        	}
+        });
+    });
+    
+}
+
+var eventIndex = null;
+function checkAndPossiblyResend(jsonData) {
+	var events = null;
+	if(eventIndex == null) {
+		eventIndex = jsonData.id;
+	} else if(jsonData.id != (eventIndex + 1)) {
+		var ids = [];
+		for(var i = eventIndex + 1; i < jsonData.id; i++) {
+			ids.push(i);
+		}
+		console.log("missing ids" + ids.join() + " getting remission from the server");
+		events = manuallyCallToRetrieveEvent(ids);
+		eventIndex = jsonData.id;
+	} else {
+		eventIndex = jsonData.id;
+	}
+	
+	return events;
+}
+
+function manuallyCallToRetrieveEvent(indexes) {
+	var events = null;
+	$.ajax({
+		url: "api/matches/currentData?ids=" + indexes.join(),
+		async: false,
+		success: function(result){
+			events = result;
+	  }});
+}
+
+function parseEvents(event) {
+	switch(event.eventType) {
+		case 'BETTING_BEGINS':
+			location.reload();
+			break;
+		default:
+			break;
+	}
+	
+}

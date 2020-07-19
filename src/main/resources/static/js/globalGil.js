@@ -11,7 +11,13 @@ function populateChart(unit, chartName) {
 				var labels = [];
 				var dataArray = [];
 				for(var j = 0; j < element.length; j++) {
-					labels.push(element[j].date);
+					
+					let date = new Date(element[j].date);
+					const year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+					const month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
+					const day = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+					let dateString = `${day}-${month}-${year}`;
+					labels.push(dateString);
 					dataArray.push(element[j].globalGilCount);
 				}
 				coreLabels = labels;

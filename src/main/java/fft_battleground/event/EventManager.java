@@ -1,21 +1,15 @@
 package fft_battleground.event;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
 
-import fft_battleground.botland.BetBot;
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
-import fft_battleground.botland.bot.DataBetBot;
-import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.dump.DumpService;
@@ -111,7 +105,7 @@ public class EventManager extends Thread {
 						if(event instanceof BetInfoEvent && this.botLand != null) {
 							BetInfoEvent betInfoEvent = (BetInfoEvent) event;
 							if(betInfoEvent.getTeam() != null) {
-								this.botLand.addBet(new BetEvent(betInfoEvent));
+								this.botLand.addBetInfo(betInfoEvent);
 							}
 						}
 						break;

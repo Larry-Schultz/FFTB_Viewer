@@ -3,6 +3,10 @@ package fft_battleground.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,10 +23,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import fft_battleground.repo.model.TeamInfo;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
 import mjson.Json;
 
 @Data
@@ -72,9 +78,40 @@ public class Images {
 	
 	@SneakyThrows
 	protected List<Portrait> parsePotraitFolder(String location) {
+		List<Portrait> results = null;
+		try {
+			results = this.parsePotraitFolderTraditionally(location);
+		} catch(FileSystemNotFoundException e) {
+			results = this.parsePotraitFolderUsingFileSystem(location);
+		}
+		
+		return results;
+	}
+	
+	@SneakyThrows
+	protected List<Portrait> parsePotraitFolderTraditionally(String location) {
 		List<Portrait> portraits = new ArrayList<>();
 		
 		Path locationPath = Paths.get(new ClassPathResource(location).getURI());
+		try (Stream<Path> paths = Files.walk(locationPath)) {
+			portraits = paths.map(path -> new Portrait(path)).collect(Collectors.toList());
+	    } catch (IOException e) {
+	      log.error("Error parsing potraits folder file names", e);
+	    }
+		
+		return portraits;
+	}
+	
+	@SneakyThrows
+	protected List<Portrait> parsePotraitFolderUsingFileSystem(String location) {
+		List<Portrait> portraits = new ArrayList<>();
+		log.info("the portrait location is: {}", location);
+		URI uri = getClass().getResource(location).toURI();
+		final Map<String, String> env = new HashMap<>();
+		final String[] array = uri.toString().split("!");
+		final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), env);
+		final Path locationPath = fs.getPath(array[1]);
+		//Path locationPath = Paths.get(path);
 		try (Stream<Path> paths = Files.walk(locationPath)) {
 			portraits = paths.map(path -> new Portrait(path)).collect(Collectors.toList());
 	    } catch (IOException e) {

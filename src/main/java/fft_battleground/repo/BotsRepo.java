@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import fft_battleground.repo.model.Bots;
-
+import fft_battleground.util.GambleUtil;
 import lombok.SneakyThrows;
 
 public interface BotsRepo extends JpaRepository<Bots, Long> {
@@ -35,9 +35,9 @@ public interface BotsRepo extends JpaRepository<Bots, Long> {
 		return currentDateString;
 	}
 	
-	public default Bots addNewBotForToday(String name) {
+	public default Bots addNewBotForToday(String name, boolean isBotAccountSubscriber) {
 		String currentDateString = this.currentDateString();
-		Bots newBot = new Bots(name, currentDateString);
+		Bots newBot = new Bots(name, currentDateString, GambleUtil.getMinimumBetForBettor(isBotAccountSubscriber));
 		this.saveAndFlush(newBot);
 		
 		return newBot;

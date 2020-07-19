@@ -1,9 +1,8 @@
 package fft_battleground.config;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import org.pircbotx.PircBotX;
-import org.pircbotx.cap.EnableCapHandler;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -13,6 +12,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import com.gikk.twirk.Twirk;
+import com.gikk.twirk.TwirkBuilder;
+import com.gikk.twirk.events.TwirkListener;
 
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BadBetDetector;
@@ -36,11 +39,12 @@ import fft_battleground.event.detector.PrestigeAscensionDetector;
 import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
-import fft_battleground.irc.TwitchChatListenerAdapter;
+import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
 import fft_battleground.util.Router;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @EnableJpaRepositories("fft_battleground.repo")
@@ -52,32 +56,34 @@ public class Config {
 
 
 	@Bean
-    public PircBotX ircChatBot(@Value("${irc.username}") String username, @Value("${irc.password}") String password, @Value("${irc.channel}") String channel, 
+	@SneakyThrows
+    public Twirk ircChatBot(@Value("${irc.username}") String username, @Value("${irc.password}") String password, @Value("${irc.channel}") String channel, 
     		Router<ChatMessage> chatMessageRouter) {
-    	PircBotX ircChatBot;
-    	// Configure what we want our bot to do
-    	org.pircbotx.Configuration configuration = new org.pircbotx.Configuration.Builder().setAutoNickChange(false) // Twitch doesn't support
-                                                                                           // multiple users
-                .setOnJoinWhoEnabled(false) // Twitch doesn't support WHO command
-                .setCapEnabled(true).addCapHandler(new EnableCapHandler("twitch.tv/membership")) // Twitch by default
-                                                                                                 // doesn't send JOIN,
-                                                                                                 // PART, and NAMES
-                                                                                                 // unless you request
-                                                                                                 // it, see
-                                                                                                 // https://github.com/justintv/Twitch-API/blob/master/IRC.md#membership
-                .addServer("irc.twitch.tv")
-                .setName(username) // Your twitch.tv username
-                .setServerPassword(password) // Your oauth password from http://twitchapps.com/tmi
-                .addAutoJoinChannel("#" + channel) // Some twitch channel
-                 .addListener(new TwitchChatListenerAdapter(chatMessageRouter, channel)) // Add our listener that will be
-                                                                                        // called on Events
-                .buildConfiguration();
-
-        // Create our bot with the configuration
-        ircChatBot = new PircBotX(configuration);
-        
-        return ircChatBot;
-    }
+		
+		final Twirk twirk = new TwirkBuilder("#" +channel, username, password)
+								.build();				//Create the Twirk object
+		
+		twirk.addIrcListener(new TwirkChatListenerAdapter(chatMessageRouter, channel));
+		twirk.addIrcListener( new TwirkListener() {
+			@Override
+			public void onDisconnect() {
+				//Twitch might sometimes disconnects us from chat. If so, try to reconnect. 
+				try { 
+					if( !twirk.connect() )
+						//Reconnecting might fail, for some reason. If so, close the connection and release resources.
+						twirk.close();
+				} 
+				catch (IOException e) { 
+					//If reconnection threw an IO exception, close the connection and release resources.
+					twirk.close(); 
+				} 
+				catch (InterruptedException e) {  }
+			}
+		});
+		
+		
+		return twirk;
+	}
 	
 	@Bean
 	public Images images() {

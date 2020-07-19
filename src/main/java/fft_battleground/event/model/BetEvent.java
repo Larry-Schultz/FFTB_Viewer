@@ -18,16 +18,18 @@ public class BetEvent extends BattleGroundEvent {
 	private String betText;
 	private BetType betType;
 	private boolean allinbutFlag;
+	private Boolean isSubscriber;
 	
 	private PlayerRecord metadata;
 	
-	public BetEvent(String player, BattleGroundTeam team, String betAmount, String betText, BetType type) {
+	public BetEvent(String player, BattleGroundTeam team, String betAmount, String betText, BetType type, Boolean isSubscriber) {
 		super(event);
 		this.player = player;
 		this.betAmount = betAmount;
 		this.team = team;
 		this.betType = type;
 		this.betText = betText;
+		this.isSubscriber = isSubscriber;
 	}
 	
 	public BetEvent(BetInfoEvent betInfoEvent) {
@@ -36,6 +38,8 @@ public class BetEvent extends BattleGroundEvent {
 		this.betAmount = betInfoEvent.getBetAmount().toString();
 		this.betText = betInfoEvent.generateBetString();
 		this.betType = BetType.VALUE;
+		this.team = betInfoEvent.getTeam();
+		this.isSubscriber = betInfoEvent.getIsSubscriber();
 	}
 
 	public Integer getBetAmountInteger() {

@@ -12,6 +12,7 @@ import fft_battleground.botland.model.Bet;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.model.BadBetEvent;
 import fft_battleground.event.model.BetEvent;
+import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.MatchInfoEvent;
@@ -33,6 +34,7 @@ public class BotLand extends TimerTask {
 	private BotlandHelper helper;
 	private String ircName;
 	private boolean acceptingBets = true;
+	private boolean enableBetting = false;
 	
 	//references
 	protected Router<ChatMessage> chatMessageRouterRef;
@@ -101,6 +103,27 @@ public class BotLand extends TimerTask {
 		}
 	}
 	
+	public void addBetInfo(BetInfoEvent betInfo) {
+		BetEvent bet = new BetEvent(betInfo);
+		if(this.acceptingBets) {
+			synchronized(this.helper.getOtherPlayerBets()) {
+				Optional<BetEvent> preExistingEvent = this.helper.getOtherPlayerBets().stream().filter(betEvent -> StringUtils.equalsIgnoreCase(betEvent.getPlayer(), bet.getPlayer())).findFirst();
+				if(preExistingEvent.isPresent()) {
+					/*
+					 * before we remove the pre-existing bet, let's take the chance to stash its subscriber status and send it to the betInfo object since even if we can't use the
+					 * subscriber data (like if they bet random) we still get the subscriber data but we don't get that data from BetInfo, since the data source is the bot
+					 * (and its always a subscriber)
+					 */
+					bet.setIsSubscriber(preExistingEvent.get().getIsSubscriber());
+					this.helper.getOtherPlayerBets().remove(preExistingEvent.get());
+				}
+				
+				
+				this.helper.getOtherPlayerBets().add(bet);
+			}
+		}
+	}
+	
 	public void removeBet(BadBetEvent event) {
 		synchronized(this.helper.getOtherPlayerBets()) {
 			for(String player : ((BadBetEvent) event).getPlayers()) {
@@ -142,7 +165,10 @@ public class BotLand extends TimerTask {
 	@SneakyThrows
 	protected void sendBet(Bet bet) {
 		String betString = bet.generateBetString();
-		this.chatMessageRouterRef.sendDataToQueues(new ChatMessage(betString));
-		this.battleGroundEventBackPropagationRef.SendUnitThroughTimer(new BetEvent(this.ircName, bet.getTeam(), String.valueOf(bet.getAmount()), String.valueOf(bet.getAmount()), bet.getType()));
+		log.info("Betting Enabled is {} for this server", this.enableBetting);
+		if(this.enableBetting) {
+			this.chatMessageRouterRef.sendDataToQueues(new ChatMessage(betString));
+			this.battleGroundEventBackPropagationRef.SendUnitThroughTimer(new BetEvent(this.ircName, bet.getTeam(), String.valueOf(bet.getAmount()), String.valueOf(bet.getAmount()), bet.getType(), bet.getIsBettorSubscriber()));
+		}
 	}
 }

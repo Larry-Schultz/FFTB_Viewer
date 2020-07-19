@@ -85,17 +85,17 @@ public class ArbitraryBot extends BetterBetBot {
 	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
 		Bet bet = null;
 		if(this.betType == BetType.FLOOR || this.betType == BetType.ALLIN) {
-			bet = new Bet(chosenTeam, this.betType);
+			bet = new Bet(chosenTeam, this.betType, this.isBotSubscriber);
 		} else if(this.betAmount != null) {
-			bet = new Bet(chosenTeam, this.betAmount);
+			bet = new Bet(chosenTeam, this.betAmount, this.isBotSubscriber);
 		} else if(this.betType == BetType.PERCENTAGE) { 
-			bet = new Bet(chosenTeam, this.betAmount, this.betType); //if type is percentage, use amount as the percent
+			bet = new Bet(chosenTeam, this.betAmount, this.betType, this.isBotSubscriber); //if type is percentage, use amount as the percent
 		} else if(this.betType == BetType.RANDOM) {
-			Integer randomValue = random.nextInt(Math.min(this.currentAmountToBetWith, GambleUtil.MAX_BET)) + GambleUtil.MINIMUM_BET;
+			Integer randomValue = random.nextInt(Math.min(this.currentAmountToBetWith, GambleUtil.MAX_BET)) + GambleUtil.getMinimumBetForBettor(this.isBotSubscriber);
 			randomValue = Math.min(randomValue, this.currentAmountToBetWith);
-			bet = new Bet(chosenTeam, randomValue);
+			bet = new Bet(chosenTeam, randomValue, this.isBotSubscriber);
 		} else {
-			bet = new Bet(chosenTeam, GambleUtil.MINIMUM_BET);
+			bet = new Bet(chosenTeam, GambleUtil.getMinimumBetForBettor(this.isBotSubscriber), this.isBotSubscriber);
 		}
 		
 		return bet;

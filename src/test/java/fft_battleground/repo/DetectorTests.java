@@ -173,6 +173,10 @@ public class DetectorTests {
 		event = playerSkillDetector.detect(message);
 		assertTrue(event != null && event instanceof PlayerSkillEvent
 				&& ((PlayerSkillEvent) event).getSkills().size() > 0);
+		String test3 = "Digitalsocrates, your skills: Invalid page. You have 4 skill pages.";
+		message = new ChatMessage("fftbattleground", test3);
+		event = playerSkillDetector.detect(message);
+		assertTrue(event == null);
 	}
 
 	@Test

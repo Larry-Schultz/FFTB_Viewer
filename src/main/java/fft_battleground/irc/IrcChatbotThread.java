@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.gikk.twirk.Twirk;
+
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -18,21 +21,17 @@ public class IrcChatbotThread extends Thread {
     private String channel;
 	
     @Autowired
-    private PircBotX ircChatBot;
+    private Twirk ircChatBot;
 
     public IrcChatbotThread() {
         super(IrcChatbotThread.class.getName());
     }
 
+    @SneakyThrows
     public void run() {
         log.info("Starting IrcChatbotThread");
         log.info("Joining channel: " + "#" + this.channel);
-        try {
-            ircChatBot.startBot();
-        } catch (IOException | IrcException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        this.ircChatBot.connect();
     }
 
     public void killBot() {

@@ -93,11 +93,12 @@ public class RepoTransactionManager {
 			PlayerRecord player = null;
 			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(bet.getPlayer()));
 			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 0, 1, UpdateSource.REPORT_AS_LOSS);
+				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 0, 1, bet.getIsSubscriber(), UpdateSource.REPORT_AS_LOSS);
 			} else {
 				player = maybeRecord.get();
 				player.setLosses(player.getLosses() + 1);
 				player.setUpdateSource(UpdateSource.REPORT_AS_LOSS);
+				player.setIsSubscriber(bet.getIsSubscriber());
 			}
 			this.playerRecordRepo.saveAndFlush(player);
 			
@@ -134,11 +135,12 @@ public class RepoTransactionManager {
 			PlayerRecord player = null;
 			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(bet.getPlayer()));
 			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 1, 0, UpdateSource.REPORT_AS_WIN);
+				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 1, 0, bet.getIsSubscriber(), UpdateSource.REPORT_AS_WIN);
 			} else {
 				player = maybeRecord.get();
 				player.setWins(player.getWins() + 1);
 				player.setUpdateSource(UpdateSource.REPORT_AS_WIN);
+				player.setIsSubscriber(bet.getIsSubscriber());
 			}
 			
 			this.playerRecordRepo.saveAndFlush(player);
@@ -196,8 +198,8 @@ public class RepoTransactionManager {
 		Bots botData = this.botsRepo.getBotByDateStringAndName(bot.getDateFormat(), this.cleanString(bot.getName()));
 		if(botData != null) {
 			Integer newBalance = botData.getBalance() - bot.getResult().getBetAmount(botData.getBalance());
-			if(newBalance < GambleUtil.MINIMUM_BET) {
-				newBalance = GambleUtil.MINIMUM_BET;
+			if(newBalance < GambleUtil.getMinimumBetForBettor(bot.isBotSubscriber())) {
+				newBalance = GambleUtil.getMinimumBetForBettor(bot.isBotSubscriber());
 			}
 			botData.setBalance(newBalance);
 			
@@ -319,6 +321,7 @@ public class RepoTransactionManager {
 		if(maybeRecord.isPresent()) {
 			Hibernate.initialize(maybeRecord.get().getPlayerSkills());
 			List<String> currentSkills = maybeRecord.get().getPlayerSkills().stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+			//add skills to player
 			for(String possibleNewSkill: event.getSkills()) {
 				if(!currentSkills.contains(possibleNewSkill)) {
 					if(event instanceof PrestigeSkillsEvent) {
@@ -386,12 +389,12 @@ public class RepoTransactionManager {
 		if(maybeRecord.isPresent()) {
 			Integer currentKnownBalance = maybeRecord.get().getLastKnownAmount();
 			if(currentKnownBalance == null) {
-				currentKnownBalance = GambleUtil.MINIMUM_BET;
+				currentKnownBalance = GambleUtil.getMinimumBetForBettor(maybeRecord.get().isSubscriber());
 			}
 			Integer newSimulatedAmount = currentKnownBalance + balanceUpdate;
 			
 			//if balance goes below the minimum for player, then return the minimum
-			Integer minimumBalanceForPlayer = GambleUtil.getMinimumBetForLevel(maybeRecord.get().getLastKnownLevel());
+			Integer minimumBalanceForPlayer = GambleUtil.getMinimumBetForLevel(maybeRecord.get().getLastKnownLevel(), maybeRecord.get().isSubscriber());
 			if(newSimulatedAmount < minimumBalanceForPlayer) {
 				newSimulatedAmount = minimumBalanceForPlayer;
 			}

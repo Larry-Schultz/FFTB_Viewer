@@ -195,6 +195,11 @@ public class EventParser extends Thread {
 			metadata.setLosses(record.getLosses());
 			metadata.setLastKnownAmount(record.getLastKnownAmount());
 			event.setMetadata(metadata);
+			/*
+			 * we set the gold source value for bet info in Botland.addBetInfo, but we get the current data from the database in case its set.
+			 * that way the live page has improved bet data for BetInfo bets
+			 */
+			event.setIsSubscriber(record.isSubscriber());
 		}
 		
 		return;

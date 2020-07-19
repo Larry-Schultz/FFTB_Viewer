@@ -60,7 +60,7 @@ public class RepManagerTest {
 		for(int i = 0; i < 2; i++) {
 			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById("OtherBrand");
 			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord("OtherBrand", 0, 1, UpdateSource.REPORT_AS_LOSS);
+				player = new PlayerRecord("OtherBrand", 0, 1, true, UpdateSource.REPORT_AS_LOSS);
 			} else {
 				player = maybeRecord.get();
 				player.setLosses(player.getLosses() + 1);
@@ -78,8 +78,8 @@ public class RepManagerTest {
 	@Test
 	public void testPlayerRepoWrite() {
 		Pair<List<BetEvent>, List<BetEvent>> sampleBetEvents = new ImmutablePair<>(new ArrayList<>(), new ArrayList<>());
-		BetEvent leftEvent = new BetEvent("OtherBrand", BattleGroundTeam.BLACK, "allin", "allin", BetType.ALLIN);
-		BetEvent rightEvent = new BetEvent("datadrivenbot", BattleGroundTeam.GREEN, "100", "100", BetType.VALUE);
+		BetEvent leftEvent = new BetEvent("OtherBrand", BattleGroundTeam.BLACK, "allin", "allin", BetType.ALLIN, true);
+		BetEvent rightEvent = new BetEvent("datadrivenbot", BattleGroundTeam.GREEN, "100", "100", BetType.VALUE, true);
 		BettingEndsEvent endsEvent = new BettingEndsEvent(BattleGroundTeam.BLACK, 3, 1000, BattleGroundTeam.GREEN, 4, 1750);
 		BettingEndsEvent endsEvent2 = new BettingEndsEvent(BattleGroundTeam.BLACK, 2, 3000, BattleGroundTeam.GREEN, 5, 3750);
 		BettingEndsEvent endsEvent3 = new BettingEndsEvent(BattleGroundTeam.BLACK, 1, 2000, BattleGroundTeam.GREEN, 6, 750);
@@ -102,8 +102,8 @@ public class RepManagerTest {
 	@Test
 	public void testMatchRepoWrite() {
 		Pair<List<BetEvent>, List<BetEvent>> sampleBetEvents = new ImmutablePair<>(new ArrayList<>(), new ArrayList<>());
-		BetEvent leftEvent = new BetEvent("OtherBrand", BattleGroundTeam.BLACK, "allin", "allin", BetType.ALLIN);
-		BetEvent rightEvent = new BetEvent("datadrivenbot", BattleGroundTeam.GREEN, "100", "100", BetType.VALUE);
+		BetEvent leftEvent = new BetEvent("OtherBrand", BattleGroundTeam.BLACK, "allin", "allin", BetType.ALLIN, true);
+		BetEvent rightEvent = new BetEvent("datadrivenbot", BattleGroundTeam.GREEN, "100", "100", BetType.VALUE, true);
 		sampleBetEvents.getLeft().add(leftEvent);
 		sampleBetEvents.getRight().add(rightEvent);
 		

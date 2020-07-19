@@ -74,14 +74,14 @@ public class BetCountBot extends BetterBetBot {
 	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
 		Bet result = null;
 		if(type == BetType.FLOOR) {
-			result = new Bet(chosenTeam, BetType.FLOOR);
+			result = new Bet(chosenTeam, BetType.FLOOR, this.isBotSubscriber);
 		} else if(type == BetType.ALLIN) {
-			result = new Bet(chosenTeam, BetType.ALLIN);
+			result = new Bet(chosenTeam, BetType.ALLIN, this.isBotSubscriber);
 		} else if(type == BetType.PERCENTAGE) {
-			result = new Bet(chosenTeam, this.amount, this.type);
+			result = new Bet(chosenTeam, this.amount, this.type, this.isBotSubscriber);
 		} else if(this.betAmountExpression != null) {
 			Integer betAmount = this.calculateBetAmount(leftScore, rightScore);
-			result = new Bet(chosenTeam, betAmount);
+			result = new Bet(chosenTeam, betAmount, this.isBotSubscriber);
 		}
 		return result;
 	}
@@ -91,7 +91,7 @@ public class BetCountBot extends BetterBetBot {
 		
 		Argument leftScoreArg = new Argument("leftScore", (double) leftScore);
 		Argument rightScoreArg = new Argument("rightScore", (double) rightScore);
-		Constant minBet = new Constant("mnBet", (double) GambleUtil.MINIMUM_BET);
+		Constant minBet = new Constant("mnBet", (double) GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
 		Constant maxBet = new Constant("mxBet", (double) GambleUtil.MAX_BET);
 		Argument balanceArg = new Argument("balance", this.currentAmountToBetWith);
 		
@@ -107,7 +107,7 @@ public class BetCountBot extends BetterBetBot {
 		if(this.betAmountExpression != null) {
 			Argument leftScoreArg = new Argument("leftScore", (double) 5f);
 			Argument rightScoreArg = new Argument("rightScore", (double) 10f);
-			Argument minBet = new Argument("mnBet", (double) GambleUtil.MINIMUM_BET);
+			Argument minBet = new Argument("mnBet", (double) GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
 			Argument maxBet = new Argument("mxBet", (double) GambleUtil.MAX_BET);
 			Argument balanceArg = new Argument("balance", this.currentAmountToBetWith);
 			Expression testBetAmountExpression = new Expression(this.betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);

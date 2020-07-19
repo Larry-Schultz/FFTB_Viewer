@@ -1,33 +1,35 @@
 package fft_battleground.botland.model;
 
-import org.apache.commons.lang3.StringUtils;
-
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class Bet {
 	private BattleGroundTeam team;
 	private Integer amount;
 	private BetType type = BetType.VALUE;
+	private Boolean isBettorSubscriber;
 	
-	public Bet(BattleGroundTeam team, Integer amount) {
+	public Bet() {}
+	
+	public Bet(BattleGroundTeam team, Integer amount, Boolean isBetterSubscriber) {
 		this.team = team;
 		this.amount = amount;
 		this.type = BetType.VALUE;
+		this.isBettorSubscriber = isBetterSubscriber;
 	}
 	
-	public Bet(BattleGroundTeam team, BetType type) {
+	public Bet(BattleGroundTeam team, BetType type, Boolean isBetterSubscriber) {
 		this.team = team;
 		this.type = type;
-		this.amount = GambleUtil.MINIMUM_BET;
+		this.isBettorSubscriber = isBetterSubscriber;
+		this.amount = GambleUtil.getMinimumBetForBettor(isBetterSubscriber);
 		
 	}
 	
@@ -59,7 +61,7 @@ public class Bet {
 	}
 	
 	public Integer getBetAmount(Integer balance) {
-		Integer value = GambleUtil.MINIMUM_BET;
+		Integer value = GambleUtil.getMinimumBetForBettor(this.isBettorSubscriber);
 		switch(this.type) {
 		case VALUE:
 			value = this.amount;
@@ -75,19 +77,19 @@ public class Bet {
 			if(balance != null) {
 				value = balance;
 			} else {
-				value = GambleUtil.MINIMUM_BET;
+				value = GambleUtil.getMinimumBetForBettor(this.isBettorSubscriber);
 			}
 			break;
 		case HALF:
 			if(balance != null) {
 				value = balance/2;
 			} else {
-				value = GambleUtil.MINIMUM_BET;
+				value = GambleUtil.getMinimumBetForBettor(this.isBettorSubscriber);
 			}
 			//no need to implement allinbut code here, since allinbut half is the same as bet half.
 			break;
 		case FLOOR:
-			value = GambleUtil.MINIMUM_BET;
+			value = GambleUtil.getMinimumBetForBettor(this.isBettorSubscriber);
 			break;
 		default:
 			break;

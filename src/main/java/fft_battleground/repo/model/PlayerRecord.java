@@ -35,6 +35,7 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.UpdateSource;
 import fft_battleground.util.BattleGroundTeamConverter;
+import fft_battleground.util.BooleanConverter;
 import fft_battleground.util.GambleUtil;
 
 import lombok.AllArgsConstructor;
@@ -93,6 +94,10 @@ public class PlayerRecord {
     @Column(name="last_active", nullable=true)
     private Date lastActive;
     
+    @Column(name="is_subscriber", nullable=true)
+    @Convert(converter = BooleanConverter.class)
+    private Boolean isSubscriber;
+    
     @JsonIgnore
     @CreationTimestamp
     private Date createDateTime;
@@ -119,7 +124,7 @@ public class PlayerRecord {
     	this.createdSource = createdSource;
     }
     
-    public PlayerRecord(String name, Integer wins, Integer losses, UpdateSource createdSource) {
+    public PlayerRecord(String name, Integer wins, Integer losses, Boolean isSubscriber, UpdateSource createdSource) {
     	this.player = GambleUtil.cleanString(name);
     	this.wins = wins;
     	this.losses = losses;
@@ -128,6 +133,7 @@ public class PlayerRecord {
     	this.fightWins = 0;
     	
     	this.playerSkills = new ArrayList<>();
+    	this.isSubscriber = isSubscriber;
     	this.createdSource = createdSource;
     }
     
@@ -190,10 +196,27 @@ public class PlayerRecord {
     	this.fightWins = 0;
     	this.losses = 0;
     	this.wins = 0;
+    	this.isSubscriber = false;
     	
     	if(this.lastKnownAmount == null) {
-    		this.lastKnownAmount = GambleUtil.MINIMUM_BET;
+    		this.lastKnownAmount = GambleUtil.getMinimumBetForBettor(this.isSubscriber());
     	}
+    }
+    
+    public boolean isSubscriber() {
+    	if(this.isSubscriber == null || !this.isSubscriber) {
+    		return false;
+    	} else {
+    		return true;
+    	}
+    }
+    
+    public Integer prestigeLevel() {
+    	Integer prestigeLevel = 0;
+    	if(this.playerSkills != null) {
+    		prestigeLevel = (int) this.playerSkills.parallelStream().filter(skill -> skill.getSkillType() == SkillType.PRESTIGE).count();
+    	}
+    	return prestigeLevel;
     }
     
 }

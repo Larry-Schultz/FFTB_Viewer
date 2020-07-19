@@ -24,7 +24,9 @@
 					<p>Current state of my internal botland used to power <span id="accountName" th:text="${primaryBotAccountName}" /></p>
 					<p><b>Current Primary Bot: </b><span id="primaryBotName" th:text="${primaryBotName}" /></p>
 					<p><b>Gil History for the bot:</b></p>
-					<canvas id="accountChart" width="400" height="225"></canvas>
+					<div id="accountChartDiv" style="max-height:225px; max-width:400px;">
+						<canvas id="accountChart" width="400" height="225"></canvas>
+					</div>
 					<br />
 					<table class="hover">
 						<thead>
@@ -74,9 +76,9 @@
 		<div th:if="not ${botConfigData.get(bot.player).params.isEmpty()}" th:id="${bot.player} + 'FieldDescriptions'">
 			<p>Field Descriptions:</p>
 			<div th:each="botParamMapEntry: ${botConfigData.get(bot.player).params}" >
-				<p><b>Field Name: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldName'" th:text="${botParamMapEntry.value.name}" /></p>
-				<p><b>Field Value: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldValue'" th:text="${botParamMapEntry.value.value}" /></p>
-				<p><b>Field Description: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldDescription'" th:text="${botParamMapEntry.value.description}" /></p>
+				<span><b>Field Name: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldName'" th:text="${botParamMapEntry.value.name}" /></span><br />
+				<span><b>Field Value: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldValue'" th:text="${botParamMapEntry.value.value}" /></span><br />
+				<span><b>Field Description: </b> <span id="${bot.player}+'ModalParams'+${botParamMapEntry.value.name}+'FieldDescription'" th:text="${botParamMapEntry.value.description}" /></span><br />
 				<br />
 			</div>
 		</div>
@@ -93,8 +95,9 @@
 	<link rel="stylesheet" href="/webjars/jquery-ui/1.12.1/jquery-ui.min.css" />
 	<script src="/webjars/jquery/1.8.3/jquery.min.js"></script>
 	<script src="/webjars/jquery-ui/1.12.1/jquery-ui.min.js"></script>
+	<script th:src="@{/webjars/sockjs-client/1.0.2/sockjs.min.js}"></script>
+    <script th:src="@{webjars/stomp-websocket/2.3.3/stomp.min.js}"></script>
 	<script th:src="@{/webjars/foundation/6.4.3-1/dist/js/foundation.min.js}"></script>
-	<!-- <script th:src="@{/webjars/foundation/6.4.3-1/js/foundation.reveal.js}"></script> -->
 	<script th:src="@{/webjars/chartjs/2.9.3/Chart.min.js}"></script>
 	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
 	<script th:src="@{/js/botland.js}"></script>
@@ -102,6 +105,7 @@
 		$(document).foundation();
 		populateBotAccountChart();
 		populateBotCharts();
+		connect();
 	</script>
 </body>
 </html>

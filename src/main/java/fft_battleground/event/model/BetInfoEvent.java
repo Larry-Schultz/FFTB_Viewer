@@ -16,6 +16,7 @@ public class BetInfoEvent extends BattleGroundEvent {
 	private BattleGroundTeam team;
 	private String percentage;
 	private Integer possibleEarnings;
+	private Boolean isSubscriber;
 	
 	private PlayerRecord metadata;
 
@@ -28,6 +29,8 @@ public class BetInfoEvent extends BattleGroundEvent {
 		this.team = team;
 		this.percentage = percentage;
 		this.possibleEarnings = possibleEarnings;
+		
+		this.isSubscriber = null; //must be null specifically so we can inherit subscriber status
 	}
 	
 	public String generateBetString() {

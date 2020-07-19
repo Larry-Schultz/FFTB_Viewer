@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GambleUtil {
 	
 	public static final Integer MINIMUM_BET = 100;
+	public static final Integer SUBSCRIBER_MINIMUM_BET = 200;
 	public static final Short DEFAULT_REMAINING_EXP = 100;
 	public static final Integer MAX_BET = 1000;
 	
@@ -71,26 +72,26 @@ public class GambleUtil {
 			if(player.getLastKnownAmount() != null) {
 				value = player.getLastKnownAmount();
 			} else if(player.getLastKnownLevel() != null) {
-				value = getMinimumBetForLevel(player.getLastKnownLevel());
+				value = getMinimumBetForLevel(player.getLastKnownLevel(), player.prestigeLevel(), event.getIsSubscriber());
 			} else {
-				value = MINIMUM_BET;
+				value = getMinimumBetForLevel((short)0, player.prestigeLevel(), event.getIsSubscriber());
 			}
 			break;
 		case HALF:
 			if(player.getLastKnownAmount() != null) {
 				value = player.getLastKnownAmount()/2;
 			} else if(player.getLastKnownLevel() != null) {
-				value = getMinimumBetForLevel(player.getLastKnownLevel());
+				value = getMinimumBetForLevel(player.getLastKnownLevel(), player.prestigeLevel(), event.getIsSubscriber());
 			} else {
-				value = MINIMUM_BET;
+				value = getMinimumBetForLevel((short)0, player.prestigeLevel(), event.getIsSubscriber());
 			}
 			//no need to implement allinbut code here, since allinbut half is the same as bet half.
 			break;
 		case FLOOR:
 			if(player.getLastKnownLevel() != null) {
-				value = getMinimumBetForLevel(player.getLastKnownLevel());
+				value = getMinimumBetForLevel(player.getLastKnownLevel(), player.prestigeLevel(), event.getIsSubscriber());
 			} else {
-				value = MINIMUM_BET;
+				value = getMinimumBetForLevel((short)0, player.prestigeLevel(), event.getIsSubscriber());
 			}
 			if(event.isAllinbutFlag()) {
 				value = player.getLastKnownAmount() - value;
@@ -107,16 +108,28 @@ public class GambleUtil {
 		return value;
 	}
 	
-	public static Integer getMinimumBetForLevel(Short level) {
+	public static Integer getMinimumBetForLevel(Short level, boolean isSubscriber) {
+		Integer result = getMinimumBetForLevel(level, 0, isSubscriber);
+		return result;
+	}
+	
+	public static Integer getMinimumBetForLevel(Short level, Integer prestigeLevel, boolean isSubscriber) {
 		Integer minimumBet = null;
 		if(level != null && level <= 100) {
-			minimumBet = (4 * level) + MINIMUM_BET;
+			minimumBet = (100 * prestigeLevel) + (4 * level) + getMinimumBetForBettor(isSubscriber);
 		} else if(level != null && level > 100) {
-			minimumBet = (4 * 100) + MINIMUM_BET;
+			minimumBet = (100 * prestigeLevel) + (4 * 100) + getMinimumBetForBettor(isSubscriber);
 		} else {
-			minimumBet = MINIMUM_BET;
+			minimumBet = (100 * prestigeLevel) + getMinimumBetForBettor(isSubscriber);
 		}
 		return minimumBet;
+	}
+	
+
+	
+	public static Integer getMinimumBetForBettor(boolean isSubscriber) {
+		Integer result = isSubscriber ? SUBSCRIBER_MINIMUM_BET : MINIMUM_BET;
+		return result;
 	}
 	
 	public static String cleanString(String str) {

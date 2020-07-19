@@ -34,7 +34,7 @@ public class BetDetector implements EventDetector
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 			
 			if(this.validateBet(amount)) {
-				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.FLOOR);
+				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.FLOOR, message.getIsSubscriber());
 				event.setAllinbutFlag(allinbutFlag);
 			} else {
 				event = null;
@@ -67,7 +67,7 @@ public class BetDetector implements EventDetector
 			}
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 			if(type != null) {
-				event = new BetEvent(message.getUsername(), team, amount, betText, type);
+				event = new BetEvent(message.getUsername(), team, amount, betText, type, message.getIsSubscriber());
 				event.setAllinbutFlag(allinbutFlag);
 				return event;
 			} else {
@@ -85,7 +85,7 @@ public class BetDetector implements EventDetector
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 			
 			if(this.validateBet(amount)) {
-				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.ALLIN);
+				event = new BetEvent(message.getUsername(), team, amount, betText, BetType.ALLIN, message.getIsSubscriber());
 			} else {
 				event = null;
 			}

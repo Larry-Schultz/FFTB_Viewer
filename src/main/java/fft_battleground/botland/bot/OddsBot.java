@@ -68,7 +68,7 @@ public class OddsBot extends BetterBetBot {
 			}
 		}
 		
-		Bet bet = new Bet(chosenTeam, result);
+		Bet bet = new Bet(chosenTeam, result, this.isBotSubscriber);
 		
 		return bet;
 	}

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.gikk.twirk.Twirk;
+
 import fft_battleground.model.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class IrcChatMessenger extends Thread {
 	
 	@Autowired
-	private PircBotX ircChatBot;
+	private Twirk ircChatBot;
 	
     @Value("${irc.channel}")
     private String channel;
@@ -33,7 +35,8 @@ public class IrcChatMessenger extends Thread {
     		try {
 				ChatMessage message = this.ircChatMessengerQueue.take();
 				log.info("Sending chat message: {}", message.getMessage());
-				this.ircChatBot.sendIRC().message("#"+this.channel, message.getMessage());
+				//this.ircChatBot.sendIRC().message("#"+this.channel, message.getMessage());
+				this.ircChatBot.channelMessage(message.getMessage());
 			} catch (InterruptedException e) {
 				log.error("Error with the IrcChatMessengerQueue", e);
 			}

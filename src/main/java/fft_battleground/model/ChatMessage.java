@@ -12,14 +12,23 @@ public class ChatMessage {
     private String channel;
     private String username;
     private String message;
+    private Boolean isSubscriber = false;
 
     public ChatMessage(String message) {
     	this.message = message;
+    	this.isSubscriber = false;
     }
     
     public ChatMessage(String username, String message) {
         this.username = username;
         this.message = message;
+        this.isSubscriber = false;
+    }
+    
+    public ChatMessage(String username, String message, boolean isSubscriber) {
+    	this.username = username;
+    	this.message = message;
+    	this.isSubscriber = isSubscriber;
     }
 
 }

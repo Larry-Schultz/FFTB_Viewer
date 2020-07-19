@@ -77,14 +77,14 @@ public class Bots implements Comparable<Bots> {
     	return sdf;
     }
 
-	public Bots(String name, String currentDateString) {
+	public Bots(String name, String currentDateString, Integer startingBalance) {
 		this.player = name;
 		this.dateString = currentDateString;
 		
 		this.losses = 0;
 		this.wins = 0;
-		this.balance = GambleUtil.MINIMUM_BET;
-		this.highestKnownValue = GambleUtil.MINIMUM_BET;
+		this.balance = startingBalance;
+		this.highestKnownValue = startingBalance;
 	}
 
 	@Override

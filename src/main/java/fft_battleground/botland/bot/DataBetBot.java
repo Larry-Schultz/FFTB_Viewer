@@ -73,7 +73,7 @@ public class DataBetBot extends BetterBetBot {
 			betAmount = betRatio * (this.currentAmountToBetWith);
 		}
 		
-		Bet result = new Bet(chosenTeam, betAmount.intValue());
+		Bet result = new Bet(chosenTeam, betAmount.intValue(), this.isBotSubscriber);
 		
 		return result;
 	}

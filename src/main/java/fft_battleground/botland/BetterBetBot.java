@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public abstract class BetterBetBot
 implements Callable<Bet> {
+	protected boolean isBotSubscriber = true;
+	
 	protected Integer currentAmountToBetWith;
 	protected List<BetEvent> otherPlayerBets;
 	protected BattleGroundTeam left;
@@ -81,13 +83,13 @@ implements Callable<Bet> {
 			log.warn("The bot {} provided a null bet", this.getName());
 		} else if (bet.getType() == BetType.VALUE) {
 			if(bet.getAmount() == null) {
-				bet.setAmount(GambleUtil.MINIMUM_BET);
+				bet.setAmount(GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
 			} else if (bet.getAmount() > GambleUtil.MAX_BET) {
 				log.warn("The bot {} provided a bet over the maximum value", this.getName());
 				bet.setAmount(GambleUtil.MAX_BET);
-			} else if (bet.getAmount() < GambleUtil.MINIMUM_BET) {
+			} else if (bet.getAmount() < GambleUtil.getMinimumBetForBettor(this.isBotSubscriber)) {
 				log.warn("The bot {} provided a bet under the minimum value", this.getName());
-				bet.setAmount(GambleUtil.MINIMUM_BET);
+				bet.setAmount(GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
 			}
 		}
 	}

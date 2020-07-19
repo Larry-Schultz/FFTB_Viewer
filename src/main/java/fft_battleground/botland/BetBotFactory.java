@@ -46,8 +46,14 @@ public class BetBotFactory {
 	@Value("${botfactory.primaryBotName}")
 	private String primaryBotName;
 	
+	@Value("${botfactory.botIsSubscriber}")
+	private Boolean isBotSubscriber;
+	
 	@Value("${botfactory.botFile}")
 	private String botFile;
+	
+	@Value("${enableBetting}")
+	private boolean enableBetting;
 	
 	@Autowired
 	private Router<ChatMessage> messageSenderRouter;
@@ -75,6 +81,7 @@ public class BetBotFactory {
 		land.setBotsRepo(this.botsRepo);
 		land.setBattleGroundEventBackPropagationRef(this.battleGroundEventBackPropagation);
 		land.setIrcName(this.ircName);
+		land.setEnableBetting(this.enableBetting);
 		
 		this.attachBots(land, currentAmountToBetWith, otherPlayerBets, beginEvent);
 		
@@ -138,7 +145,7 @@ public class BetBotFactory {
 		
 		Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(botDateString, botData.getName());
 		if(botDataFromDatabase == null) {
-			botDataFromDatabase = this.botsRepo.addNewBotForToday(botData.getName());
+			botDataFromDatabase = this.botsRepo.addNewBotForToday(botData.getName(), this.isBotSubscriber);
 			log.info("creating new bot data entry for: {} with dateString {}", botDataFromDatabase.getPlayer(), botDataFromDatabase.getDateString());
 		}
 		
@@ -161,6 +168,7 @@ public class BetBotFactory {
 			betBot.setName(botData.getName());
 			betBot.setPlayerRecordRepoRef(this.playerRecordRepo);
 			betBot.setDateFormat(botDateString);
+			betBot.setBotSubscriber(this.isBotSubscriber);
 		}
 		
 		return betBot;

@@ -1,12 +1,13 @@
 package fft_battleground.botland;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.botland.model.BetResults;
+import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.ResultEvent;
+
 import lombok.Data;
 
 @Data
@@ -32,7 +33,8 @@ public class BetResultCollector {
 			}
 		}
 		
-		results = new BetResults(helper.sortBetsBySide(), event.getWinner(), helper.getLeft(), helper.getRight(), helper.getBettingEndsEvent(), 
+		Pair<List<BetEvent>, List<BetEvent>> betsBySide = helper.sortBetsBySide();
+		results = new BetResults(betsBySide, event.getWinner(), helper.getLeft(), helper.getRight(), helper.getBettingEndsEvent(), 
 				helper.getMatchInfo(), helper.getTeamData(), subordinateBotsWithResults);
 
 		

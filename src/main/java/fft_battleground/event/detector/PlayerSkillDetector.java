@@ -13,6 +13,7 @@ public class PlayerSkillDetector implements EventDetector {
 
 	private static final String SEARCH_STRING = ", your skills: ";
 	private static final String FILTER_STRING = "None!";
+	private static final String FILTER_STRING_2 = "Invalid page";
 	
 	@Override
 	public BattleGroundEvent detect(ChatMessage message) {
@@ -20,8 +21,7 @@ public class PlayerSkillDetector implements EventDetector {
 		
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			for(String str : StringUtils.split(message.getMessage(), ";")) {
-				if(StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
-					
+				if(StringUtils.contains(message.getMessage(), SEARCH_STRING) && !StringUtils.contains(message.getMessage(), FILTER_STRING_2)) {
 					String player = StringUtils.substringBefore(str, SEARCH_STRING);
 					String skillsString = this.getSkillsString(str);
 					List<String> skills = new LinkedList<String>();
