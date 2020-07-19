@@ -64,7 +64,7 @@ public class DataBetBot extends BetterBetBot {
 
 	@Override
 	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
-		Float betAmount = GambleUtil.MINIMUM_BET.floatValue();
+		Float betAmount = GambleUtil.getMinimumBetForBettor(this.isBotSubscriber).floatValue();
 		if(chosenTeam == this.left) {
 			float betRatio = leftScore / (leftScore + rightScore);
 			betAmount = betRatio * (this.currentAmountToBetWith);
@@ -93,7 +93,7 @@ public class DataBetBot extends BetterBetBot {
 				}
 				
 			}
-			Integer amount = GambleUtil.MINIMUM_BET;
+			Integer amount = GambleUtil.getMinimumBetForBettor(this.isBotSubscriber);
 			if(playerRecord != null) {
 				amount = GambleUtil.getBetAmountFromBetString(playerRecord, bet);
 				scoreSum += this.scoreByPlayer(playerRecord.getWins(), playerRecord.getLosses(), amount, playerRecord.getLastKnownAmount());
