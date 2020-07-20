@@ -1,9 +1,5 @@
 package fft_battleground.irc;
 
-import java.io.IOException;
-
-import org.pircbotx.PircBotX;
-import org.pircbotx.exception.IrcException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

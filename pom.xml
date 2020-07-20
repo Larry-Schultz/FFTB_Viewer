@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.OtherBrand</groupId>
 	<artifactId>FFT_BattleGround_Databot</artifactId>
-	<version>1.4-SNAPSHOT</version>
+	<version>1.4.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -137,6 +137,12 @@
 			<groupId>org.mariuszgromada.math</groupId>
 			<artifactId>MathParser.org-mXparser</artifactId>
 			<version>4.4.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>29.0-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
