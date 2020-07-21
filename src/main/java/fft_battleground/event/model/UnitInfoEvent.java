@@ -11,6 +11,7 @@ public class UnitInfoEvent extends BattleGroundEvent {
 	private String player;
 	private String unitInfoString;
 	private Unit unit;
+	private Boolean isRaidBoss = false;
 
 	public UnitInfoEvent() {}
 	

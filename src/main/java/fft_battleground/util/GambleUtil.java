@@ -52,7 +52,11 @@ public class GambleUtil {
 		Integer value = 0;
 		switch(event.getBetType()) {
 		case VALUE:
+			try {
 			value = Integer.valueOf(event.getBetAmount());
+			} catch(NumberFormatException e) {
+				value = 0;
+			}
 			if(event.isAllinbutFlag()) {
 				value = player.getLastKnownAmount() - value;
 			}

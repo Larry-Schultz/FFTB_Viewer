@@ -106,6 +106,8 @@ var stompClient = null;
 function connect() {
 	var url = window.location.href  + 'gs-guide-websocket';
 	url = url.replace('botland', '');
+	url = url.replace('refresh=true', '');
+	url = url.replace('?', '');
     var socket = new SockJS(url);
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
@@ -162,10 +164,17 @@ function manuallyCallToRetrieveEvent(indexes) {
 function parseEvents(event) {
 	switch(event.eventType) {
 		case 'BETTING_BEGINS':
-			location.reload();
+			reload();
 			break;
 		default:
 			break;
 	}
 	
+}
+
+function reload() {
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	urlParams.set("refresh", "true");
+	window.location.search = urlParams.toString();
 }

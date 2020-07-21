@@ -32,6 +32,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
@@ -126,8 +127,11 @@ public class HomeController {
 	}
 
 	@GetMapping({"/player/{playerName}"})
-	public String playerDataPage(@PathVariable(name="playerName") String playerName, Model model, TimeZone timezone, HttpServletRequest request) {
-		log.info("player page accessed for {}  from user: {}", playerName, request.getRemoteAddr());
+	public String playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
+			Model model, TimeZone timezone, HttpServletRequest request) {
+		if(!refresh) {
+			log.info("player page accessed for {}  from user: {}", playerName, request.getRemoteAddr());
+		}
 		if(playerName != null) {
 			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
@@ -261,8 +265,10 @@ public class HomeController {
 	}
 	
 	@GetMapping("/botland")
-	public String botland(Model model, HttpServletRequest request) {
-		log.info("botland page accessed from user: {}", request.getRemoteAddr());
+	public String botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, Model model, HttpServletRequest request) {
+		if(!refresh) {
+			log.info("botland page accessed from user: {}", request.getRemoteAddr());
+		}
 		List<Bots> botData = this.botsRepo.getBotsForToday();
 		Collections.sort(botData, Collections.reverseOrder());
 		model.addAttribute("botData", botData);

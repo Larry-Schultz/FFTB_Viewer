@@ -16,6 +16,7 @@ import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.util.GambleUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,6 +44,7 @@ public class Tournament {
 	private List<String> Snubs;
 	
 	private Integer winnersCount;
+	private List<String> raidbosses;
 	
 	public Tournament() {}
 	
@@ -57,8 +59,10 @@ public class Tournament {
 		events.add(team2Info);
 		
 		List<UnitInfoEvent> unitInfoEventsForTeam1 = this.Teams.getUnitInfoEventByBattleGroundTeam(team1);
+		this.attachRaidbossDataToUnitInfoEventList(unitInfoEventsForTeam1);
 		events.addAll(unitInfoEventsForTeam1);
 		List<UnitInfoEvent> unitInfoEventsForTeam2 = this.Teams.getUnitInfoEventByBattleGroundTeam(team2);
+		this.attachRaidbossDataToUnitInfoEventList(unitInfoEventsForTeam2);
 		events.addAll(unitInfoEventsForTeam2);
 		
 		MatchInfoEvent matchInfoEvent = this.getMatchInfo(team1, team2);
@@ -87,5 +91,13 @@ public class Tournament {
 			log.error("The winnersCount was greater than 7, somehow");
 		}
 		return event;
+	}
+	
+	public void attachRaidbossDataToUnitInfoEventList(List<UnitInfoEvent> unitInfoEvents) {
+		for(UnitInfoEvent event : unitInfoEvents) {
+			if(this.raidbosses.contains(GambleUtil.cleanString(event.getPlayer()))) {
+				event.setIsRaidBoss(true);
+			}
+		}
 	}
 }

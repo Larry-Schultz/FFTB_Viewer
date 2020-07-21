@@ -88,9 +88,5 @@
 		<appender-ref ref="EventLogsRollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
-	<logger name="fft_battleground.dump" level="INFO" additivity="false">
-		<appender-ref ref="EventLogsRollingFile" />
-		<appender-ref ref="Console" />
-	</logger>
 
 </configuration>

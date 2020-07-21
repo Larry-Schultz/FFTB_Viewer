@@ -100,6 +100,7 @@ public class DetectorTests {
 		ChatMessage message5 = new ChatMessage("magicbottle", "!betf red");
 		ChatMessage message6 = new ChatMessage("thekillernacho", "!bet floor purple");
 		ChatMessage message7 = new ChatMessage("lydian_c", "!allbut 10% champ");
+		ChatMessage message8 = new ChatMessage("practice_pad", "!bet 100000000000000000");
 
 		BetEvent event = (BetEvent) detector.detect(message);
 		assertTrue(event != null);
@@ -129,6 +130,9 @@ public class DetectorTests {
 		assertTrue(event != null);
 		assertTrue(event.isAllinbutFlag());
 		assertTrue(event.getBetType() == BetType.PERCENTAGE);
+		
+		event = (BetEvent) detector.detect(message8);
+		assertTrue(event == null);
 	}
 
 	@Test

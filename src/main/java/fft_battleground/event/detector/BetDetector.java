@@ -67,8 +67,12 @@ public class BetDetector implements EventDetector
 			}
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 			if(type != null) {
-				event = new BetEvent(message.getUsername(), team, amount, betText, type, message.getIsSubscriber());
-				event.setAllinbutFlag(allinbutFlag);
+				if(this.validateBet(amount)) {
+					event = new BetEvent(message.getUsername(), team, amount, betText, type, message.getIsSubscriber());
+					event.setAllinbutFlag(allinbutFlag);
+				} else {
+					event = null;
+				}
 				return event;
 			} else {
 				return event;

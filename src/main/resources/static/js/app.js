@@ -53,6 +53,7 @@ function manuallyCallToRetrieveEvent(indexes) {
 		success: function(result){
 			events = result;
 	  }});
+	
 }
 
 function pullCurrentData() {
@@ -304,6 +305,9 @@ function handleUnitInfo(event) {
 				attachTippy(base + 'ImageTag', generateUnitImageTitle(event, direction, i));
 				//$(base + 'ImageTag').attr('data-tippy-content', generateUnitImageTitle(event, direction, i));
 				$('#' + base + 'LoadingImage').hide();
+				if(event.isRaidBoss) {
+					$('#fight'+ team + 'Player' + i + 'RaidBossIndicator').show();
+				}
 				break;
 			}
 		}
@@ -541,6 +545,7 @@ function resetMatchBlock() {
 	$('.teamNameLoading').hide(); 
 	$('#matchNotice').show();
 	$('#fightNotice').hide();
+	$('.raidBoss').hide();
 }
 
 function notifyMe(noticationString) {

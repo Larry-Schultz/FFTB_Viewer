@@ -138,9 +138,8 @@ public class DumpService {
 		log.info("player data cache load complete");
 	}
 	
-	public Collection<BattleGroundEvent> getUpdatesFromDumpService() {
+	public Collection<BattleGroundEvent> getBalanceUpdatesFromDumpService() {
 		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
-		
 		log.info("updating balance cache");
 		Map<String, Integer> newBalanceDataFromDump = this.dumpDataProvider.getHighScoreDump();
 		Map<String, ValueDifference<Integer>> balanceDelta = Maps.difference(this.balanceCache, newBalanceDataFromDump).entriesDiffering();
@@ -154,7 +153,6 @@ public class DumpService {
 		}
 		data.add(otherPlayerBalance);
 		
-		
 		//find missing players
 		for(String key: newBalanceDataFromDump.keySet()) {
 			if(!this.balanceCache.containsKey(key)) {
@@ -164,6 +162,12 @@ public class DumpService {
 			}
 		}
 		log.info("balance cache update complete");
+		
+		return data;
+	}
+	
+	public Collection<BattleGroundEvent> getExpUpdatesFromDumpService() {
+		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
 		
 		log.info("updating exp cache");
 		Map<String, ExpEvent> newExpDataFromDump = this.dumpDataProvider.getHighExpDump();
@@ -187,6 +191,12 @@ public class DumpService {
 		}
 		log.info("exp cache update complete");
 		
+		return data;
+	}
+	
+	public Collection<BattleGroundEvent> getLastActiveUpdatesFromDumpService() {
+		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
+
 		log.info("updating last active cache");
 		Map<String, Date> newLastActiveFromDump = this.dumpDataProvider.getLastActiveDump();
 		Map<String, ValueDifference<Date>> lastActiveDelta = Maps.difference(this.lastActiveCache, newLastActiveFromDump).entriesDiffering();
@@ -303,9 +313,18 @@ class GenerateDataUpdateFromDump extends TimerTask {
 	@Override
 	public void run() {
 		log.debug("updating data from dump");
-		Collection<BattleGroundEvent> events = this.dumpServiceRef.getUpdatesFromDumpService();
-		events.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.routerRef.sendAllDataToQueues(events);
+		Collection<BattleGroundEvent> balanceEvents = this.dumpServiceRef.getBalanceUpdatesFromDumpService();
+		balanceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		this.routerRef.sendAllDataToQueues(balanceEvents);
+		
+		Collection<BattleGroundEvent> expEvents = this.dumpServiceRef.getExpUpdatesFromDumpService();
+		expEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		this.routerRef.sendAllDataToQueues(expEvents);
+		
+		Collection<BattleGroundEvent> lastActiveEvents = this.dumpServiceRef.getLastActiveUpdatesFromDumpService();
+		lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		this.routerRef.sendAllDataToQueues(lastActiveEvents);
+		
 		return;
 	}
 	
