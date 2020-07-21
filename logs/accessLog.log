@@ -1,1 +1,2 @@
-2020-07-19 10:52:57,314 DEBUG fft_battleground.controller.WebsocketThread [fft_battleground.controller.WebsocketThread] Clearing the event cache because of event of type: Betting Begins
+2020-07-21 13:10:08.480  INFO 19072 --- [-nio-443-exec-6] f.controller.HomeController              : index page accessed from user: 0:0:0:0:0:0:0:1
+2020-07-21 13:15:38.533  INFO 18832 --- [-nio-443-exec-7] f.controller.HomeController              : index page accessed from user: 0:0:0:0:0:0:0:1
