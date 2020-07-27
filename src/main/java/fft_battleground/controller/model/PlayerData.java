@@ -16,6 +16,9 @@ public class PlayerData {
 	private String timezoneFormattedDateString;
 	private Integer expRank;
 	private String percentageOfGlobalGil;
+	private boolean notFound = false;
+	private Integer betPercentile;
+	private Integer fightPercentile;
 	
 	public PlayerData() {}
 }

@@ -38,6 +38,7 @@ import fft_battleground.event.detector.PortraitEventDetector;
 import fft_battleground.event.detector.PrestigeAscensionDetector;
 import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.RiserSkillWinDetector;
+import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
@@ -101,7 +102,7 @@ public class Config {
 		return Arrays.asList(new EventDetector[]{
 			new BetDetector(), new LevelUpDetector(), new ResultEventDetector(), new SkillWinEventDetector(), new RiserSkillWinDetector(),
 			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(), new MusicDetector(),
-			new BettingBeginsDetector(), new MatchInfoDetector(), new AllegianceDetector(), new BetInfoEventDetector(),
+			new BettingBeginsDetector(), new AllegianceDetector(), new BetInfoEventDetector(), new SkillDropDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),
 			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()});
 	}

@@ -1,5 +1,6 @@
 
 var stompClient = null;
+var loading = true; //track if the page is in loading state.
 
 function connect() {
     var socket = new SockJS(window.location.href  + 'gs-guide-websocket');
@@ -84,11 +85,28 @@ function parseEvents(event) {
 			team2Name = event.team2;
 			handleBetBegins(event);
 			break;
+		case 'BETTING_ENDS':
+			$('.notice').hide();
+			if(loading) {
+				$('#loadingNotice').show();
+			} else {
+				$('#matchNotice').show();
+			}
+			break;
 		case 'FIGHT_BEGINS':
 			$('.fightData').hide();
 			$('.fightLoading').show();
-			$('#matchNotice').hide();
+			$('.notice').hide();
 			$('#fightNotice').show();
+			loading = false;
+			break;
+		case 'RESULT':
+			$('.notice').hide();
+			if(loading) {
+				$('#loadingNotice').show();
+			} else {
+				$('#resultsNotice').show();
+			}
 			break;
 		case 'TEAM_INFO':
 			handleTeamInfo(event)
@@ -114,6 +132,7 @@ function parseEvents(event) {
 }
 
 function handleBetBegins(event) {
+	loading = false;
 	resetMatchBlock();
 	$('#team1').find('.player').each(function() { destroyTippyIfPresent($(this).attr('id'))});
 	$('#team1').find('.example').each(function() { destroyTippyIfPresent($(this).attr('id'))});
@@ -128,16 +147,24 @@ function handleBetBegins(event) {
 	setColor(event.team1, 'team1'); 
 	setColor(event.team1, 'team1grid'); 
 	setColor(event.team1, 'team1Name');
+	setColor(event.team1, 'team1BetCount');
+	setColor(event.team1, 'team1BetCountIndicator');
 	setColor(event.team1, 'team1Amount');
+	setColor(event.team1, 'team1AmountIndicator');
 	setColor(event.team1, 'team1Odds');
+	setColor(event.team1, 'team1OddsIndicator');
 	setColor(event.team1, 'team1Percentage');
 	setColor(event.team1, 'team1PercentageSign');
 	
 	setColor(event.team2, 'team2'); 
 	setColor(event.team2, 'team2grid'); 
-	setColor(event.team2, 'team2Name'); 
+	setColor(event.team2, 'team2Name');
+	setColor(event.team2, 'team2BetCount');
+	setColor(event.team2, 'team2BetCountIndicator');
 	setColor(event.team2, 'team2Amount');
+	setColor(event.team2, 'team2AmountIndicator');
 	setColor(event.team2, 'team2Odds');
+	setColor(event.team2, 'team2OddsIndicator');
 	setColor(event.team2, 'team2Percentage');
 	setColor(event.team2, 'team2PercentageSign');
 }
@@ -149,7 +176,9 @@ function handleBet(event) {
 		attachTabindexToGridElements(1000, 'team1');
 		if(!isNaN(event.betAmount)) {
 			var newAmount = countValuesforGrid('team1');
-			$('#team1Amount').text(newAmount);
+			$('#team1BetCount').text(countBetsForGrid('team1'));
+			$('#team1Amount').attr('data-gil', newAmount);
+			$('#team1Amount').text(newAmount.toLocaleString());
 			$('#team1Odds').text(calculateOddsForTeam($('#team1Amount').text(), $('#team2Amount').text()));
 			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').text(), $('#team2Amount').text()));
 			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
@@ -160,10 +189,12 @@ function handleBet(event) {
 		attachTabindexToGridElements(2000, 'team2');
 		if(!isNaN(event.betAmount)) {
 			var newAmount = countValuesforGrid('team2');
-			$('#team2Amount').text(newAmount);
-			$('#team2Odds').text(calculateOddsForTeam($('#team2Amount').text(), $('#team1Amount').text()));
-			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').text(), $('#team2Amount').text()));
-			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
+			$('#team2BetCount').text(countBetsForGrid('team2'));
+			$('#team2Amount').attr('data-gil', newAmount);
+			$('#team2Amount').text(newAmount.toLocaleString());
+			$('#team2Odds').text(calculateOddsForTeam($('#team2Amount').attr('data-gil'), $('#team1Amount').attr('data-gil')));
+			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').attr('data-gil'), $('#team2Amount').attr('data-gil')));
+			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').attr('data-gil'), $('#team1Amount').attr('data-gil')));
 		}
 	}
 	
@@ -177,11 +208,16 @@ function handleBadBet(event) {
 		}
 	}
 	
+	$('#team1BetCount').text(countBetsForGrid('team1'));
+	$('#team2BetCount').text(countBetsForGrid('team2'));
+	
 	var newAmountTeam1 = countValuesforGrid('team1');
-	$('#team1Amount').text(newAmountTeam1);
+	$('#team1Amount').attr('data-gil', newAmountTeam1);
+	$('#team1Amount').text(newAmountTeam1.toLocaleString());
 	
 	var newAmountTeam2 = countValuesforGrid('team2');
-	$('#team2Amount').text(newAmountTeam2);
+	$('#team2Amount').attr('data-gil', newAmountTeam2);
+	$('#team2Amount').text(newAmountTeam2.toLocaleString());
 	
 	var team1Odds = calculateOddsForTeam(newAmountTeam1, newAmountTeam2);
 	var team2Odds = calculateOddsForTeam(newAmountTeam2, newAmountTeam1);
@@ -189,8 +225,8 @@ function handleBadBet(event) {
 	$('#team1Odds').text(team1Odds);
 	$('#team2Odds').text(team2Odds);
 	
-	$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').text(), $('#team2Amount').text()));
-	$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
+	$('#team1Percentage').text(calculatePercentageForTeam(newAmountTeam1, newAmountTeam2));
+	$('#team2Percentage').text(calculatePercentageForTeam(newAmountTeam2, newAmountTeam1));
 }
 
 function handleMusicEvent(event) {
@@ -245,10 +281,13 @@ function handleBetInfo(event) {
 		attachTabindexToGridElements(1000, 'team1');
 		if(!isNaN(event.betAmount)) {
 			var newAmount = countValuesforGrid('team1');
-			$('#team1Amount').text(newAmount);
-			$('#team1Odds').text(calculateOddsForTeam($('#team1Amount').text(), $('#team2Amount').text()));
-			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').text(), $('#team2Amount').text()));
-			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
+			$('#team1BetCount').text(countBetsForGrid('team1'));
+			$('#team1Amount').attr('data-gil', newAmount);
+			$('#team1Amount').text(newAmount.toLocaleString());
+			$('#team1Odds').text(calculateOddsForTeam($('#team1Amount').attr('data-gil'), $('#team2Amount').attr('data-gil')));
+			$('#team2Odds').text(calculateOddsForTeam($('#team2Amount').attr('data-gil'), $('#team1Amount').attr('data-gil')));
+			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').attr('data-gil'), $('#team2Amount').attr('data-gil')));
+			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').attr('data-gil'), $('#team1Amount').attr('data-gil')));
 		}
 	} else if(event.team == team2Name || event.team == 'RIGHT') {
 		$("#team2").prepend(generatePlayerRecord(event.metadata, event.player, event.betAmount, event.betAmount, 'VALUE', 'team2', false));
@@ -256,10 +295,13 @@ function handleBetInfo(event) {
 		attachTabindexToGridElements(2000, 'team2');
 		if(!isNaN(event.betAmount)) {
 			var newAmount = countValuesforGrid('team2');
-			$('#team2Amount').text(newAmount);
-			$('#team2Odds').text(calculateOddsForTeam($('#team2Amount').text(), $('#team1Amount').text()));
-			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').text(), $('#team2Amount').text()));
-			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').text(), $('#team1Amount').text()));
+			$('#team2BetCount').text(countBetsForGrid('team2'));
+			$('#team2Amount').attr('data-gil', newAmount);
+			$('#team2Amount').text(newAmount.toLocaleString());
+			$('#team1Odds').text(calculateOddsForTeam($('#team1Amount').attr('data-gil'), $('#team2Amount').attr('data-gil')));
+			$('#team2Odds').text(calculateOddsForTeam($('#team2Amount').attr('data-gil'), $('#team1Amount').attr('data-gil')));
+			$('#team1Percentage').text(calculatePercentageForTeam($('#team1Amount').attr('data-gil'), $('#team2Amount').attr('data-gil')));
+			$('#team2Percentage').text(calculatePercentageForTeam($('#team2Amount').attr('data-gil'), $('#team1Amount').attr('data-gil')));
 		}
 	}
 }
@@ -306,7 +348,7 @@ function handleUnitInfo(event) {
 				//$(base + 'ImageTag').attr('data-tippy-content', generateUnitImageTitle(event, direction, i));
 				$('#' + base + 'LoadingImage').hide();
 				if(event.isRaidBoss) {
-					$('#fight'+ team + 'Player' + i + 'RaidBossIndicator').show();
+					$('#fight'+ direction + 'Player' + i + 'RaidBossIndicator').show();
 				}
 				break;
 			}
@@ -445,6 +487,15 @@ function attachTabindexToGridElements(indexStart, gridName) {
 	});
 }
 
+function countBetsForGrid(gridName) {
+	var count = 0;
+	$('#'+gridName).find('.betAmount').each(function(index) {
+		count++;
+	});
+	
+	return count;
+}
+
 function countValuesforGrid(gridName) {
 	var count = 0;
 	$('#'+gridName).find('.betAmount').each(function(index) {
@@ -528,24 +579,40 @@ function resetMatchBlock() {
 	
 	$('#team1Name').show();
 	$('#team2Name').show();
+	$('#team1BetCount').show();
+	$('#team1BetCountIndicator').show();
 	$('#team1Amount').show();
+	$('#team1AmountIndicator').show();
 	$('#team1Odds').show();
+	$('#team1OddsIndicator').show();
 	$('#team1Percentage').show();
 	$('#team1PercentageSign').show();
+	$('#team2BetCount').show();
+	$('#team2BetCountIndicator').show();
 	$('#team2Amount').show();
+	$('#team2AmountIndicator').show();
 	$('#team2Odds').show();
+	$('#team2OddsIndicator').show();
 	$('#team2Percentage').show();
 	$('#team2PercentageSign').show();
+	$('#team1BetCount').text(0);
 	$('#team1Amount').text(0);
 	$('#team1Odds').text(0);
 	$('#team1Percentage').text(0);
+	$('#team2BetCount').text(0);
 	$('#team2Amount').text(0);
 	$('#team2Odds').text(0);
 	$('#team2Percentage').text(0);
-	$('.teamNameLoading').hide(); 
-	$('#matchNotice').show();
-	$('#fightNotice').hide();
+	$('.teamNameLoading').hide();
 	$('.raidBoss').hide();
+	
+	$('.notice').hide();
+	if(loading) {
+		$('#loadingNotice').show();
+	} else {
+		$('#bettingNotice').show();
+	}
+	
 }
 
 function notifyMe(noticationString) {
@@ -571,6 +638,6 @@ function notifyMe(noticationString) {
 	  // want to be respectful there is no need to bother them any more.
 }
 
-resetMatchBlock();
+resetMatchBlock(false);
 pullCurrentData();
 connect();

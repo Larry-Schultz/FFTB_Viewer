@@ -176,5 +176,6 @@ function reload() {
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
 	urlParams.set("refresh", "true");
+	//stompClient.close();
 	window.location.search = urlParams.toString();
 }

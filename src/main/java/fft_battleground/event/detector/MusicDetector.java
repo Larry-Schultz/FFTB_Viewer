@@ -8,7 +8,7 @@ import fft_battleground.model.ChatMessage;
 
 public class MusicDetector implements EventDetector {
 
-	private static final String SEARCH_STRING = ", The current track is: ";
+	private static final String SEARCH_STRING = ", the current track is: ";
 	private static final String SEARCH_STRING_2 = ". It will play for another ";
 	private static final String SEARCH_STRING_3 = " seconds.";
 	

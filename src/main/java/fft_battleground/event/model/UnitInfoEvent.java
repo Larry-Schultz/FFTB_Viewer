@@ -30,7 +30,8 @@ public class UnitInfoEvent extends BattleGroundEvent {
 
 	@Override
 	public String toString() {
-		return "UnitInfoEvent [username=" + player + ", unitInfoString=" + unitInfoString + "]";
+		return "UnitInfoEvent [player=" + player + ", unitInfoString=" + unitInfoString + ", unit=" + unit
+				+ ", isRaidBoss=" + isRaidBoss + "]";
 	}
 	
 	

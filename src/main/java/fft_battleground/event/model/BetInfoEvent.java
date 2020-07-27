@@ -32,7 +32,18 @@ public class BetInfoEvent extends BattleGroundEvent {
 		
 		this.isSubscriber = null; //must be null specifically so we can inherit subscriber status
 	}
-	
+
+	public BetInfoEvent(String player, Integer betAmount, BattleGroundTeam currentTeam) {
+		super(event);
+		this.player = player;
+		this.betAmount = betAmount;
+		this.team = currentTeam;
+		
+		this.percentage = null;
+		this.possibleEarnings = null;
+		this.isSubscriber = null;
+	}
+
 	public String generateBetString() {
 		String betString = "!bet " + StringUtils.lowerCase(this.getTeam().toString()) + " " + this.getBetAmount();
 		return betString;

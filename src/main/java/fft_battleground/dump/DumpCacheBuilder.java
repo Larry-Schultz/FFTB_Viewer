@@ -296,6 +296,9 @@ implements Runnable {
 		log.info("calling player leaderboard");
 		this.dumpServiceRef.getDumpReportsService().getLeaderboard();
 		
+		this.dumpServiceRef.getDumpReportsService().getBetPercentile(0.50);
+		this.dumpServiceRef.getDumpReportsService().getFightPercentile(0.50);
+		
 		log.info("leaderboard data cache complete");
 	}
 	

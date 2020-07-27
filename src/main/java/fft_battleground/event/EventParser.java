@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +18,7 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
+import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.FightBeginsEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
@@ -34,6 +34,7 @@ import fft_battleground.tournament.Tournament;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,6 +108,15 @@ public class EventParser extends Thread {
 						} else if(event instanceof SkillDropEvent) {
 							this.attachMetadataToSkillDropEvent((SkillDropEvent) event);
 							this.eventRouter.sendDataToQueues(event);
+						} else if(event instanceof BettingEndsEvent) {
+							this.eventRouter.sendDataToQueues(event);
+							if(this.currentTournament != null) {
+								List<BattleGroundEvent> finalBets = this.tournamentService.getRealBetInfoFromLatestPotFile(this.currentTournament.getID());
+								log.info("Sending final bet data with {} entries", finalBets.size());
+								log.info("The final bet event data: {}", finalBets);
+								finalBets.parallelStream().forEach(betInfoEvent -> this.attachMetadataToBetInfoEvent((BetInfoEvent) betInfoEvent));
+								this.eventRouter.sendAllDataToQueues(finalBets);
+							}
 						} else if(event instanceof BettingBeginsEvent) {
 							BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
 							this.eventRouter.sendDataToQueues(bettingBeginsEvent);

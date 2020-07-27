@@ -15,6 +15,10 @@
 							<input id="playerNamesInput" type="text" size="25" style="width: 150px;" />
 							<button id="playerSearchButton" class="button" value="Submit" onclick="playerSearch();">Submit</button>
 						</div>
+						<div th:if="${playerData != null} and ${playerData.notFound}">
+							<br />
+							<h3>Player <span id="notFoundPlayerName" th:text="${playerData.playerRecord.player}" /> not found</h3>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -26,7 +30,7 @@
 				<div class="grid-x fluid">
 					<div class="cell small 5"></div>
 					<div class="cell small 2">
-						<div class="grid-y" th:if="${playerData != null}" style="border-style: solid; word-wrap: break-word; color: black; border-radius: 25px; background-color: white; width: 1200px">
+						<div class="grid-y" th:if="${playerData != null} and not ${playerData.notFound}" style="border-style: solid; word-wrap: break-word; color: black; border-radius: 25px; background-color: white; width: 1200px">
 							<div class="cell small-3"></div>
 							<div class="cell small-3">
 								<div class="grid-x">
@@ -51,10 +55,12 @@
 											<div class="cell small-2">
 											<span style="font-weight: bold;">Betting</span><br />
 											<span>Wins: </span><span id="winSpan" th:text="${playerData.playerRecord.wins}" /> <span> Losses: </span><span id="lossSpan" th:text="${playerData.playerRecord.losses}"></span><span> Ratio: </span><span id="ratioSpan" th:text="${playerData.betRatio}" />
+											<span> Percentile: </span><span id="betPercentile" th:if="${playerData.betPercentile != null}" th:text="${playerData.betPercentile} + 'th'" /><span id="betPercentile" th:if="${playerData.betPercentile == null}" th:text="'None'" title="Percentiles are only calculated for players who have been active in the last 30 days"/>
 											</div>
 											<div class="cell small-2">
 											<span style="font-weight: bold;">Fighting</span><br />
-											<span>Wins: </span><span id="fightWinSpan" th:text="${playerData.playerRecord.fightWins}" /> <span> Losses: </span><span id="fightLossSpan" th:text="${playerData.playerRecord.fightLosses}" /> <span>Ratio: </span><span id="fightRatioSpan" th:text="${playerData.fightRatio}" /> 
+											<span>Wins: </span><span id="fightWinSpan" th:text="${playerData.playerRecord.fightWins}" /> <span> Losses: </span><span id="fightLossSpan" th:text="${playerData.playerRecord.fightLosses}" /> <span>Ratio: </span><span id="fightRatioSpan" th:text="${playerData.fightRatio}" />
+											<span> Percentile: </span><span id="fightPercentile" th:if="${playerData.fightPercentile != null}" th:text="${playerData.fightPercentile} + 'th'" /><span id="fightPercentile" th:if="${playerData.fightPercentile == null}" th:text="'None'" title="Percentiles are only calculated for players who have been active in the last 30 days"/>
 											</div>
 											<div class="cell small-2">
 											<span style="font-weight: bold;">Other Data:</span><br />
@@ -62,7 +68,8 @@
 											<span>Estimated Level: </span><span id="estimatedLevelSpan" th:text="${playerData.playerRecord.lastKnownLevel}" /><span> Estimated Remaining Exp: </span><span id="estimatedRemainingExp" th:text="${playerData.playerRecord.lastKnownRemainingExp}" /><br />
 											<span>Allegiance: </span><span id="allegiance" th:text="${playerData.playerRecord.allegiance}" onload="setColor('allegiance');" /><span> Prestige Level: </span><span id="prestigeLevel" th:text="${playerData.prestigeLevel}" /><br />
 											<span>Last Active: </span><span id="lastActive" th:text="${playerData.timezoneFormattedDateString}" /><span> Percentage of Global Gil: </span><span id="percentageOfGlobalGil" th:text="${playerData.percentageOfGlobalGil}" /><span>%</span><br />
-											<span>Leaderboard Rank: #</span><span id="rank" th:text="${playerData.leaderboardPosition}" /><span> Exp Rank: #</span><span id="expRank" th:text="${playerData.expRank}"/><br />
+											<span>Leaderboard Rank: #</span><span id="rank" th:if="${playerData.leaderboardPosition != null}" th:text="${playerData.leaderboardPosition}" /><span id="rank" th:if="${playerData.leaderboardPosition == null}" th:text="'None'" title="Leaderboard ranks are only calculated for players who have been active in the last 30 days" >
+											<span> Exp Rank: #</span><span id="expRank" th:if="${playerData.expRank != null}" th:text="${playerData.expRank}"/><span id="expRank" th:if="${playerData.leaderboardPosition == null}" th:text="'None'" title="Leaderboard ranks are only calculated for players who have been active in the last 30 days" ><br />
 											</div>
 											<div class="cell small-2">
 											

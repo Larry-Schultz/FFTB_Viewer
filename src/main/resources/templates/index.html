@@ -40,6 +40,10 @@
 		.mapPlayerLoadingImage {
 			height: 16px;
 		}
+		
+		.raidBoss {
+			font-weight: bold;
+		}
 	</style>
 	<meta property="og:title" content="FFTB Viewer"/>
 	<meta property="og:type" content="website"/>
@@ -121,9 +125,15 @@
 							<div class="grid-x">
 								<div class="cell small-1"></div>
 								<div class="cell small-2 text-left"><span class="fightData" id="team1Name"></span><img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" /></div>
-								<div class="cell small-2"></div>
-								<div class="cell small-2 text-center"><span id="matchNotice">Match</span><span id="fightNotice">Fight</span></div>
-								<div class="cell small-2"></div>
+								<div class="cell small-1"></div>
+								<div class="cell small-4 text-center">
+									<span id="loadingNotice" class="notice" title="FFTBViewer uses data from IRC to track the current tournament's progress.  Once the stream's bot announces a new match, the application will know which two teams are fighting.">Please wait.  Viewer will sync with stream during the beginning of the next !bet or !fight phase.</span>
+									<span id="matchNotice" class="notice" title="Current phase is Match">Match</span>
+									<span id="fightNotice" class="notice" title="Current phase is !fight">Fight</span>
+									<span id="bettingNotice" class="notice" title="Current phase is !bet">Betting</span>
+									<span id="resultsNotice" class="notice" title="Current phase is results.  Next !bet or !fight phase is upcoming">Results</span>
+								</div>
+								<div class="cell small-1"></div>
 								<div class="cell small-2 text-right"><span class="fightData" id="team2Name"></span><img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" /></div>
 								<div class="cell small-2"></div>
 							</div>
@@ -179,14 +189,14 @@
 										<div class="cell small-1"></div>
 										<div class="cell small-4 text-left">
 											<span id="fightLeftPlayer1" class="fightData">
-												<a id="fightLeftPlayer1Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer1Name" tabindex="109" class="fightPlayerName">left player 1</span></a> the <span id="fightLeftPlayer1Class" data-tippy-content="" tabindex="110"></span><span id="fightLeftPlayer1RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightLeftPlayer1Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer1Name" tabindex="109" class="fightPlayerName">left player 1</span></a> the <span id="fightLeftPlayer1Class" data-tippy-content="" tabindex="110"></span><span id="fightLeftPlayer1RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
 										<div class="cell small-2"></div>
 										<div class="cell small-4 text-right">
 											<span id="fightRightPlayer1" class="fightData">
-												<a id="fightRightPlayer1Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer1Name" tabindex="111" class="fightPlayerName">right player 1</span></a> the <span id="fightRightPlayer1Class" data-tippy-content="" tabindex="112"></span><span id="fightRightPlayer1RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightRightPlayer1Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer1Name" tabindex="111" class="fightPlayerName">right player 1</span></a> the <span id="fightRightPlayer1Class" data-tippy-content="" tabindex="112"></span><span id="fightRightPlayer1RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
@@ -198,14 +208,14 @@
 										<div class="cell small-1"></div>
 										<div class="cell small-4 text-left">
 											<span id="fightLeftPlayer2" class="fightData">
-												<a id="fightLeftPlayer2Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer2Name" tabindex="113" class="fightPlayerName">left player 2</span></a> the <span id="fightLeftPlayer2Class" data-tippy-content="" tabindex="114"></span><span id="fightLeftPlayer2RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightLeftPlayer2Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer2Name" tabindex="113" class="fightPlayerName">left player 2</span></a> the <span id="fightLeftPlayer2Class" data-tippy-content="" tabindex="114"></span><span id="fightLeftPlayer2RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
 										<div class="cell small-2"></div>
 										<div class="cell small-4 text-right">
 											<span id="fightRightPlayer2" class="fightData">
-												<a id="fightRightPlayer2Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer2Name" tabindex="115" class="fightPlayerName">right player 2</span></a> the <span id="fightRightPlayer2Class" data-tippy-content="" tabindex="116"></span><span id="fightRightPlayer2RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightRightPlayer2Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer2Name" tabindex="115" class="fightPlayerName">right player 2</span></a> the <span id="fightRightPlayer2Class" data-tippy-content="" tabindex="116"></span><span id="fightRightPlayer2RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
@@ -217,14 +227,14 @@
 										<div class="cell small-1"></div>
 										<div class="cell small-4 text-left">
 											<span id="fightLeftPlayer3" class="fightData">
-												<a id="fightLeftPlayer3Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer3Name" tabindex="117" class="fightPlayerName">left player 3</span></a> the <span id="fightLeftPlayer3Class" data-tippy-content="" tabindex="118"></span><span id="fightLeftPlayer3RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightLeftPlayer3Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer3Name" tabindex="117" class="fightPlayerName">left player 3</span></a> the <span id="fightLeftPlayer3Class" data-tippy-content="" tabindex="118"></span><span id="fightLeftPlayer3RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
 										<div class="cell small-2"></div>
 										<div class="cell small-4 text-right">
 											<span id="fightRightPlayer3" class="fightData">
-												<a id="fightRightPlayer3Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer3Name" tabindex="119" class="fightPlayerName">right player 3</span></a> the <span id="fightRightPlayer3Class" data-tippy-content="" tabindex="120"></span><span id="fightRightPlayer3RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightRightPlayer3Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer3Name" tabindex="119" class="fightPlayerName">right player 3</span></a> the <span id="fightRightPlayer3Class" data-tippy-content="" tabindex="120"></span><span id="fightRightPlayer3RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
@@ -236,14 +246,14 @@
 										<div class="cell small-1"></div>
 										<div class="cell small-4 text-left">
 											<span id="fightLeftPlayer4" class="fightData">
-												<a id="fightLeftPlayer4Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer4Name" tabindex="121" class="fightPlayerName">left player 4</span></a> the <span id="fightLeftPlayer4Class" data-tippy-content="" tabindex="122"></span><span id="fightLeftPlayer4RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightLeftPlayer4Link" href="" target="_blank" style="color: inherit;"><span id="fightLeftPlayer4Name" tabindex="121" class="fightPlayerName">left player 4</span></a> the <span id="fightLeftPlayer4Class" data-tippy-content="" tabindex="122"></span><span id="fightLeftPlayer4RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading leftPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
 										<div class="cell small-2"></div>
 										<div class="cell small-4 text-right">
 											<span id="fightRightPlayer4" class="fightData">
-												<a id="fightRightPlayer4Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer4Name" tabindex="123" class="fightPlayerName">right player 4</span></a> the <span id="fightRightPlayer4Class" data-tippy-content="" tabindex="124"></span><span id="fightRightPlayer4RaidBossIndicator" class="raidBoss">[!]</span>
+												<a id="fightRightPlayer4Link" href="" target="_blank" style="color: inherit;"><span id="fightRightPlayer4Name" tabindex="123" class="fightPlayerName">right player 4</span></a> the <span id="fightRightPlayer4Class" data-tippy-content="" tabindex="124"></span><span id="fightRightPlayer4RaidBossIndicator" title="Raid Boss" class="raidBoss">[!]</span>
 											</span>
 											<img class="fightLoading rightPlayerNameLoading" src="img/Pulse-1s-200px.gif" />
 										</div>
@@ -277,13 +287,15 @@
 									<div class="grid-x">
 										<div class="cell small-1"></div>
 										<div class="cell small-1 text-left">
-											<span class="fightData" id="team1Amount">0</span>
+											<span class="fightData" id="team1BetCount" title="Left Team bet count">0</span><span class="fightData" id="team1BetCountIndicator"> bets</span>
+											<br />
+											<span class="fightData" id="team1Amount" title="Left Team total gil" data-gil=0>0</span><span class="fightData" id="team1AmountIndicator">G</span>
 											<img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" />
 											<img href="/img/gil_icon.png" height="16px" />
 											<br />
-											<span class="fightData" id="team1Percentage">0</span><span class="fightData" id="team1PercentageSign">%</span>
+											<span class="fightData" id="team1Percentage" title="Left Team Percentage of bets">0</span><span class="fightData" id="team1PercentageSign" title="Left Team Percentage of bets">%</span>
 											<br />
-											<span class="fightData" id="team1Odds">0</span>
+											<span class="fightData" id="team1OddsIndicator">x</span><span class="fightData" id="team1Odds" title="Left Team betting odds">0</span>
 										</div>
 										<div class="cell small-2"></div>
 										<div class="cell small-4 text-center">
@@ -292,13 +304,15 @@
 										</div>
 										<div class="cell small-2"></div>
 										<div class="cell small-1 text-right">
-											<span class="fightData" id="team2Amount">0</span>
+											<span class="fightData" id="team2BetCount" title="Right Team bet count">0</span><span class="fightData" id="team2BetCountIndicator"> bets</span>
+											<br />
+											<span class="fightData" id="team2Amount" title="Right Team total gil" data-gil=0>0</span><span class="fightData" id="team2AmountIndicator">G</span>
 											<img class="fightLoading textLoading teamNameLoading" src="img/Pulse-1s-200px.gif" />
 											<img href="/img/gil_icon.png" height="16px" />
 											<br />
-											<span class="fightData" id="team2Percentage">0</span><span class="fightData" id="team2PercentageSign">%</span>
+											<span class="fightData" id="team2Percentage" title="Right Team Percentage of bets">0</span><span class="fightData" id="team2PercentageSign" title="Right Team Percentage of bets">%</span>
 											<br />
-											<span class="fightData" id="team2Odds">0</span>
+											<span class="fightData" id="team2OddsIndicator">x</span><span class="fightData" id="team2Odds" title="Right Team betting odds">0</span>
 											
 										</div>
 										<div class="cell small-1"></div>
@@ -306,15 +320,6 @@
 								</div>
 							</div>
 						</div>
-<!-- 						<div class="cell small-2">
-							<div class="grid-x">
-								<div class="grid-x">
-									<div class="cell small-5"></div>
-									<div class="cell small-2 text-center"><img id="mapIcon" src="img/gil_icon.png" /></div>
-									<div class="cell small-5"></div>
-								</div>
-							</div>
-						</div> -->
 						<div class="cell small-2">
 							<div class="grid-x">
 							

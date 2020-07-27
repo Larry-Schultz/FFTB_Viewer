@@ -48,7 +48,7 @@ import fft_battleground.util.GambleUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DetectorTests {
+public class DetectorTests { 
 
 	@Test
 	public void testLevelUpDetector() {
@@ -185,7 +185,7 @@ public class DetectorTests {
 
 	@Test
 	public void testSkillDropDetector() {
-		String test1 = "The current Skill Drop is: Caution (When you take damage, gain Defend, which increases your evasion.).";
+		String test1 = "The current Skill Drop is: CursedRing (You wear Cursed Ring, granting +1 PA, +1 MA, and +1 Speed and permanent Undead status. Also strengthens Dark skills used by you. Rarity: Common.).";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		SkillDropDetector detector = new SkillDropDetector();
 		BattleGroundEvent event = detector.detect(message);
@@ -270,14 +270,14 @@ public class DetectorTests {
 
 	@Test
 	public void testGiftSkillEventDetector() {
-		String test1 = "Due to a generous donation from BirbBrainsBot, thekillernacho has been bestowed the Tiamat skill free of charge!";
+		String test1 = "Due to a generous donation from CosmicTactician, laserman1000 has been bestowed the Explosive skill free of charge!; randgridr, you'll earn a +5 EXP bonus for entering as a random unit, or one of these classes: Archer, Monk, Summoner. Also, you'll earn a +2 EXP bonus for using this skill: Move+3.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		GiftSkillDetector detector = new GiftSkillDetector();
 		BattleGroundEvent event = detector.detect(message);
 		assertTrue(event != null);
 		assertTrue(event instanceof GiftSkillEvent);
 		GiftSkillEvent giftSkillEvent = (GiftSkillEvent) event;
-		assertTrue(giftSkillEvent.getGivingPlayer().equals("birbbrainsbot"));
+		assertTrue(StringUtils.equalsIgnoreCase(giftSkillEvent.getGivingPlayer(), "CosmicTactician"));
 	}
 
 	@Test
@@ -297,14 +297,14 @@ public class DetectorTests {
 	
 	@Test
 	public void testMusicDetector() {
-		String test1 = "Mesmaster, you are Level 23. You will Level Up when you gain another 82 EXP. You earn your next skill at Level 25, with 26 level skills remaining.; OtherBrand, The current track is: Fatal Fury Special - Geese Howard Theme. It will play for another 17 seconds.";
+		String test1 = "Finewax, your skills: Minotaur, Dryad, Fly, TalkSkill, Jump+3, AbsorbUsedMP, DarkBehemoth, Throw.; OtherBrand, the current track is: Mega Man 7 - Wily Stage 4. It will play for another 35 seconds.; AllInBot, your bet is 277G on white. You hold a 4.6% share of your team's winnings, and stand to win 195G if you win.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		MusicDetector detector = new MusicDetector();
 		BattleGroundEvent event = detector.detect(message);
 		assertTrue(event != null && event instanceof MusicEvent);
 		MusicEvent musicEvent = (MusicEvent) event;
-		assertTrue(musicEvent.getDurationInSeconds() == 17);
-		assertTrue(StringUtils.equals(musicEvent.getSongName(), "Fatal Fury Special - Geese Howard Theme"));
+		assertTrue(musicEvent.getDurationInSeconds() == 35);
+		assertTrue(StringUtils.equals(musicEvent.getSongName(), "Mega Man 7 - Wily Stage 4"));
 	}
 	
 	@Test

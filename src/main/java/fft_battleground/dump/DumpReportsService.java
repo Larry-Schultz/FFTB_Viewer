@@ -17,6 +17,7 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.math.Quantiles;
 
 import fft_battleground.dump.model.ExpLeaderboardEntry;
 import fft_battleground.dump.model.GlobalGilPageData;
@@ -49,8 +51,11 @@ public class DumpReportsService {
 
 	private static final String LEADERBOARD_KEY = "leaderboard";
 	private static final String BOT_LEADERBOARD_KEY = "botleaderboard";
+	private static final String BET_PERCENTILES_KEY = "betpercentiles";
+	private static final String FIGHT_PERCENTILES_KEY = "fightpercentiles";
 	private static final int HIGHEST_PLAYERS = 10;
 	private static final int TOP_PLAYERS = 100;
+	private static final int PERCENTILE_THRESHOLD = 10;
 	
 	@Autowired
 	private DumpService dumpService;
@@ -67,6 +72,16 @@ public class DumpReportsService {
 			  .build();
 	
 	private Cache<String, Map<String, Integer>> botLeaderboardCache = Caffeine.newBuilder()
+			  .expireAfterWrite(12, TimeUnit.HOURS)
+			  .maximumSize(1)
+			  .build();
+	
+	private Cache<String, Map<Integer, Double>> betPercentilesCache = Caffeine.newBuilder()
+			  .expireAfterWrite(12, TimeUnit.HOURS)
+			  .maximumSize(1)
+			  .build();
+	
+	private Cache<String, Map<Integer, Double>> fightPercentilesCache = Caffeine.newBuilder()
 			  .expireAfterWrite(12, TimeUnit.HOURS)
 			  .maximumSize(1)
 			  .build();
@@ -118,8 +133,14 @@ public class DumpReportsService {
 	
 	public Map<String, Integer> getTopPlayers(Integer count) {
 		BiMap<String, Integer> topPlayers = HashBiMap.create();
-		topPlayers.putAll(this.dumpService.getLeaderboard().keySet().parallelStream().filter(player -> !this.dumpService.getBotCache().contains(player))
+		topPlayers.putAll(this.dumpService.getLeaderboard().keySet().parallelStream()
+				.filter(player -> !this.dumpService.getBotCache().contains(player))
 				.filter(player -> this.playerRecordRepo.findById(StringUtils.lowerCase(player)).isPresent())
+				.filter(player -> {
+					Date lastActive = this.playerRecordRepo.findById(StringUtils.lowerCase(player)).get().getLastActive();
+					boolean result = lastActive != null && this.isPlayerActiveInLastMonth(lastActive);
+					return result;
+				})
 				.collect(Collectors.toMap(Function.identity(), player -> this.dumpService.getLeaderboard().get(player))));
 		Set<Integer> topValues = topPlayers.values().stream().sorted().limit(count).collect(Collectors.toSet());
 		
@@ -181,7 +202,7 @@ public class DumpReportsService {
 			ExpLeaderboardEntry result = null;
 			String player = this.dumpService.getExpRankLeaderboardByRank().get(rank);
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(player);
-			if(maybePlayer.isPresent()) {
+			if(maybePlayer.isPresent() && this.isPlayerActiveInLastMonth(maybePlayer.get().getLastActive())) {
 				Short level = maybePlayer.get().getLastKnownLevel();
 				Short exp = maybePlayer.get().getLastKnownRemainingExp();
 				SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
@@ -213,6 +234,47 @@ public class DumpReportsService {
 		
 		return results;
 	}
+	
+	public synchronized Integer getBetPercentile(Double ratio) {
+		Map<Integer, Double> betPercentiles = this.betPercentilesCache.getIfPresent(BET_PERCENTILES_KEY);
+		if(betPercentiles == null) {
+			log.warn("The Bet Percentiles cache was busted.  Rebuilding");
+			betPercentiles = this.calculateBetPercentiles();
+			this.betPercentilesCache.put(BET_PERCENTILES_KEY, betPercentiles);
+			log.warn("Bet Percentiles rebuild complete");
+		}
+		
+		Integer result = null;
+		for(int i = 0; result == null && i <= 100; i++) {
+			Double currentPercentile = betPercentiles.get(i);
+			if(ratio < currentPercentile) {
+				result = i - 1;
+			}
+		}
+		
+		return result;
+	}
+	
+	public synchronized Integer getFightPercentile(Double ratio) {
+		Map<Integer, Double> fightPercentiles = this.fightPercentilesCache.getIfPresent(FIGHT_PERCENTILES_KEY);
+		if(fightPercentiles == null) {
+			log.warn("The Fight Percentiles cache was busted.  Rebuilding");
+			fightPercentiles = this.calculateFightPercentiles();
+			this.fightPercentilesCache.put(FIGHT_PERCENTILES_KEY, fightPercentiles);
+			log.warn("Fight Percentiles rebuild complete");
+		}
+		
+		Integer result = null;
+		for(int i = 0; result == null && i <= 100; i++) {
+			Double currentPercentile = fightPercentiles.get(i);
+			if(ratio < currentPercentile) {
+				result = i - 1;
+			}
+		}
+		
+		return result;
+	}
+	
 	
 	//this time let's take it hour by hour, and then use my original date slice algorithm
 	@SneakyThrows
@@ -353,4 +415,34 @@ public class DumpReportsService {
 		
 		return result;
 	}
+	
+	protected Map<Integer, Double> calculateBetPercentiles() {
+		Map<Integer, Double> percentiles = Quantiles.percentiles().indexes(IntStream.rangeClosed(0, 100).toArray()).compute(
+				this.playerRecordRepo.findAll().stream().filter(playerRecord -> playerRecord.getWins() != null && playerRecord.getLosses() != null)
+				.filter(playerRecord -> playerRecord.getLastActive() != null && this.isPlayerActiveInLastMonth(playerRecord.getLastActive()))
+				.filter(playerRecord -> (playerRecord.getWins() + playerRecord.getLosses()) > PERCENTILE_THRESHOLD)
+				.map(playerRecord -> ((double) playerRecord.getWins() + 1)/((double) playerRecord.getWins() + playerRecord.getLosses() + 1) ).collect(Collectors.toList())
+				);
+		return percentiles;
+	}
+	
+	protected Map<Integer, Double> calculateFightPercentiles() {
+		Map<Integer, Double> percentiles = Quantiles.percentiles().indexes(IntStream.rangeClosed(0, 100).toArray()).compute(
+				this.playerRecordRepo.findAll().stream().filter(playerRecord -> playerRecord.getFightWins() != null && playerRecord.getFightLosses() != null)
+				.filter(playerRecord -> playerRecord.getLastActive() != null && this.isPlayerActiveInLastMonth(playerRecord.getLastActive()))
+				.filter(playerRecord -> (playerRecord.getFightWins() + playerRecord.getFightLosses()) > PERCENTILE_THRESHOLD)
+				.map(playerRecord -> ((double) playerRecord.getFightWins() + 1)/((double) playerRecord.getFightWins() + playerRecord.getFightLosses() + 1) ).collect(Collectors.toList())
+				);
+		return percentiles;
+	}
+	
+	protected boolean isPlayerActiveInLastMonth(Date lastActiveDate) {
+        Calendar thirtyDaysAgo = Calendar.getInstance();
+        thirtyDaysAgo.add(Calendar.DAY_OF_MONTH, -30);             // 2020-01-25
+
+        Date thirtyDaysAgoDate = thirtyDaysAgo.getTime();
+        boolean isActive = lastActiveDate.after(thirtyDaysAgoDate);
+        return isActive;
+	}
+
 }

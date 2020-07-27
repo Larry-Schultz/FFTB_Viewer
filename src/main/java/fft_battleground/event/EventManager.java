@@ -24,6 +24,7 @@ import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.ResultEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.util.Router;
 import lombok.extern.slf4j.Slf4j;
@@ -84,10 +85,13 @@ public class EventManager extends Thread {
 						break;
 					case BETTING_ENDS:
 						bettingCurrently = false;
+						BettingEndsEvent bettingEndsEvent = (BettingEndsEvent) event;
 						if(this.botLand != null) {
-							this.botLand.setBettingEndsEvent((BettingEndsEvent) event);
+							this.botLand.setBettingEndsEvent(bettingEndsEvent);
 						}
-						this.bettingTimer.schedule(this.dumpService.getGlobalGilUpdateTask(), 5L);
+						if(bettingEndsEvent.getTeam1() == BattleGroundTeam.RED && bettingEndsEvent.getTeam2() == BattleGroundTeam.BLUE) {
+							this.bettingTimer.schedule(this.dumpService.getGlobalGilUpdateTask(), 5L);
+						}
 						break;
 					case BALANCE:
 						BalanceEvent balanceEvent = (BalanceEvent) event;

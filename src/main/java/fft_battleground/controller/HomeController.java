@@ -3,6 +3,7 @@ package fft_battleground.controller;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -57,7 +58,9 @@ import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.tournament.TournamentService;
+import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -110,19 +113,19 @@ public class HomeController {
 	
 	@GetMapping("/")
 	public String homePage(Model model, HttpServletRequest request) {
-		log.info("index page accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("index page" , request);
 		return "index.html";
 	}
 	
 	@GetMapping("/apidocs")
 	public String apiDocsPage(Model Model, HttpServletRequest request) {
-		log.info("apidocs page accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("apidocs" , request);
 		return "api.html";
 	}
 	
 	@GetMapping({"/player", "/player/"})
 	public String playerDataPage(Model model, HttpServletRequest request) {
-		log.info("player search page accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("player search page" , request);
 		return "playerRecord.html";
 	}
 
@@ -130,7 +133,7 @@ public class HomeController {
 	public String playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
 			Model model, TimeZone timezone, HttpServletRequest request) {
 		if(!refresh) {
-			log.info("player page accessed for {}  from user: {}", playerName, request.getRemoteAddr());
+			this.logAccess(playerName + " search page " , request);
 		}
 		if(playerName != null) {
 			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
@@ -164,10 +167,17 @@ public class HomeController {
 				}
 				
 				DecimalFormat df = new DecimalFormat("0.00");
-				String betRatio = df.format(((double) 1 + record.getWins())/((double)1+ record.getWins() + record.getLosses()));
-				String fightRatio = df.format(((double)1 + record.getFightWins())/((double) record.getFightWins() + record.getFightLosses()));
-				playerData.setBetRatio(betRatio);
-				playerData.setFightRatio(fightRatio);
+				Double betRatio = ((double) 1 + record.getWins())/((double)1+ record.getWins() + record.getLosses());
+				Double fightRatio = ((double)1 + record.getFightWins())/((double) record.getFightWins() + record.getFightLosses());
+				String betRatioString = df.format(betRatio);
+				String fightRatioString = df.format(fightRatio);
+				playerData.setBetRatio(betRatioString);
+				playerData.setFightRatio(fightRatioString);
+				Integer betPercentile = this.dumpReportsService.getBetPercentile(betRatio);
+				Integer fightPercentile = this.dumpReportsService.getFightPercentile(fightRatio);
+				playerData.setBetPercentile(betPercentile);
+				playerData.setFightPercentile(fightPercentile);
+				
 				
 				boolean containsPrestige = false;
 				int prestigeLevel = 0;
@@ -193,6 +203,12 @@ public class HomeController {
 				playerData.setLeaderboardPosition(leaderboardRank);
 				
 				model.addAttribute("playerData", playerData);
+			} else {
+				PlayerData playerData = new PlayerData();
+				playerData.setNotFound(true);
+				playerData.setPlayerRecord(new PlayerRecord());
+				playerData.getPlayerRecord().setPlayer(GambleUtil.cleanString(playerName));
+				model.addAttribute("playerData", playerData);
 			}
 		}
 		return "playerRecord.html";
@@ -200,7 +216,7 @@ public class HomeController {
 	
 	@GetMapping("/music")
 	public String musicPage(Model model, HttpServletRequest request) {
-		log.info("music search page accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("music search page", request);
 		Collection<Music> music = this.dumpService.getPlaylist();
 		model.addAttribute("playlist", music);
 		
@@ -209,7 +225,7 @@ public class HomeController {
 	
 	@GetMapping("/botleaderboard")
 	public String botLeaderboardPage(Model model, HttpServletRequest request) {
-		log.info("bot leaderboard accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("bot leaderboard", request);
 		Map<String, Integer> botLeaderboard = this.dumpReportsService.getBotLeaderboard();
 		NumberFormat myFormat = NumberFormat.getInstance();
 		myFormat.setGroupingUsed(true);
@@ -236,7 +252,7 @@ public class HomeController {
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
 	public String playerLeaderboardPage(Model model, HttpServletRequest request) {
-		log.info("player leaderboard accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("player leaderboard", request);
 		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
 		model.addAttribute("leaderboard", leaderboard);
 		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
@@ -246,7 +262,7 @@ public class HomeController {
 	
 	@GetMapping("/expLeaderboard")
 	public String expLeaderboard(Model model, HttpServletRequest request) {
-		log.info("exp leaderboard accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("exp leaderboard", request);
 		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
 		List<PrestigeTableEntry> prestigeEntries = this.dumpReportsService.generatePrestigeTable();
 		model.addAttribute("leaderboard", leaderboardEntries);
@@ -257,7 +273,7 @@ public class HomeController {
 	
 	@GetMapping("/gilCount")
 	public String gilCountPage(Model model, HttpServletRequest request) {
-		log.info("global gil count page accessed from user: {}", request.getRemoteAddr());
+		this.logAccess("global gil count", request);
 		GlobalGilPageData data = this.dumpReportsService.getGlobalGilData();
 		model.addAttribute("globalGilData", data);
 		return "globalGil.html";
@@ -267,7 +283,7 @@ public class HomeController {
 	@GetMapping("/botland")
 	public String botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, Model model, HttpServletRequest request) {
 		if(!refresh) {
-			log.info("botland page accessed from user: {}", request.getRemoteAddr());
+			this.logAccess("botland", request);
 		}
 		List<Bots> botData = this.botsRepo.getBotsForToday();
 		Collections.sort(botData, Collections.reverseOrder());
@@ -293,6 +309,13 @@ public class HomeController {
 		String result = sdf.format(calendar.getTime());    
 
 		return result;
+	}
+	
+	@SneakyThrows
+	protected void logAccess(String pageName, HttpServletRequest request) {
+		InetAddress addr = InetAddress.getByName(request.getRemoteAddr());
+		String host = addr.getHostName();
+		log.info("{} page accessed from user: {} with hostname {}", pageName, request.getRemoteAddr(), host);
 	}
 	
 }
