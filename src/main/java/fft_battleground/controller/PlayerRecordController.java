@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -76,7 +78,8 @@ public class PlayerRecordController {
 	private Map<String, LeaderboardBalanceData> playerLeaderboardData = new HashMap<>();
 	
 	@GetMapping("/playerRecord/{playerName}")
-	public ResponseEntity<GenericResponse<PlayerRecord>> getPlayerData(@PathVariable("playerName") String playerName) {
+	public ResponseEntity<GenericResponse<PlayerRecord>> getPlayerData(@PathVariable("playerName") String playerName, HttpServletRequest request) {
+		log.info("Player api called for player {}", playerName);
 		String idString = StringUtils.lowerCase(playerName);
 		Optional<PlayerRecord> maybePlayer =  this.playerRecordRepo.findById(idString);
 		if(maybePlayer.isPresent()) {

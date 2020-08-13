@@ -201,8 +201,10 @@ public class RepoManager extends Thread {
 	}
 	
 	private void handleGiftSkillEvent(GiftSkillEvent newResults) {
-		this.repoTransactionManager.updatePlayerSkills(newResults.getPlayerSkillEvent());
-		this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGivingPlayer(), newResults.getCost(), BalanceUpdateSource.GIFTSKILL);
+		for(int i = 0; i < newResults.getGiftSkills().size(); i++) {
+			this.repoTransactionManager.updatePlayerSkills(newResults.getGiftSkills().get(i).getPlayerSkillEvent());
+			this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGiftSkills().get(i).getGivingPlayer(), newResults.getCost(), BalanceUpdateSource.GIFTSKILL);
+		}
 	}
 	
 	protected void updatePlayerData(BetResults newResults) {

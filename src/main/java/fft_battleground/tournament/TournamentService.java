@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -11,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -26,10 +27,10 @@ import fft_battleground.dump.DumpDataProvider;
 import fft_battleground.dump.DumpResourceManager;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetInfoEvent;
+import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.PlayerRecordRepo;
-import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
 
 import lombok.SneakyThrows;
@@ -46,6 +47,7 @@ public class TournamentService {
 	private static final String tournamentFolderUrlTemplate = "http://www.fftbattleground.com/fftbg/tournament_%s/";
 	private static final String raidBossUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/raidboss.txt";
 	private static final String tournamentPotUrlTemplate = "http://www.fftbattleground.com/fftbg/tournament_%1$s/pot%2$s.txt";
+	private static final String entrantUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/entrants.txt";
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
@@ -200,11 +202,28 @@ public class TournamentService {
 		return result;
 	}
 	
-	protected void cleanUnitInfoEventPlayerName(UnitInfoEvent event) {
+	@SneakyThrows
+	protected Set<String> parseEntrantFile(Long tournamentId) {
+		Set<String> entrants = new HashSet<>();
+		Resource resource = new UrlResource(entrantUrlTemplateForTournament);
+		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			while((line = botReader.readLine()) != null) {
+				String cleanedString = GambleUtil.cleanString(line);
+				entrants.add(cleanedString);
+			}
+		}
+		
+		return entrants;
+	}
+	
+	protected void cleanTeamInfoEventPlayerNames(Collection<TeamInfoEvent> event) {
+		
+	}
+	
+	protected void cleanUnitInfoEventPlayerName(Collection<UnitInfoEvent> event) {
 		final String[] trainerPrefixes = {"Trainer", "Leader", "Rival", "Ranger", "NinjaKid", "Blackbelt", "Lass", "Officer", "Rocket"};
-		String playerName = GambleUtil.cleanString(event.getPlayer());
-		String likePlayerNameString = StringUtils.replace(playerName, " ", "%"); 
-		List<PlayerRecord> records = this.playerRecordRepo.findLikePlayer(likePlayerNameString);
+		
 	}
 
 }

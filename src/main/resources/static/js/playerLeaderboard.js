@@ -12,7 +12,7 @@ function populateChart() {
 					var labels = [];
 					var dataArray = [];
 					for(var j = 0; j < element.balanceHistory.length; j++) {
-						labels.push(element.balanceHistory[j].create_timestamp);
+						labels.push(createDateString(element.balanceHistory[j].create_timestamp));
 						dataArray.push(element.balanceHistory[j].balance);
 					}
 					coreLabels = labels;
@@ -45,6 +45,15 @@ function populateChart() {
 				});
 		}
 	});
+}
+
+function createDateString(dateValue) {
+	let date = new Date(dateValue);
+	const year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+	const month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
+	const day = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+	let dateString = `${day}-${month}-${year}`;
+	return dateString;
 }
 
 populateChart();

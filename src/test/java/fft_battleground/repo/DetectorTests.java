@@ -277,7 +277,7 @@ public class DetectorTests {
 		assertTrue(event != null);
 		assertTrue(event instanceof GiftSkillEvent);
 		GiftSkillEvent giftSkillEvent = (GiftSkillEvent) event;
-		assertTrue(StringUtils.equalsIgnoreCase(giftSkillEvent.getGivingPlayer(), "CosmicTactician"));
+		assertTrue(StringUtils.equalsIgnoreCase(giftSkillEvent.getGiftSkills().get(0).getGivingPlayer(), "CosmicTactician"));
 	}
 
 	@Test

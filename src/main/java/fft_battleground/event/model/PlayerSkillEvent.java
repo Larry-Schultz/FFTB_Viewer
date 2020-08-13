@@ -1,5 +1,6 @@
 package fft_battleground.event.model;
 
+import java.util.Arrays;
 import java.util.List;
 
 import fft_battleground.botland.model.BattleGroundEventType;
@@ -27,6 +28,12 @@ implements DatabaseResultsData {
 		super(battleGroundEventtype);
 		this.player = player;
 		this.skills = skills;
+	}
+	
+	public PlayerSkillEvent(String player, String skill) {
+		super(type);
+		this.player = player;
+		this.skills = Arrays.asList(new String[] {skill});
 	}
 
 	@Override

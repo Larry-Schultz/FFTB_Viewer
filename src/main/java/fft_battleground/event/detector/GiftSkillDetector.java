@@ -24,8 +24,11 @@ public class GiftSkillDetector implements EventDetector {
 					String givingPlayer = StringUtils.lowerCase(StringUtils.substringBetween(split, SEARCH_STRING, ", "));
 					String receivingPlayer = StringUtils.lowerCase(StringUtils.substringBetween(split, ", ", SEARCH_STRING_2));
 					String receivedSkill = StringUtils.substringBetween(split, SEARCH_STRING_2, SEARCH_STRING_3);
-					event = new GiftSkillEvent(givingPlayer, receivedSkill, receivingPlayer);
-					break;
+					if(event == null) {
+						event = new GiftSkillEvent(givingPlayer, receivedSkill, receivingPlayer);
+					} else {
+						event.addAdditionalGift(givingPlayer, receivedSkill, receivingPlayer);
+					}
 				}
 			}
 		}
