@@ -2,28 +2,36 @@ package fft_battleground.model;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 public enum BattleGroundTeam {
-	RED(new String[] {"red"}, 0),
-	BLUE(new String[] {"blue"}, 1),
-	GREEN(new String[] {"green"}, 2),
-	YELLOW(new String[] {"yellow"}, 3),
-	WHITE(new String[] {"white"}, 4),
-	BLACK(new String[] {"black"}, 5),
-	PURPLE(new String[] {"purple"}, 6),
-	BROWN(new String[] {"brown"}, 7),
+	RED(new String[] {"red", "friends"}, 0),
+	BLUE(new String[] {"blue", "crew"}, 1),
+	GREEN(new String[] {"green", "dream"}, 2),
+	YELLOW(new String[] {"yellow", "fellows"}, 3),
+	WHITE(new String[] {"white", "knights"}, 4),
+	BLACK(new String[] {"black", "pack"}, 5),
+	PURPLE(new String[] {"purple", "pals"}, 6),
+	BROWN(new String[] {"brown", "town"}, 7),
 	CHAMPION(new String[] {"champ", "champion", "champs", "orange"}, 8),
-	LEFT(new String[] {"left", "p1", "t1"}, null),
-	RIGHT(new String[] {"right", "p2", "t2"}, null),
+	LEFT(new String[] {"left", "p1", "player1", "t1", "team1"}, null),
+	RIGHT(new String[] {"right", "p2", "player2", "t2", "team2"}, null),
 	RANDOM(new String[] {"random"}, null), 
-	NONE(new String[] {"None"}, -1);
+	NONE(new String[] {"none"}, -1);
+	
+	private static Random random;
 	
 	private Set<String> teamNames;
 	private Integer teamCode;
+	
+	static {
+		random = new Random();
+	}
 	
 	BattleGroundTeam(String[] teamNames, Integer teamCode) {
 		List<String> teamNamesList = Arrays.asList(teamNames);
@@ -72,6 +80,21 @@ public enum BattleGroundTeam {
 	public static String getTeamName(BattleGroundTeam team) {
 		if(team != null) {
 			return team.getTeamName();
+		} else {
+			return null;
+		}
+	}
+	
+	public static String getRandomTeamName(BattleGroundTeam team) {
+		if(team != null) {
+			int size = team.teamNames.size();
+			int nextChoice = random.nextInt(size);
+			String result = null;
+			Iterator<String> it = team.teamNames.iterator();
+			for(int i = 0 ; i < nextChoice && it.hasNext(); i++) {
+				result = it.next();
+			}
+			return result;
 		} else {
 			return null;
 		}
