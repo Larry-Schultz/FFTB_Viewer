@@ -69,10 +69,16 @@ public class Config {
 			@Override
 			public void onDisconnect() {
 				//Twitch might sometimes disconnects us from chat. If so, try to reconnect. 
+				long i = 60 * 1000; //1 minute
+				int j = 0;
 				try { 
-					if( !twirk.connect() )
-						//Reconnecting might fail, for some reason. If so, close the connection and release resources.
-						twirk.close();
+					log.error("Twirk disconnected.  Attempting to reconnect");
+					while( !twirk.connect() ) {
+						twirk.wait(i);
+						i = i * 2;
+						j++;
+						log.error("Attempt to reconnect {}", j);
+					}
 				} 
 				catch (IOException e) { 
 					//If reconnection threw an IO exception, close the connection and release resources.

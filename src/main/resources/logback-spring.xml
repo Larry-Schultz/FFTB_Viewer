@@ -9,6 +9,12 @@
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
 		</layout>
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    	<evaluator>
+	        	<expression>org.springframework.web.util.NestedServletException.class.isInstance(throwable)</expression>
+	    	</evaluator>
+    		<onMatch>DENY</onMatch>
+		</filter>
 	</appender>
 
 	<appender name="EventLogsRollingFile"
@@ -18,7 +24,12 @@
 			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
 		</encoder>
-
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    	<evaluator>
+	        	<expression>org.springframework.web.util.NestedServletException.class.isInstance(throwable)</expression>
+	    	</evaluator>
+    		<onMatch>DENY</onMatch>
+		</filter>
 		<rollingPolicy
 			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily and when the file reaches 10 MegaBytes -->
@@ -77,7 +88,12 @@
 			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
 		</encoder>
-
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    	<evaluator>
+	        <expression>org.springframework.web.util.NestedServletException.class.isInstance(throwable)</expression>
+	    	</evaluator>
+    		<onMatch>DENY</onMatch>
+		</filter>
 		<rollingPolicy
 			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily and when the file reaches 10 MegaBytes -->
@@ -91,7 +107,7 @@
 	</appender>
 
 	<!-- LOG everything at INFO level -->
-	<root level="info">
+	<root level="INFO">
 		<appender-ref ref="Console" />
 		<appender-ref ref="GeneralRollingFile" />
 	</root>

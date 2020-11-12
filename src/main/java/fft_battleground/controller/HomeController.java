@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +42,7 @@ import fft_battleground.botland.model.SkillType;
 import fft_battleground.controller.model.PlayerData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.model.AllegianceLeaderboard;
 import fft_battleground.dump.model.ExpLeaderboardEntry;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.LeaderboardData;
@@ -60,6 +62,7 @@ import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -296,6 +299,31 @@ public class HomeController {
 		Map<String, List<GenericElementOrdering<BotHourlyData>>> botHourlyDataMap = this.botsHourlyDataRepo.getOrderedBotHourlyDataForBots(botNames);
 		model.addAttribute("botHourlyDataMap", botHourlyDataMap);
 		return "botland.html";
+	}
+	
+	@GetMapping("/allegianceLeaderboard")
+	public String allegianceLeaderboard(Model model, HttpServletRequest request) {
+		this.logAccess("allegiance leaderboard", request);
+		List<AllegianceLeaderboard> leaderboard = this.dumpReportsService.getAllegianceData();
+		model.addAttribute("allegianceLeaderboard", leaderboard);
+		return "allegianceLeaderboard.html";
+	}
+	
+	@GetMapping("/robots.txt")
+	public ResponseEntity<String> robots() {
+		String response = null;
+		StringBuilder robotsBuilder = new StringBuilder();
+		robotsBuilder.append("User-agent: *\n");
+		
+		//hardcoded pages
+		String allowPrefix = "Allow: ";
+		String[] sites = new String[] {"/", "/botland", "/gilCount", "/expLeaderboard", "/playerLeaderboard", "/leaderboard", "/botleaderboard", "/music", "/player", "/apidocs"};
+		Arrays.asList(sites).stream().forEach(site -> robotsBuilder.append(allowPrefix + site + " \n"));
+		
+		this.dumpService.getBalanceCache().keySet().stream().forEach(player -> robotsBuilder.append(allowPrefix + "/player/" + player + " \n"));
+		
+		response = robotsBuilder.toString();
+		return new ResponseEntity<String>(response, HttpStatus.OK);
 	}
 	
 	protected String createDateStringWithTimezone(TimeZone zone, Date date) {

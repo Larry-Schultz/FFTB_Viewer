@@ -16,8 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import fft_battleground.botland.SecondaryBotConfig;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.tournament.Tournament;
 import fft_battleground.tournament.TournamentService;
+import fft_battleground.tournament.model.Tournament;
 import fft_battleground.util.GambleUtil;
 import lombok.extern.slf4j.Slf4j;
 

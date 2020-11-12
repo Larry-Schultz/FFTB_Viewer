@@ -30,8 +30,8 @@ import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.tournament.Tips;
-import fft_battleground.tournament.Tournament;
 import fft_battleground.tournament.TournamentService;
+import fft_battleground.tournament.model.Tournament;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 

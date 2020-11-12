@@ -299,6 +299,8 @@ implements Runnable {
 		this.dumpServiceRef.getDumpReportsService().getBetPercentile(0.50);
 		this.dumpServiceRef.getDumpReportsService().getFightPercentile(0.50);
 		
+		this.dumpServiceRef.getDumpReportsService().getAllegianceData();
+		
 		log.info("leaderboard data cache complete");
 	}
 	

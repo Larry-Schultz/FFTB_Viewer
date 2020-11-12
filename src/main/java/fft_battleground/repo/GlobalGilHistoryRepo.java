@@ -41,10 +41,12 @@ public interface GlobalGilHistoryRepo extends JpaRepository<GlobalGilHistory, St
 		GlobalGilHistory todaysHistory = this.getGlobalGilHistoryByDateString(dateString);
 		
 		//Looks like we haven't recalculated the history yet, likely just after midnight.  In this case use yesterday's values
-		if(todaysHistory == null) {
-			LocalDate yesterday = today.plus(-1, ChronoUnit.DAYS);
+		int i = -1;
+		while(todaysHistory == null) {
+			LocalDate yesterday = today.plus(i, ChronoUnit.DAYS);
 			dateString = sdf.format(yesterday);
 			todaysHistory = this.getGlobalGilHistoryByDateString(dateString);
+			i--;
 		}
 		
 		return todaysHistory;

@@ -31,6 +31,8 @@ import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.PlayerRecordRepo;
+import fft_battleground.tournament.model.Tournament;
+import fft_battleground.tournament.model.TournamentInfo;
 import fft_battleground.util.GambleUtil;
 
 import lombok.SneakyThrows;

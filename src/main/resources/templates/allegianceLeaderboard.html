@@ -1,0 +1,219 @@
+<html>
+<head>
+	<link rel="icon" href="/img/bigbrain.png">
+	<style>
+		.statLabel {
+			font-weight: bold;
+		}
+		
+		.topOnePlayer {
+			font-weight: bold;
+		}
+		
+		.allegiancNameColumn {
+			width: 10%;	
+		}
+		
+		.topPlayerColumn {
+			width: 25%;
+		}
+		
+		.statsColumn {
+			width: 65%;
+		}
+		
+		table{
+			table-layout:fixed;
+			border-collapse:collapse;
+			border:1px solid black;
+		}
+		
+		table th{
+			border:1px solid black;
+		}
+		
+		table td{
+			border:1px solid black;
+		}
+	</style>
+	<meta property="og:title" content="FFTB Viewer"/>
+	<meta property="og:type" content="website"/>
+	<meta property="og:description" content="FFTB Viewer is a data viewing application for the fftbattleground twitch stream at https://www.twitch.tv/fftbattleground"/>
+	<meta property="og:image" content="https://fftbview.com/img/Pulse-1s-200px.gif"/>
+	<meta property="og:url" content="https://fftbview.com"/>
+	<meta property="og:site_name" content="FFTB Viewer"/>
+	<meta property="og:image:width" content="200"/>
+	<meta property="og:image:height" content="200"/>
+</head>
+<body>
+	<div th:replace="fragments/menu :: menu"></div>
+	<div class="grid-y fluid">
+		<div class="cell small-2">
+		</div>
+		<div class="cell small-10">
+			<div class="grid-x fluid">
+				<div class="cell small-3"></div>
+				<div class="cell small-6">
+					<div class="grid-y fluid">
+						<div class="cell large-1">
+							<br />
+							<h2>Allegiance Leaderboard</h2>
+						</div>
+						<div th:each="allegianceBoard: ${allegianceLeaderboard}" th:id="${allegianceBoard.team.getTeamName() + '_grid'}" class="cell large-1">
+							<br />
+							<table class="hover allegianceTable" th:id="${allegianceBoard.team + '_table'}">
+								<thead>
+									<th class="allegiancNameColumn" th:id="${allegianceBoard.team + '_nameLabel'}">
+										<span class="teamName" th:id="${allegianceBoard.team + '_name'}" th:text="${allegianceBoard.position + ') ' + allegianceBoard.getProperTeamName()}" />
+									</th>
+									<th class="topPlayerColumn" th:id="${allegianceBoard.team + '_topPlayersLabel'}">Top Players</th>
+									<th class="statsColumn" th:id="${allegianceBoard.team + '_statsLabel'}">Stats</th>
+									<!-- <th>Gil Balance History</th> -->
+								</thead>
+								<tbody>
+									<tr>
+										<td class="allegiancNameColumn" th:id="${allegianceBoard.team + '_nameData'}">
+											<img th:src="${allegianceBoard.portraitUrl}" style="display:block;" width="100%" height="100%"/>
+										</td>
+										<td class="topPlayerColumn" th:id="${allegianceBoard.team + '_topPlayersData'}">
+											<div class="grid-y fluid">
+												<div class="cell small-1"><br /></div>
+												<div class="cell small-2"  th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(0)}">
+													<span class="topOnePlayer" th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+												</div>
+												<div class="cell small-1"><br /></div>
+												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(1)}">
+													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+												</div>
+												<div class="cell small-1"><br /></div>
+												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(2)}">
+													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+												</div>
+												<div class="cell small-1"><br /></div>
+												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(3)}">
+													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+												</div>
+												<div class="cell small-1"><br /></div>
+												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(4)}">
+													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+												</div>
+												<div class="cell small-1"><br /></div>
+											</div>
+										</td>
+										<td class="statsColumn" th:id="${allegianceBoard.team + '_statsData'}">
+											<div class="grid-container">
+												<div class="grid-y fluid">
+													<div class="cell small-1">
+														<div class="grid-x fluid">
+															<div class="cell small-4">
+																<span class="statLabel">Total Gil: </span><span th:text="${allegianceBoard.getFormattedTotalGil()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Total Active Players: </span><span th:text="${allegianceBoard.getFormattedPlayerCount()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Gil Per Player: </span><span th:text="${allegianceBoard.getFormattedGilPerPlayer()}" />
+															</div>
+														</div>
+													</div>
+													<div class="cell small-1"><br /></div>
+													<div class="cell small-1">
+														<div class="grid-x fluid">
+															<div class="cell small-4">
+																<span class="statLabel">Bet Wins: </span><span th:text = "${allegianceBoard.getFormattedBetWins()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Bet Losses: </span><span th:text="${allegianceBoard.getFormattedBetLosses()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Bet Ratio: </span><span th:text="${allegianceBoard.getFormattedBetRatio()}" />
+															</div>
+														</div>
+													</div>
+													<div class="cell small-1"><br /></div>
+													<div class="cell small-1">
+														<div class="grid-x fluid">
+															<div class="cell small-4">
+																<span class="statLabel">Fight Wins: </span><span th:text="${allegianceBoard.getFormattedFightWins()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Fight Losses: </span><span th:text="${allegianceBoard.getFormattedFightLosses()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Fight Ratio: </span><span th:text="${allegianceBoard.getFormattedFightRatio()}" />
+															</div>
+														</div>
+													</div>
+													<div class="cell small-1"><br /></div>
+													<div class="cell small-1">
+														<div class="grid-x fluid">
+															<div class="cell small-4">
+																<span class="statLabel">Bet Quantile: </span><span class="quantile" th:id="${allegianceBoard.team + '_betQuantile'}" th:text="${allegianceBoard.getFormattedBetQuantile()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Fight Quantile: </span><span class="quantile" th:id="${allegianceBoard.team + '_fightQuantile'}" th:text="${allegianceBoard.getFormattedFightQuantile()}" />
+															</div>
+															<div class="cell small-4"></div>
+														</div>
+													</div>
+													<div class="cell small-1"><br /></div>
+													<div class="cell small-1">
+														<div class="grid-x fluid">
+															<div class="cell small-4">
+																<span class="statLabel">Total Levels: </span><span th:text="${allegianceBoard.getFormattedTotalLevels()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Levels per Player: </span><span th:text="${allegianceBoard.getFormattedLevelsPerPlayer()}" />
+															</div>
+															<div class="cell small-4">
+																<span class="statLabel">Total Prestiges: </span><span th:text="${allegianceBoard.getFormattedTotalPrestiges()}" />
+															</div>
+														</div>
+													</div>
+													<div class="cell small-1"><br /></div>
+													<div class="cell small-1">
+														<div class="grid-x fluid">
+															<div class="cell small-6">
+																<span class="statLabel">Champion Wins for Season: </span><span th:text="${allegianceBoard.getFormattedCurrentSeasonFightWinsAsChampion()}" />
+															</div>
+															<div class="cell small-3"></div>
+															<div class="cell small-3"></div>
+														</div>
+													</div>
+													<div class="cell small-1"><br /></div>
+												</div>
+											</div>
+										</td>
+<!-- 										<td>
+											<div id="accountChartDiv" style="max-height:225px; max-width:400px;">
+												<canvas id="accountChart" width="400" height="225"></canvas>
+											</div>
+										</td> -->
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="cell large-3"></div>
+					</div>
+				</div>
+				<div class="cell small-3">
+					<br />
+				</div>
+			</div>
+		</div>
+	</div>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.5.1/dist/css/foundation.min.css" integrity="sha256-1mcRjtAxlSjp6XJBgrBeeCORfBp/ppyX4tsvpQVCcpA= sha384-b5S5X654rX3Wo6z5/hnQ4GBmKuIJKMPwrJXn52ypjztlnDK2w9+9hSMBz/asy9Gw sha512-M1VveR2JGzpgWHb0elGqPTltHK3xbvu3Brgjfg4cg5ZNtyyApxw/45yHYsZ/rCVbfoO5MSZxB241wWq642jLtA==" crossorigin="anonymous">
+	<link rel="stylesheet" th:href="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.css}" />
+	<link rel="stylesheet" th:href="@{/webjars/chartjs/2.9.3/Chart.min.css}" />
+	<script th:src="@{/webjars/jquery/1.8.3/jquery.min.js}"></script>
+	<script th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<script th:src="@{/webjars/sockjs-client/1.0.2/sockjs.min.js}"></script>
+	<script th:src="@{/webjars/foundation/6.4.3-1/dist/js/foundation.min.js}"></script>
+	<script th:src="@{/webjars/chartjs/2.9.3/Chart.min.js}"></script>
+	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
+	<script th:src="@{/js/allegianceLeaderboard.js}"></script>
+	<script>
+		$(document).foundation();
+		setElementColors();
+	</script>
+</body>

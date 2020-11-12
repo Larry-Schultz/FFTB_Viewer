@@ -1,4 +1,4 @@
-package fft_battleground.tournament;
+package fft_battleground.tournament.model;
 
 import java.util.Arrays;
 import java.util.List;
