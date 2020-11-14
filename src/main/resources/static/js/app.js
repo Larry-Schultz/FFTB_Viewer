@@ -397,7 +397,6 @@ function populateTeamInfo(fighterName, fighterClass, position, team, metaData) {
 	} else if(team == 'Right') {
 		setColor(team2Name, baseTag);
 	}
-	setColor()
 }
 
 function generateUnitImageString(event, direction, position) {
@@ -537,8 +536,9 @@ function destroyTippyIfPresent(elementName) {
 
 
 function setColor(teamName, elementId) {
+	var teamNameUppercase = teamName.toUpperCase();
 	var element = document.getElementById(elementId);
-	switch(teamName) {
+	switch(teamNameUppercase) {
 		case 'BLUE':
 			element.style.color = "blue";
 			break;
@@ -565,6 +565,8 @@ function setColor(teamName, elementId) {
 			break;
 		case 'CHAMPION': case 'CHAMP':
 			element.style.color = 'orange';
+			break;
+		default:
 			break;
 	}
 }
