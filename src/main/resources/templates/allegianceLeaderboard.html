@@ -79,23 +79,38 @@
 											<div class="grid-y fluid">
 												<div class="cell small-1"><br /></div>
 												<div class="cell small-2"  th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(0)}">
-													<span class="topOnePlayer" th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+												<span>
+													<span th:text="${allegianceTopPlayer.getFormattedPosition()}" /><span>) </span><a class="topOnePlayer" th:text="${allegianceTopPlayer.name}" th:href="${'/player/' + allegianceTopPlayer.name}"/>
+													<span> - </span><span th:text="${allegianceTopPlayer.getFormattedBalance()}" />
+												</span>
 												</div>
 												<div class="cell small-1"><br /></div>
 												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(1)}">
-													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+													<span>
+														<span th:text="${allegianceTopPlayer.getFormattedPosition()}" /><span>) </span><a th:text="${allegianceTopPlayer.name}" th:href="${'/player/' + allegianceTopPlayer.name}"/>
+														<span> - </span><span th:text="${allegianceTopPlayer.getFormattedBalance()}" />
+													</span>
 												</div>
 												<div class="cell small-1"><br /></div>
 												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(2)}">
-													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+													<span>
+														<span th:text="${allegianceTopPlayer.getFormattedPosition()}" /><span>) </span><a th:text="${allegianceTopPlayer.name}" th:href="${'/player/' + allegianceTopPlayer.name}"/>
+														<span> - </span><span th:text="${allegianceTopPlayer.getFormattedBalance()}" />
+													</span>
 												</div>
 												<div class="cell small-1"><br /></div>
 												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(3)}">
-													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+													<span>
+														<span th:text="${allegianceTopPlayer.getFormattedPosition()}" /><span>) </span><a th:text="${allegianceTopPlayer.name}" th:href="${'/player/' + allegianceTopPlayer.name}"/>
+														<span> - </span><span th:text="${allegianceTopPlayer.getFormattedBalance()}" />
+													</span>
 												</div>
 												<div class="cell small-1"><br /></div>
 												<div class="cell small-1" th:with="allegianceTopPlayer=${allegianceBoard.leaderboard.get(4)}">
-													<span th:text="${allegianceTopPlayer.getFormattedPosition() + ') ' + allegianceTopPlayer.name + ' - ' + allegianceTopPlayer.getFormattedBalance()}"></span>
+													<span>
+														<span th:text="${allegianceTopPlayer.getFormattedPosition()}" /><span>) </span><a th:text="${allegianceTopPlayer.name}" th:href="${'/player/' + allegianceTopPlayer.name}"/>
+														<span> - </span><span th:text="${allegianceTopPlayer.getFormattedBalance()}" />
+													</span>
 												</div>
 												<div class="cell small-1"><br /></div>
 											</div>
