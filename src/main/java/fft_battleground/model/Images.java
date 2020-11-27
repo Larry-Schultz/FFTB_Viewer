@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class Images {
 
 	private Map<String, String> characters;
 	
-	private List<Portrait> potraits;
+	private List<Portrait> portraits;
 	private String portraitsBaseUrl;
 	
 	public Images() {}
@@ -47,8 +48,16 @@ public class Images {
 		
 		Json tipsJson = Json.read(this.getJsonAsString(jsonFileLocation));
 		this.characters = this.parseJsonMapObject(tipsJson, "Characters");
-		this.potraits = this.parsePotraitFolder(portraitFolderLocation);
+		
+		this.portraits = this.parsePotraitFolder(portraitFolderLocation);
+		this.portraits = this.portraits.parallelStream().filter(portrait -> StringUtils.endsWith(portrait.getLocation(), ".gif")).collect(Collectors.toList());
+		Collections.sort(this.portraits);
+		
 		this.portraitsBaseUrl = browserBaseUrl;
+		log.info("logging portraits");
+		for(Portrait portrait: this.portraits) {
+			log.info("{}", portrait);
+		}
 	}
 	
 	@SneakyThrows
@@ -136,12 +145,13 @@ public class Images {
 		String result = null;
 		
 		String nameCapitalized = StringUtils.capitalize(name);
-		Optional<Portrait> possibleMatch = this.potraits.parallelStream().filter(portraits -> StringUtils.equalsIgnoreCase(nameCapitalized , StringUtils.replace(portraits.getLocation(), ".gif", ""))).findFirst();
+		Optional<Portrait> possibleMatch = this.portraits.parallelStream().filter(portraits -> StringUtils.equalsIgnoreCase(nameCapitalized , StringUtils.replace(portraits.getLocation(), ".gif", ""))).findFirst();
 
 		if(possibleMatch.isPresent()) {
 			result = this.portraitsBaseUrl + possibleMatch.get().getLocation();
 		} else {
 			result = null;
+			log.warn("Could not find a match for portrait with name: {}", name);
 		}
 		
 		return result;
@@ -162,7 +172,7 @@ public class Images {
 		String result = null;
 		
 		String nameCapitalized = StringUtils.capitalize(name);
-		List<Portrait> possibleMatches = this.potraits.parallelStream().filter(portraits -> StringUtils.startsWithIgnoreCase(StringUtils.replace(portraits.getLocation(), ".gif", ""), nameCapitalized)).collect(Collectors.toList());
+		List<Portrait> possibleMatches = this.portraits.parallelStream().filter(portraits -> StringUtils.startsWithIgnoreCase(StringUtils.replace(portraits.getLocation(), ".gif", ""), nameCapitalized)).collect(Collectors.toList());
 		
 		//if only one result, its either a monster, a hero or a portrait I don't have
 		if(possibleMatches.size() == 0) {
@@ -175,6 +185,7 @@ public class Images {
 				result = this.portraitsBaseUrl + maybeMoreSpecificMatch.get().getLocation();
 			} else {
 				result = null;
+				log.warn("Could not find a match for portrait with name: {}", name);
 			}
 		}
 		
@@ -185,9 +196,9 @@ public class Images {
 		String result = null;
 		Optional<Portrait> possibleMatch = null;
 		if(StringUtils.equalsIgnoreCase(teamInfo.getGender(), "Monster")) {
-			possibleMatch = this.potraits.stream().filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName())).findFirst();
+			possibleMatch = this.portraits.stream().filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName())).findFirst();
 		} else {
-			possibleMatch = this.potraits.stream().
+			possibleMatch = this.portraits.stream().
 					filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName()) && StringUtils.equalsIgnoreCase(teamInfo.getGender(), portraits.getGender())
 							&& teamInfo.getTeam() == portraits.getColor()).findFirst();
 		}
@@ -204,7 +215,7 @@ public class Images {
 
 @Data
 @AllArgsConstructor
-class Portrait {
+class Portrait implements Comparable<Portrait> {
 	private String className;
 	private String gender;
 	private BattleGroundTeam color;
@@ -254,5 +265,11 @@ class Portrait {
 		}
 		
 		return team;
+	}
+
+	@Override
+	public int compareTo(Portrait arg0) {
+		int result = this.className.compareTo(arg0.getClassName());
+		return result;
 	}
 }
