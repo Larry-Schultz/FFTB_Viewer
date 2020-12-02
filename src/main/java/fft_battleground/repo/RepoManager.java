@@ -18,7 +18,6 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.GiftSkillEvent;
-import fft_battleground.event.model.GlobalGilHistoryUpdateEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
@@ -28,6 +27,7 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.SkillWinEvent;
+import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -183,6 +183,9 @@ public class RepoManager extends Thread {
 			this.repoTransactionManager.generateSimulatedBalanceEvent(event.getPrestigeSkillsEvent().getPlayer(), (-1) * event.getCurrentBalance(), BalanceUpdateSource.PRESTIGE);
 		}
 		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
+		//use Timer to force update player skill.  May delay events behind this propagation
+		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
+		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(this.dumpService.getDumpScheduledTasks()::handlePlayerSkillUpdate, id);
 	}
 	
 	@SneakyThrows

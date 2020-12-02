@@ -2,13 +2,15 @@ package fft_battleground.event;
 
 import java.util.Timer;
 import java.util.TimerTask;
-
+import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.util.MissingEventTypeException;
 import fft_battleground.util.Router;
+
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -41,6 +43,10 @@ public class BattleGroundEventBackPropagation {
 		this.eventTimer.schedule(new EventSender(this.eventRouter, event), delayIncrement);
 	}
 	
+	public <T> void sendConsumerThroughTimer(Consumer<T> consumer, T input) {
+		this.eventTimer.schedule(new ConsumerTask<T>(consumer, input), delayIncrement);
+	}
+	
 }
 
 @Slf4j
@@ -62,4 +68,24 @@ class EventSender extends TimerTask {
 		this.routerRef.sendDataToQueues(event);
 	}
 	
+}
+
+@Slf4j
+class ConsumerTask<T> extends TimerTask {
+	private Consumer<T> consumer;
+	private T input;
+	
+	public ConsumerTask() {}
+	
+	public ConsumerTask(Consumer<T> consumer, T input) {
+		this.consumer = consumer;
+		this.input = input;
+	}
+	
+	@Override
+	@SneakyThrows
+	public void run() {
+		log.info("calling function: {}", this.consumer);
+		this.consumer.accept(this.input);
+	}
 }

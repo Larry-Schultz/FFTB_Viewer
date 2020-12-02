@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.OtherBrand</groupId>
 	<artifactId>FFT_BattleGround_Databot</artifactId>
-	<version>1.4.1-SNAPSHOT</version>
+	<version>1.5-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -150,10 +150,10 @@
 			<artifactId>guava</artifactId>
 			<version>29.0-jre</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.lettuce/lettuce-core -->
 		<dependency>
-		    <groupId>io.lettuce</groupId>
-		    <artifactId>lettuce-core</artifactId>
+		    <groupId>com.cronutils</groupId>
+		    <artifactId>cron-utils</artifactId>
+		    <version>9.1.2</version>
 		</dependency>
 		<dependency>
     		<groupId>org.codehaus.janino</groupId>

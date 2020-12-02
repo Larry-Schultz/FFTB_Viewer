@@ -1,7 +1,8 @@
-package fft_battleground.event.model;
+package fft_battleground.event.model.fake;
 
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.botland.model.DatabaseResultsData;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.repo.model.GlobalGilHistory;
 import lombok.Data;
 

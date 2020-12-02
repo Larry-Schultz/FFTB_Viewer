@@ -1,4 +1,4 @@
-package fft_battleground.dump.model;
+package fft_battleground.dump.reports.model;
 
 import java.util.Date;
 import java.util.List;

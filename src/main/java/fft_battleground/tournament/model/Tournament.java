@@ -73,6 +73,17 @@ public class Tournament {
 		return events;
 	}
 	
+	public List<BattleGroundEvent> getEventFromTournamentForTeam(BattleGroundTeam team1) {
+		List<BattleGroundEvent> events = new ArrayList<>();
+		TeamInfoEvent team1Info = this.Teams.getTeamInfoEventByBattleGroundTeam(team1);
+		events.add(team1Info);
+		List<UnitInfoEvent> unitInfoEventsForTeam1 = this.Teams.getUnitInfoEventByBattleGroundTeam(team1);
+		this.attachRaidbossDataToUnitInfoEventList(unitInfoEventsForTeam1);
+		events.addAll(unitInfoEventsForTeam1);
+		
+		return events;
+	}
+	
 	public MatchInfoEvent getMatchInfo(BattleGroundTeam team1, BattleGroundTeam team2) {
 		MatchInfoEvent event = null;
 		if(this.winnersCount == null) {

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,27 +44,31 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.math.Quantiles;
 
-import fft_battleground.dump.model.AllegianceLeaderboard;
-import fft_battleground.dump.model.AllegianceLeaderboardEntry;
-import fft_battleground.dump.model.ExpLeaderboardEntry;
 import fft_battleground.dump.model.GlobalGilPageData;
-import fft_battleground.dump.model.LeaderboardBalanceData;
-import fft_battleground.dump.model.LeaderboardBalanceHistoryEntry;
-import fft_battleground.dump.model.LeaderboardData;
-import fft_battleground.dump.model.PlayerLeaderboard;
 import fft_battleground.dump.model.PrestigeTableEntry;
+import fft_battleground.dump.reports.model.AllegianceLeaderboard;
+import fft_battleground.dump.reports.model.AllegianceLeaderboardEntry;
+import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.reports.model.BotLeaderboard;
+import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
+import fft_battleground.dump.reports.model.LeaderboardBalanceData;
+import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
+import fft_battleground.dump.reports.model.LeaderboardData;
+import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.Images;
-import fft_battleground.repo.GlobalGilHistoryRepo;
-import fft_battleground.repo.MatchRepo;
-import fft_battleground.repo.PlayerRecordRepo;
-import fft_battleground.repo.PlayerSkillRepo;
+import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.TeamInfo;
+import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
+import fft_battleground.repo.repository.GlobalGilHistoryRepo;
+import fft_battleground.repo.repository.MatchRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.tournament.ChampionService;
-
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,11 +76,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DumpReportsService {
 
-	private static final String LEADERBOARD_KEY = "leaderboard";
-	private static final String BOT_LEADERBOARD_KEY = "botleaderboard";
-	private static final String BET_PERCENTILES_KEY = "betpercentiles";
-	private static final String FIGHT_PERCENTILES_KEY = "fightpercentiles";
-	private static final String ALLEGIANCE_LEADERBOARD_KEY = "allegianceleaderboard";
+
 	private static final int HIGHEST_PLAYERS = 10;
 	private static final int TOP_PLAYERS = 100;
 	private static final int PERCENTILE_THRESHOLD = 10;
@@ -97,24 +98,40 @@ public class DumpReportsService {
 
 	@Autowired
 	private PlayerSkillRepo playerSkillRepo;
+	
+	@Autowired
+	private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
 
 	@Autowired
 	private Images images;
 
-	private Cache<String, PlayerLeaderboard> leaderboardCache = Caffeine.newBuilder()
-			.expireAfterWrite(24, TimeUnit.HOURS).maximumSize(1).build();
-
-	private Cache<String, Map<String, Integer>> botLeaderboardCache = Caffeine.newBuilder()
-			.expireAfterWrite(24, TimeUnit.HOURS).maximumSize(1).build();
-
-	private Cache<String, Map<Integer, Double>> betPercentilesCache = Caffeine.newBuilder()
-			.expireAfterWrite(24, TimeUnit.HOURS).maximumSize(1).build();
-
-	private Cache<String, Map<Integer, Double>> fightPercentilesCache = Caffeine.newBuilder()
-			.expireAfterWrite(24, TimeUnit.HOURS).maximumSize(1).build();
-
-	private Cache<String, List<AllegianceLeaderboard>> allegianceLeaderboardCache = Caffeine.newBuilder()
-			.expireAfterWrite(24, TimeUnit.HOURS).maximumSize(1).build();
+	@Getter private Cache<String, PlayerLeaderboard> leaderboardCache = buildCache(BattleGroundCacheEntryKey.LEADERBOARD);
+	@Getter private Cache<String, BotLeaderboard> botLeaderboardCache = buildCache(BattleGroundCacheEntryKey.BOT_LEADERBOARD);
+	@Getter private Cache<String, Map<Integer, Double>> betPercentilesCache = buildCache(BattleGroundCacheEntryKey.BET_PERCENTILES);
+	@Getter private Cache<String, Map<Integer, Double>> fightPercentilesCache = buildCache(BattleGroundCacheEntryKey.FIGHT_PERCENTILES);
+	@Getter private Cache<String, AllegianceLeaderboardWrapper> allegianceLeaderboardCache = buildCache(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD);
+	
+	protected static <T> Cache<String, T> buildCache(BattleGroundCacheEntryKey key) {
+		Cache<String, T> cache = Caffeine.newBuilder().expireAfterWrite(key.getTimeValue(), key.getTimeUnit()).maximumSize(1).build();
+		return cache;
+	}
+	
+	public <T> T readCache(Cache<String, T> cache, String key) {
+		T result = null;
+		synchronized(cache) {
+			result = cache.getIfPresent(key);
+		}
+		
+		return result;
+	}
+	
+	public <T> void writeToCache(Cache<String, T> cache, String key, T value) {
+		synchronized(cache) {
+			cache.put(key, value);
+		}
+		
+		return;
+	}
 
 	public GlobalGilPageData getGlobalGilData() {
 		GlobalGilPageData data = null;
@@ -147,22 +164,33 @@ public class DumpReportsService {
 		return position;
 	}
 
-	public synchronized Map<String, Integer> getBotLeaderboard() {
-		Map<String, Integer> botLeaderboard = this.botLeaderboardCache.getIfPresent(BOT_LEADERBOARD_KEY);
+	public BotLeaderboard getBotLeaderboard() {
+		BotLeaderboard botLeaderboard = null;
+		botLeaderboard = this.readCache(this.botLeaderboardCache, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey());
 		if (botLeaderboard == null) {
-			log.warn("bot leaderboard cache was busted, creating new value");
-			botLeaderboard = this.generateBotLeaderboard();
-			this.botLeaderboardCache.put(BOT_LEADERBOARD_KEY, botLeaderboard);
+			//botLeaderboard = this.writeBotLeaderboardToCaches();
 		}
 
 		return botLeaderboard;
 	}
+	
+	public BotLeaderboard writeBotLeaderboardToCaches() {
+		BotLeaderboard botLeaderboard = null;
+		log.warn("bot leaderboard cache was busted, creating new value");
+		botLeaderboard = this.generateBotLeaderboard();
+		this.writeToCache(this.botLeaderboardCache, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboard);
+		this.battleGroundCacheEntryRepo.writeCacheEntry(botLeaderboard, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey());
+		
+		return botLeaderboard;
+	}
 
-	protected Map<String, Integer> generateBotLeaderboard() {
+	protected BotLeaderboard generateBotLeaderboard() {
+		BotLeaderboard leaderboard = null;
 		Map<String, Integer> botBalances = new TreeMap<String, Integer>(this.dumpService.getBotCache().parallelStream()
 				.filter(botName -> this.dumpService.getBalanceCache().containsKey(botName))
 				.collect(Collectors.toMap(Function.identity(), bot -> this.dumpService.getBalanceCache().get(bot))));
-		return botBalances;
+		leaderboard = new BotLeaderboard(botBalances);
+		return leaderboard;
 	}
 
 	public Map<String, Integer> getTopPlayers(Integer count) {
@@ -185,14 +213,20 @@ public class DumpReportsService {
 		return leaderboardWithoutBots;
 	}
 
-	public synchronized PlayerLeaderboard getLeaderboard() {
-		PlayerLeaderboard leaderboard = this.leaderboardCache.getIfPresent(LEADERBOARD_KEY);
+	public PlayerLeaderboard getLeaderboard() {
+		PlayerLeaderboard leaderboard = this.readCache(this.leaderboardCache, BattleGroundCacheEntryKey.LEADERBOARD.getKey());
 		if (leaderboard == null) {
-			log.warn("Leaderboard cache was busted, creating new value");
-			leaderboard = this.generatePlayerLeaderboardData();
-			this.leaderboardCache.put(LEADERBOARD_KEY, leaderboard);
-		}
 
+		}
+		return leaderboard;
+	}
+	
+	public PlayerLeaderboard writeLeaderboard() {
+		log.warn("Leaderboard cache was busted, creating new value");
+		PlayerLeaderboard leaderboard = this.generatePlayerLeaderboardData();
+		this.writeToCache(this.leaderboardCache, BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboard);
+		this.battleGroundCacheEntryRepo.writeCacheEntry(leaderboard, BattleGroundCacheEntryKey.LEADERBOARD.getKey());
+		
 		return leaderboard;
 	}
 
@@ -279,33 +313,46 @@ public class DumpReportsService {
 		return results;
 	}
 
-	public synchronized Integer getBetPercentile(Double ratio) {
-		Map<Integer, Double> betPercentiles = this.betPercentilesCache.getIfPresent(BET_PERCENTILES_KEY);
+	public Integer getBetPercentile(Double ratio) {
+		Map<Integer, Double> betPercentiles = this.readCache(this.betPercentilesCache, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey());
 		if (betPercentiles == null) {
-			log.warn("The Bet Percentiles cache was busted.  Rebuilding");
-			betPercentiles = this.calculateBetPercentiles();
-			this.betPercentilesCache.put(BET_PERCENTILES_KEY, betPercentiles);
-			log.warn("Bet Percentiles rebuild complete");
+			//betPercentiles = this.writeBetPercentile();
 		}
 
 		Integer result = null;
-		for (int i = 0; result == null && i <= 100; i++) {
-			Double currentPercentile = betPercentiles.get(i);
-			if (ratio < currentPercentile) {
-				result = i - 1;
+		for (Map.Entry<Integer, Double> entry: betPercentiles.entrySet()) {
+			Double currentPercentile = entry.getValue();
+			try {
+				if (ratio < currentPercentile) {
+					Integer key = Integer.valueOf(entry.getKey());
+					result = key - 1;
+					break;
+				}
+			}catch(NullPointerException e) {
+				log.error("NullPointerException caught", e);
+			} catch(ClassCastException e) {
+				log.error("ClassCast exception caught", e);
 			}
 		}
 
 		return result;
 	}
+	
+	public Map<Integer, Double> writeBetPercentile() {
+		log.warn("The Bet Percentiles cache was busted.  Rebuilding");
+		Map<Integer, Double> betPercentiles = this.calculateBetPercentiles();
+		this.writeToCache(this.betPercentilesCache, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentiles);
+		this.battleGroundCacheEntryRepo.writeCacheEntry(betPercentiles, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey());
+		log.warn("Bet Percentiles rebuild complete");
+		
+		return betPercentiles;
+	}
 
-	public synchronized Integer getFightPercentile(Double ratio) {
-		Map<Integer, Double> fightPercentiles = this.fightPercentilesCache.getIfPresent(FIGHT_PERCENTILES_KEY);
+	public Integer getFightPercentile(Double ratio) {
+		Map<Integer, Double> fightPercentiles = null;
+		fightPercentiles = this.readCache(this.fightPercentilesCache, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey());
 		if (fightPercentiles == null) {
-			log.warn("The Fight Percentiles cache was busted.  Rebuilding");
-			fightPercentiles = this.calculateFightPercentiles();
-			this.fightPercentilesCache.put(FIGHT_PERCENTILES_KEY, fightPercentiles);
-			log.warn("Fight Percentiles rebuild complete");
+			//fightPercentiles = this.writeFightPercentile();
 		}
 
 		Integer result = null;
@@ -318,18 +365,40 @@ public class DumpReportsService {
 
 		return result;
 	}
+	
+	public Map<Integer, Double> writeFightPercentile() {
+		log.warn("The Fight Percentiles cache was busted.  Rebuilding");
+		Map<Integer, Double> fightPercentiles = this.calculateFightPercentiles();
+		this.writeToCache(this.fightPercentilesCache, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentiles);
+		this.battleGroundCacheEntryRepo.writeCacheEntry(fightPercentiles, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey());
+		log.warn("Fight Percentiles rebuild complete");
+		
+		return fightPercentiles;
+	}
 
-	public List<AllegianceLeaderboard> getAllegianceData() {
-		List<AllegianceLeaderboard> allegianceLeaderboard = this.allegianceLeaderboardCache
-				.getIfPresent(ALLEGIANCE_LEADERBOARD_KEY);
-		if (allegianceLeaderboard == null) {
-			log.warn("Allegiance Leaderboard cache busted.  Rebuilding.");
-			allegianceLeaderboard = this.generateAllegianceData();
-			this.allegianceLeaderboardCache.put(ALLEGIANCE_LEADERBOARD_KEY, allegianceLeaderboard);
-			log.warn("Allegiance Leaderboard cache rebuild complete");
+	public AllegianceLeaderboardWrapper getAllegianceData() {
+		List<AllegianceLeaderboard> allegianceLeaderboard = null;
+		AllegianceLeaderboardWrapper wrapper = this.readCache(this.allegianceLeaderboardCache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
+		if (wrapper == null) {
+			//wrapper = this.writeAllegianceWrapper();
+		}
+		if(wrapper != null) {
+			allegianceLeaderboard = wrapper.getLeaderboards();
 		}
 
-		return allegianceLeaderboard;
+		return wrapper;
+	}
+	
+	public AllegianceLeaderboardWrapper writeAllegianceWrapper() {
+		log.warn("Allegiance Leaderboard cache busted.  Rebuilding.");
+		List<AllegianceLeaderboard> allegianceLeaderboard  = this.generateAllegianceData();
+		
+		AllegianceLeaderboardWrapper wrapper = new AllegianceLeaderboardWrapper(allegianceLeaderboard);
+		this.writeToCache(this.allegianceLeaderboardCache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
+		this.battleGroundCacheEntryRepo.writeCacheEntry(wrapper, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
+		log.warn("Allegiance Leaderboard cache rebuild complete");
+		
+		return wrapper;
 	}
 
 	@SneakyThrows
@@ -409,6 +478,9 @@ public class DumpReportsService {
 			allegianceData.get(allegiance).put(playerName, highScoreDataFromDump.get(playerName));
 		});
 
+		//apparently the database cache gets befuddled if too many threads try to run the query we use for the allegiance leaderboard
+		Object playerRepoLock = new Object(); 
+		
 		// find player total
 		// find top 5 players
 		// determine the relative position of each team
@@ -418,8 +490,11 @@ public class DumpReportsService {
 			log.info("Starting initialization of PlayerRecords for {} team", team);
 
 			// access player data from database using a projection
-			List<PlayerRecord> teamPlayers = this.playerRecordRepo.getPlayerDataForAllegiance(teamData.keySet())
+			List<PlayerRecord> teamPlayers = null;
+			synchronized(playerRepoLock) {
+				teamPlayers = this.playerRecordRepo.getPlayerDataForAllegiance(teamData.keySet())
 					.parallelStream().filter(playerRecord -> playerRecord != null).collect(Collectors.toList());
+			}
 
 			// sort the players by gil balance.
 			
@@ -444,7 +519,7 @@ public class DumpReportsService {
 			teamPlayers = Collections.synchronizedList(teamPlayers);
 			 
 			// teamPlayers = Collections.synchronizedList(teamPlayers);
-			log.debug("Intialization of PlayerRecords for {} complete");
+			log.info("Intialization of PlayerRecords for {} complete", team);
 
 			Integer totalBetWins =(new CountingCallable<PlayerRecord>(teamPlayers, (playerRecord -> playerRecord.getWins()))).call();
 			Integer totalBetLosses = (new CountingCallable<PlayerRecord>(teamPlayers, (playerRecord -> playerRecord.getLosses()))).call();
@@ -457,6 +532,8 @@ public class DumpReportsService {
 			Integer numberOfPrestigeSkills = this.playerSkillRepo.getPrestigeSkillsCount(
 					teamPlayers.stream().map(PlayerRecord::getPlayer).collect(Collectors.toList())
 				);
+			
+			log.info("Allegiance data lookup complete for team {}", team);
 
 			List<AllegianceLeaderboardEntry> top5Players = new ArrayList<>();
 			for (int i = 0; i < 5; i++) {
@@ -466,6 +543,8 @@ public class DumpReportsService {
 				entry.setPosition(i);
 				top5Players.add(entry);
 			}
+			
+			log.info("Top5 player leaderboard complete for team {}", team);
 
 			String topPlayerPortrait = this.dumpService.getPortraitCache().get(top5Players.get(0).getName());
 			String portraitUrl = this.images.getPortraitByName(topPlayerPortrait, team);
@@ -476,11 +555,13 @@ public class DumpReportsService {
 				List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(top5Players.get(0).getName(),
 						PageRequest.of(0, 1));
 				if (playerTeamInfo != null && playerTeamInfo.size() > 0) {
-					portraitUrl = this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0));
+					portraitUrl = this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0), team);
 				} else {
 					portraitUrl = this.images.getPortraitByName("Ramza");
 				}
 			}
+			
+			log.info("Portrait lookup complete for team {}", team);
 
 			AllegianceLeaderboard data = new AllegianceLeaderboard(team, portraitUrl, top5Players);
 			data.setBetWins(totalBetWins);
@@ -504,11 +585,17 @@ public class DumpReportsService {
 			data.setBetRatio(betRatio);
 			data.setFightRatio(fightRatio);
 
+			log.info("Getting quantiles for team {}", team);
+			
 			Integer betQuantile = this.getBetPercentile(betRatio);
 			Integer fightQuantile = this.getFightPercentile(fightRatio);
+			
+			log.info("Team {} is done getting quantiles", team);
 
 			data.setBetQuantile(betQuantile);
 			data.setFightQuantile(fightQuantile);
+			
+			log.info("Team {} allegiance data is compiled and ready", team);
 
 			return data;
 		}).collect(Collectors.toList());
@@ -577,6 +664,8 @@ public class DumpReportsService {
 			}
 		}
 
+		log.info("Allegiance Leaderboard rebuild complete");
+		
 		return leaderboard;
 	}
 

@@ -46,14 +46,15 @@ import fft_battleground.dump.model.Music;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.ExpEvent;
-import fft_battleground.event.model.GlobalGilHistoryUpdateEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
+import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 
@@ -82,13 +83,16 @@ public class DumpService {
 	private DumpResourceManager dumpResourceManager;
 	
 	@Autowired
-	private DumpScheduledTasks dumpScheduledTasks;
+	@Getter private DumpScheduledTasks dumpScheduledTasks;
 	
 	@Autowired
 	@Getter private DumpReportsService dumpReportsService;
 	
 	@Autowired
 	@Getter private PlayerRecordRepo playerRecordRepo;
+	
+	@Autowired
+	@Getter private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
 	
 	@Autowired
 	private Router<BattleGroundEvent> eventRouter;

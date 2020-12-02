@@ -1,10 +1,12 @@
-package fft_battleground.dump.model;
+package fft_battleground.dump.reports.model;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.model.BattleGroundTeam;
 
@@ -58,6 +60,7 @@ public class AllegianceLeaderboard implements Comparable<AllegianceLeaderboard> 
 		return compareTotalGil;
 	}
 	
+	@JsonIgnore
 	public String getProperTeamName() {
 		String result = this.team.name();
 		result = StringUtils.lowerCase(result);
@@ -65,82 +68,104 @@ public class AllegianceLeaderboard implements Comparable<AllegianceLeaderboard> 
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedPlayerCount() {
 		String result = this.commaFormat(this.totalPlayers);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedTotalGil() {
 		String result = this.commaFormat(this.totalGil);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedGilPerPlayer() {
 		DecimalFormat format = new DecimalFormat("#,###.00");
 		String result= format.format(this.gilPerPlayer);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedTotalLevels() {
 		String result = this.commaFormat(this.totalLevels);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedLevelsPerPlayer() {
 		DecimalFormat format = new DecimalFormat("#,###.00");
 		String result = format.format(this.totalLevelsPerPlayer);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedTotalPrestiges() {
 		String result = this.commaFormat(this.totalPrestiges);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedBetWins() {
 		String result = this.commaFormat(this.betWins);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedBetLosses() {
 		String result = this.commaFormat(this.betLosses);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedFightWins() {
 		String result = this.commaFormat(this.fightWins);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedFightLosses() {
 		String result = this.commaFormat(this.fightLosses);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedCurrentSeasonFightWinsAsChampion() {
 		String result =this.commaFormat(this.currentSeasonFightWinsAsChampion);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedBetRatio() {
 		DecimalFormat format = new DecimalFormat("0.00");
 		String result = format.format(this.betRatio);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedFightRatio() {
 		DecimalFormat format = new DecimalFormat("0.00");
 		String result = format.format(this.fightRatio);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedBetQuantile() {
 		String result = this.generateOrdinal(this.betQuantile);
 		return result;
 	}
 	
+	@JsonIgnore
 	public String getFormattedFightQuantile() {
 		String result = this.generateOrdinal(this.fightQuantile);
+		return result;
+	}
+	
+	@JsonIgnore
+	public String getPortraitName() {
+		String result = StringUtils.substringAfterLast(this.portraitUrl, "/");
+		result = StringUtils.substringBefore(result, ".gif");
 		return result;
 	}
 	

@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -14,11 +15,22 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.dump.reports.model.AllegianceLeaderboard;
+import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.reports.model.BotLeaderboard;
+import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.PlayerRecordRepo;
+import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
+import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -288,21 +300,135 @@ implements Runnable {
 		this.dumpServiceRef.getDumpDataProvider().getHighScoreDump();
 		this.dumpServiceRef.getDumpDataProvider().getHighExpDump();
 
-		// run this at startup so the leaderboard caches are pre-loaded (and don't cause
-		// lag for the rest of the machine
-		log.info("calling bot leaderboard");
-		this.dumpServiceRef.getDumpReportsService().getBotLeaderboard();
+		this.loadDatabaseData();
 		
-		log.info("calling player leaderboard");
-		this.dumpServiceRef.getDumpReportsService().getLeaderboard();
-		
-		this.dumpServiceRef.getDumpReportsService().getBetPercentile(0.50);
-		this.dumpServiceRef.getDumpReportsService().getFightPercentile(0.50);
-		
-		this.dumpServiceRef.getDumpReportsService().getAllegianceData();
+		this.runCacheRebuildFunctions();
+		/*
+		 * // run this at startup so the leaderboard caches are pre-loaded (and don't
+		 * cause // lag for the rest of the machine log.info("calling bot leaderboard");
+		 * this.dumpServiceRef.getDumpReportsService().getBotLeaderboard();
+		 * 
+		 * log.info("calling player leaderboard");
+		 * this.dumpServiceRef.getDumpReportsService().getLeaderboard();
+		 * 
+		 * this.dumpServiceRef.getDumpReportsService().getBetPercentile(0.50);
+		 * this.dumpServiceRef.getDumpReportsService().getFightPercentile(0.50);
+		 * 
+		 * this.dumpServiceRef.getDumpReportsService().getAllegianceData();
+		 */
 		
 		log.info("leaderboard data cache complete");
 	}
 	
+	@SuppressWarnings("unchecked")
+	protected void loadDatabaseData() {
+		log.info("Searching for player leaderboard data from database cache");
+		PlayerLeaderboard leaderboardCacheData = new PlayerLeaderboard();
+		leaderboardCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.LEADERBOARD, this::deserializePlayerLeaderboard) ;
+		if(leaderboardCacheData != null) {
+			log.info("Loading player leaderboard data from database cache");
+			this.dumpServiceRef.getDumpReportsService().getLeaderboardCache().put(BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboardCacheData);
+		} else {
+			log.info("Player leaderboard data from database cache not found");
+		}
+		
+		log.info("Searching for bot leaderboard data from database cache");
+		BotLeaderboard botLeaderboardCacheData = new BotLeaderboard();
+		botLeaderboardCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.BOT_LEADERBOARD, this::deserializeBotLeaderboard);
+		if(botLeaderboardCacheData != null) {
+			log.info("Loading bot leaderboard data from database cache");
+			this.dumpServiceRef.getDumpReportsService().getBotLeaderboardCache().put(BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboardCacheData);
+		} else {
+			log.info("bot leaderboard data from database cache not found");
+		}
+		
+		log.info("Searching for bet percentiles data from database cache");
+		Map<Integer, Double> betPercentilesCacheData = new HashMap<Integer, Double>();
+		betPercentilesCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.BET_PERCENTILES, this::deserializeMapIntegerDouble);
+		if(betPercentilesCacheData != null) {
+			log.info("Loading bet percentiles data from database cache");
+			this.dumpServiceRef.getDumpReportsService().getBetPercentilesCache().put(BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentilesCacheData);
+		} else {
+			log.info("bet percentiles data from database cache not found");
+		}
+		
+		log.info("Searching for fight percentiles data from database cache");
+		Map<Integer, Double> fightPercentilesCacheData = new HashMap<Integer, Double>();
+		fightPercentilesCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.FIGHT_PERCENTILES, this::deserializeMapIntegerDouble);
+		if(fightPercentilesCacheData != null) {
+			log.info("Loading fight percentiles data from database cache");
+			this.dumpServiceRef.getDumpReportsService().getFightPercentilesCache().put(BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentilesCacheData);
+		} else {
+			log.info("fight percentiles data from database cache not found");
+		}
+		
+		log.info("Searching for allegiance leaderboard data from database cache");
+		AllegianceLeaderboardWrapper wrapper = new AllegianceLeaderboardWrapper();
+		wrapper = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD, this::deserializeAllegianceLeaderboard);
+		if(wrapper != null) {
+			log.info("Loading allegiance leaderboard data from database cache");
+			this.dumpServiceRef.getDumpReportsService().getAllegianceLeaderboardCache().put(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
+		} else {
+			log.info("allegiance ledaerboard data from database cache not found");
+		}
+		
+		return;
+	}
+	
+	protected void runCacheRebuildFunctions() {
+		this.dumpServiceRef.getDumpScheduledTasks().runCacheUpdates();
+	}
+	
+	protected <T> T readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey key, Function<String, T> deserializer) {
+		T result = null;
+		try {
+			result = this.dumpServiceRef.getBattleGroundCacheEntryRepo().readCacheEntry(key, deserializer);
+		} catch(Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		
+		return result;
+	}
+	
+	@SneakyThrows
+	protected PlayerLeaderboard deserializePlayerLeaderboard(String str) {
+		ObjectMapper mapper = new ObjectMapper();
+		PlayerLeaderboard leaderboard = mapper.readValue(str, PlayerLeaderboard.class);
+		return leaderboard;
+	}
+	
+	@SneakyThrows
+	protected BotLeaderboard deserializeBotLeaderboard(String str) {
+		ObjectMapper mapper = new ObjectMapper();
+		BotLeaderboard leaderboard = mapper.readValue(str,  BotLeaderboard.class);
+		return leaderboard;
+	}
+	
+	@SneakyThrows
+	protected Map<String, Integer> deserializeMapStringInteger(String str) {
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Integer> result = mapper.readValue(str, Map.class);
+		return result;
+	}
+	
+	@SneakyThrows
+	protected Map<Integer, Double> deserializeMapIntegerDouble(String str) {
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Double> stringDoubleMap = mapper.readValue(str,  Map.class);
+		
+		Map<Integer, Double> result = new HashMap<>();
+		for(Map.Entry<String, Double> stringDoubleMapEntry: stringDoubleMap.entrySet()) {
+			Integer intKey = Integer.valueOf(stringDoubleMapEntry.getKey());
+			result.put(intKey, stringDoubleMapEntry.getValue());
+		}
+		return result;
+	}
+	
+	@SneakyThrows
+	protected AllegianceLeaderboardWrapper deserializeAllegianceLeaderboard(String str) {
+		ObjectMapper mapper = new ObjectMapper();
+		AllegianceLeaderboardWrapper leaderboard = mapper.readValue(str, AllegianceLeaderboardWrapper.class);
+		return leaderboard;
+	}
 }
 

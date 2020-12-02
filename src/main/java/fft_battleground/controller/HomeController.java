@@ -42,23 +42,25 @@ import fft_battleground.botland.model.SkillType;
 import fft_battleground.controller.model.PlayerData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.model.AllegianceLeaderboard;
-import fft_battleground.dump.model.ExpLeaderboardEntry;
 import fft_battleground.dump.model.GlobalGilPageData;
-import fft_battleground.dump.model.LeaderboardData;
 import fft_battleground.dump.model.Music;
-import fft_battleground.dump.model.PlayerLeaderboard;
 import fft_battleground.dump.model.PrestigeTableEntry;
+import fft_battleground.dump.reports.model.AllegianceLeaderboard;
+import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.reports.model.BotLeaderboard;
+import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
+import fft_battleground.dump.reports.model.LeaderboardData;
+import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.model.Images;
-import fft_battleground.repo.BotsHourlyDataRepo;
-import fft_battleground.repo.BotsRepo;
-import fft_battleground.repo.MatchRepo;
-import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.TeamInfo;
+import fft_battleground.repo.repository.BotsHourlyDataRepo;
+import fft_battleground.repo.repository.BotsRepo;
+import fft_battleground.repo.repository.MatchRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;
@@ -159,7 +161,7 @@ public class HomeController {
 				if(StringUtils.isBlank(record.getPortrait()) || playerData.getPortraitUrl() == null) {
 					List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(record.getPlayer(), PageRequest.of(0,1));
 					if(playerTeamInfo != null && playerTeamInfo.size() > 0) {
-						playerData.setPortraitUrl(this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0)));
+						playerData.setPortraitUrl(this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0), record.getAllegiance()));
 					} else {
 						if(playerData.isBot()) {
 							playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
@@ -229,7 +231,8 @@ public class HomeController {
 	@GetMapping("/botleaderboard")
 	public String botLeaderboardPage(Model model, HttpServletRequest request) {
 		this.logAccess("bot leaderboard", request);
-		Map<String, Integer> botLeaderboard = this.dumpReportsService.getBotLeaderboard();
+		BotLeaderboard leaderboardData = this.dumpReportsService.getBotLeaderboard();
+		Map<String, Integer> botLeaderboard = leaderboardData.getBotLeaderboard();
 		NumberFormat myFormat = NumberFormat.getInstance();
 		myFormat.setGroupingUsed(true);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
@@ -250,6 +253,7 @@ public class HomeController {
 			output.get(i).setRank(i + 1); 
 		}
 		model.addAttribute("leaderboard", output);
+		model.addAttribute("generationDate", leaderboardData.formattedGenerationDate());
 		return "botLeaderboard.html";
 	}
 	
@@ -264,12 +268,20 @@ public class HomeController {
 	}
 	
 	@GetMapping("/expLeaderboard")
+	@SneakyThrows
 	public String expLeaderboard(Model model, HttpServletRequest request) {
 		this.logAccess("exp leaderboard", request);
 		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
 		List<PrestigeTableEntry> prestigeEntries = this.dumpReportsService.generatePrestigeTable();
+		
+		Date generationDate = new Date();
+		String generationDateFormatString = "yyyy-MM-dd hh:mm:ss aa zzz";
+		SimpleDateFormat sdf = new SimpleDateFormat(generationDateFormatString);
+		String generationDateString = sdf.format(generationDate);
+		
 		model.addAttribute("leaderboard", leaderboardEntries);
 		model.addAttribute("prestigeTable", prestigeEntries);
+		model.addAttribute("generationDate", generationDateString);
 		
 		return "expLeaderboard.html";
 	}
@@ -304,8 +316,8 @@ public class HomeController {
 	@GetMapping("/allegianceLeaderboard")
 	public String allegianceLeaderboard(Model model, HttpServletRequest request) {
 		this.logAccess("allegiance leaderboard", request);
-		List<AllegianceLeaderboard> leaderboard = this.dumpReportsService.getAllegianceData();
-		model.addAttribute("allegianceLeaderboard", leaderboard);
+		AllegianceLeaderboardWrapper leaderboard = this.dumpReportsService.getAllegianceData();
+		model.addAttribute("allegianceLeaderboardWrapper", leaderboard);
 		return "allegianceLeaderboard.html";
 	}
 	

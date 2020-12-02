@@ -31,7 +31,8 @@ public enum BattleGroundEventType {
 	GLOBAL_GIL_COUNT_UPDATE("Global Gil Count Update"), 
 	PRESTIGE_ASCENSION("Prestige Ascension"), 
 	MUSIC("Music"), 
-	RISER_SKILL_WIN("Riser Skill Win");
+	RISER_SKILL_WIN("Riser Skill Win"), 
+	TOURNAMENT_STATUS_UPDATE_EVENT("Tournament Status Update");
 	
 	BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;

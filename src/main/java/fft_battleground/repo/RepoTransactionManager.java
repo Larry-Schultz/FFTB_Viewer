@@ -16,6 +16,7 @@ import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
@@ -36,6 +37,13 @@ import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.repo.repository.BalanceHistoryRepo;
+import fft_battleground.repo.repository.BotsHourlyDataRepo;
+import fft_battleground.repo.repository.BotsRepo;
+import fft_battleground.repo.repository.GlobalGilHistoryRepo;
+import fft_battleground.repo.repository.MatchRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.util.GambleUtil;
 
 import lombok.SneakyThrows;
@@ -68,6 +76,9 @@ public class RepoTransactionManager {
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
+	
+	@Autowired
+	private DumpService dumpService;
 	
 	public RepoTransactionManager() {}
 	
@@ -340,6 +351,7 @@ public class RepoTransactionManager {
 								this.playerSkillRepo.save(playerSkill);
 							}
 						}
+						
 					}
 				}
 			}

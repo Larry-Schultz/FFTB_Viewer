@@ -31,6 +31,8 @@ import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.repository.MatchRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @RunWith(SpringRunner.class)

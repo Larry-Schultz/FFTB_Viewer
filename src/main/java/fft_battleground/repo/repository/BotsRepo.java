@@ -1,4 +1,4 @@
-package fft_battleground.repo;
+package fft_battleground.repo.repository;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

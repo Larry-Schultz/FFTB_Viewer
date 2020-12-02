@@ -26,9 +26,9 @@ import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.repo.BotsRepo;
-import fft_battleground.repo.PlayerRecordRepo;
 import fft_battleground.repo.model.Bots;
+import fft_battleground.repo.repository.BotsRepo;
+import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.util.Router;
 
 import lombok.Data;

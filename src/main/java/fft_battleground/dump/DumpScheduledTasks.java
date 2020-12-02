@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.botland.model.DatabaseResultsData;
+import fft_battleground.dump.model.BatchDataStore;
+import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.reports.model.BotLeaderboard;
+import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.PlayerSkillRefresh;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -26,6 +31,9 @@ import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.Router;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -44,7 +52,27 @@ public class DumpScheduledTasks {
 	@Autowired
 	private Router<DatabaseResultsData> betResultsRouter;
 	
-	Timer timer = new Timer();
+	private Timer batchTimer = new Timer();
+	private Timer cacheTimer = new Timer();
+	
+	@Getter @Setter private BatchDataStore batchDataStore;
+	
+	//every 3 hours, with an initial delay of 5 minutes
+	@Scheduled(fixedDelay = 10800000, initialDelay=300000)
+	public void runCacheUpdates() {
+		DumpReportsService dumpReportsServiceRef = this.dumpService.getDumpReportsService();
+		DumpScheduledTask[] cacheScheduledTasks = new DumpScheduledTask[] {
+				new CacheScheduledTask<BotLeaderboard>(this, dumpReportsServiceRef::writeBotLeaderboardToCaches),
+				new CacheScheduledTask<PlayerLeaderboard>(this, dumpReportsServiceRef::writeLeaderboard),
+				new CacheScheduledTask<Map<Integer, Double>>(this, dumpReportsServiceRef::writeBetPercentile),
+				new CacheScheduledTask<Map<Integer, Double>>(this, dumpReportsServiceRef::writeFightPercentile),
+				new CacheScheduledTask<AllegianceLeaderboardWrapper>(this, dumpReportsServiceRef::writeAllegianceWrapper)
+		};
+		
+		for(DumpScheduledTask task : cacheScheduledTasks) {
+			this.cacheTimer.schedule(task, 0);
+		}
+	}
 	
 	@Scheduled(cron = "0 0 1 * * ?")
 	public void runAllUpdates() {
@@ -55,7 +83,7 @@ public class DumpScheduledTasks {
 				new UserSkillsTask(this)
 			};
 		for(DumpScheduledTask task : dumpScheduledTasks) {
-			this.timer.schedule(task, 0);
+			this.batchTimer.schedule(task, 0);
 		}
 	}
 	
@@ -143,33 +171,42 @@ public class DumpScheduledTasks {
 		
 		//assume all players with prestige skills have user skills
 		for(String player: userSkillPlayers) {
-			PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
-			//delete all skills from cache
-			this.dumpService.getUserSkillsCache().remove(player);
-			
-			//get user skills
-			List<String> userSkills = this.dumpDataProvider.getSkillsForPlayer(player);
-			
-			//store user skills
-			this.dumpService.getUserSkillsCache().put(player, userSkills);
-			PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
-			refresh.setPlayerSkillEvent(userSkillsEvent);
-			
-			if(prestigeSkillPlayers.contains(player)) {
-				//get prestige skills
-				List<String> prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
-				
-				//store prestige skills
-				this.dumpService.getPrestigeSkillsCache().remove(player);
-				this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
-				PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
-				refresh.setPrestigeSkillEvent(prestigeEvent);
-			}
-			this.betResultsRouter.sendDataToQueues(refresh);
-			log.info("refreshed skills for player: {}", player);
-			
+			this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
 		}
 		log.info("user and prestige skill cache updates complete");
+	}
+	
+	public void handlePlayerSkillUpdate(String player) {
+		Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
+		Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
+		this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
+	}
+	
+	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers, Set<String> prestigeSkillPlayers) {
+		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
+		//delete all skills from cache
+		this.dumpService.getUserSkillsCache().remove(player);
+		
+		//get user skills
+		List<String> userSkills = this.dumpDataProvider.getSkillsForPlayer(player);
+		
+		//store user skills
+		this.dumpService.getUserSkillsCache().put(player, userSkills);
+		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
+		refresh.setPlayerSkillEvent(userSkillsEvent);
+		
+		if(prestigeSkillPlayers.contains(player)) {
+			//get prestige skills
+			List<String> prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
+			
+			//store prestige skills
+			this.dumpService.getPrestigeSkillsCache().remove(player);
+			this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
+			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
+			refresh.setPrestigeSkillEvent(prestigeEvent);
+		}
+		this.betResultsRouter.sendDataToQueues(refresh);
+		log.info("refreshed skills for player: {}", player);
 	}
 	
 	public Set<String> updateBotList() {
@@ -217,4 +254,20 @@ class BotListTask extends DumpScheduledTask {
 class PortraitsTask extends DumpScheduledTask {
 	public PortraitsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
 	protected void task() {this.dumpScheduledTasksRef.updatePortraits();}
+}
+
+class CacheScheduledTask<T> extends DumpScheduledTask {
+
+	private Callable<T> cacheGeneratorFunction;
+	
+	public CacheScheduledTask(DumpScheduledTasks dumpScheduledTasks, Callable<T> cacheGeneratorFunction) {
+		super(dumpScheduledTasks);
+		this.cacheGeneratorFunction = cacheGeneratorFunction;
+	}
+	
+	@SneakyThrows
+	protected void task() {
+		this.cacheGeneratorFunction.call();
+	}
+	
 }
