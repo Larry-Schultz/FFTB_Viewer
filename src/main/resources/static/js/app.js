@@ -406,7 +406,7 @@ function generateUnitImageString(event, direction, position) {
 	if(className.startsWith('Calculator')) {
 		className = className.split('(')[0].trim();
 	}
-	var gender = event.unit.gender;
+	var gender = event.unit.Gender;
 	
 	var characterImageString;
 	if(gender != 'Monster') {
@@ -424,7 +424,7 @@ function generateUnitImageString(event, direction, position) {
 function generateUnitImageTitle(event, direction, position) {
 	var classTagName = '#fight' + direction + 'Player' + position + 'Class';
 	var className = $(classTagName).text();
-	var gender = event.unit.gender;
+	var gender = event.unit.Gender;
 	
 	var characterImageTitle;
 	if(gender != 'Monster') {
