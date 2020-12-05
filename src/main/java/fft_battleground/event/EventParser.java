@@ -12,6 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -25,6 +26,8 @@ import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.exception.DumpException;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.PlayerRecord;
@@ -65,6 +68,9 @@ public class EventParser extends Thread {
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
+	
+	@Autowired
+	private WebhookManager errorWebhookManager;
 	
 	private Timer eventTimer = new Timer();
 	
@@ -147,6 +153,12 @@ public class EventParser extends Thread {
 				}
 			} catch (InterruptedException e) {
 				log.error("Error found in Event Parser", e);
+			} catch(DumpException e) {
+				log.error("Error found in Event Parser", e);
+				this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
+			} catch(Exception e) {
+				log.error("Error found in Event Parser", e);
+				this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
 			}
 			
 		}
@@ -286,7 +298,7 @@ public class EventParser extends Thread {
 		return;
 	}
 	
-	protected void attachMetadataToSkillDropEvent(SkillDropEvent event) {
+	protected void attachMetadataToSkillDropEvent(SkillDropEvent event) throws TournamentApiException {
 		if(event != null) {
 			Tips tipFromTournamentService = this.tournamentService.getCurrentTips();
 			String description = tipFromTournamentService.getUserSkill().get(event.getSkill());

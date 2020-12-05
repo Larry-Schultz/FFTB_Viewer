@@ -23,6 +23,7 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.event.model.fake.TournamentStatusUpdateEvent;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Tournament;
 
@@ -36,7 +37,7 @@ public class TournamentTracker {
 	@Autowired
 	private DumpResourceManager dumpResourceManager;
 	
-	public TournamentStatusUpdateEvent generateTournamentStatus(Tournament currentTournamentDetails) {
+	public TournamentStatusUpdateEvent generateTournamentStatus(Tournament currentTournamentDetails) throws DumpException {
 		TournamentStatusUpdateEvent tournamentStatus = null;
 		Long tournamentId = currentTournamentDetails.getID();
 		List<BattleGroundTeam> winners = this.getWinnersFromTournament(tournamentId);
@@ -60,7 +61,7 @@ public class TournamentTracker {
 		return tournamentStatus;
 	}
 	
-	protected List<BattleGroundTeam> getWinnersFromTournament(final Long id) {
+	protected List<BattleGroundTeam> getWinnersFromTournament(final Long id) throws DumpException {
 		List<BattleGroundTeam> winners = new LinkedList<>();
 		Resource resource;
 		try {

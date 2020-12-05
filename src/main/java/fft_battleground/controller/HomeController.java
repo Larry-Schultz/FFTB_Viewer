@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -45,7 +45,6 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.Music;
 import fft_battleground.dump.model.PrestigeTableEntry;
-import fft_battleground.dump.reports.model.AllegianceLeaderboard;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.BotLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboardEntry;

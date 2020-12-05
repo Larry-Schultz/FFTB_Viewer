@@ -105,9 +105,10 @@ public class Match {
     		this.bets.add(matchBet);
     	}
     	
-    	if(results.getFullBettingData() != null) {
-    		this.realBetInformation = new RealBet(results.getFullBettingData(), this);
-    	}
+		/*
+		 * if(results.getFullBettingData() != null) { this.realBetInformation = new
+		 * RealBet(results.getFullBettingData(), this); }
+		 */
     	
     	Predicate<UnitInfoEvent> teamInfoFilterLambda = unitData -> unitData != null && unitData.getUnit() != null;
     	if(results.getTeamData().getLeftTeamData() != null) {

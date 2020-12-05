@@ -29,6 +29,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.event.model.ExpEvent;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 
 import lombok.SneakyThrows;
@@ -170,7 +171,7 @@ public class DumpDataProvider {
 			if(StringUtils.contains(portrait, "<!DOCTYPE")) {
 				portrait = "";
 			}
-		} catch (IOException e) {
+		} catch (DumpException|IOException e) {
 			return ""; //no data could be found
 		}
 		
@@ -212,17 +213,17 @@ public class DumpDataProvider {
 		return bots;
 	}
 	
-	public List<String> getSkillsForPlayer(String player) {
+	public List<String> getSkillsForPlayer(String player) throws DumpException {
 		List<String> skills = this.getSkills(player, DUMP_USERSKILLS_URL_FORMAT);
 		return skills;
 	}
 	
-	public List<String> getPrestigeSkillsForPlayer(String player) {
+	public List<String> getPrestigeSkillsForPlayer(String player) throws DumpException {
 		List<String> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT);
 		return skills;
 	}
 	
-	protected List<String> getSkills(String player, String urlFormat) {
+	protected List<String> getSkills(String player, String urlFormat) throws DumpException {
 		List<String> skills = new LinkedList<>();
 		Resource resource;
 		try {

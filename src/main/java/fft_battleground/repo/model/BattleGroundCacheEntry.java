@@ -1,6 +1,5 @@
 package fft_battleground.repo.model;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Cacheable;
@@ -25,6 +24,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BattleGroundCacheEntry {
+	
 	@Id
 	@Column(name = "cache_entry_id", nullable = false)
 	private String cacheEntryId;

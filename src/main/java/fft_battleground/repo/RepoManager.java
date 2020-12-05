@@ -9,6 +9,7 @@ import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.botland.model.DatabaseResultsData;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.PlayerSkillRefresh;
@@ -28,6 +29,7 @@ import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.SkillWinEvent;
 import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -49,6 +51,9 @@ public class RepoManager extends Thread {
 	
 	@Autowired
 	private DumpService dumpService;
+	
+	@Autowired
+	private WebhookManager errorWebhookManager;
 	
 	public RepoManager() {
 		this.setName("RepoManagerThread");
@@ -185,7 +190,14 @@ public class RepoManager extends Thread {
 		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
 		//use Timer to force update player skill.  May delay events behind this propagation
 		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
-		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(this.dumpService.getDumpScheduledTasks()::handlePlayerSkillUpdate, id);
+		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(arg0 -> {
+			try {
+				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdate(arg0);
+			} catch (DumpException e) {
+				log.error("Error processing Ascension refresh for player {}", id);
+				this.errorWebhookManager.sendException(e);
+			}
+		}, id);
 	}
 	
 	@SneakyThrows

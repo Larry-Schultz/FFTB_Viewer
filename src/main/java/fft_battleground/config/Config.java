@@ -11,12 +11,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.gikk.twirk.Twirk;
 import com.gikk.twirk.TwirkBuilder;
 import com.gikk.twirk.events.TwirkListener;
 
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BadBetDetector;
 import fft_battleground.event.detector.BalanceDetector;
@@ -43,15 +45,17 @@ import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
+import fft_battleground.repo.repository.ErrorMessageEntryRepo;
 import fft_battleground.util.Router;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-@EnableJpaRepositories("fft_battleground.repo")
+
 @Configuration
 @EnableCaching
 @EnableScheduling
+@EnableRetry
 @Slf4j
 public class Config {
 
@@ -111,5 +115,11 @@ public class Config {
 			new BettingBeginsDetector(), new AllegianceDetector(), new BetInfoEventDetector(), new SkillDropDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),
 			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()});
+	}
+	
+	@Bean
+	public WebhookManager errorWebhookManager(@Value("${errorWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
+		WebhookManager errorWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
+		return errorWebhookManager;
 	}
 }

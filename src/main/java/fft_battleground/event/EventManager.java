@@ -24,6 +24,7 @@ import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.ResultEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.util.Router;

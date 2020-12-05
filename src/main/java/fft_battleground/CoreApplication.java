@@ -7,6 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.controller.WebsocketThread;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.EventManager;
 import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
@@ -43,6 +44,9 @@ public class CoreApplication {
 	@Value("${useIrc}") 
 	private String useIrc;
 	
+	@Autowired
+	private WebhookManager errorWebhookManager;
+	
 	@EventListener(ApplicationReadyEvent.class)
 	@SneakyThrows
 	void run() {
@@ -57,6 +61,9 @@ public class CoreApplication {
 			ircChatMessenger.start();
 			ircChatbotThread.start();
 		}
+		
+		this.errorWebhookManager.sendMessage("Restarting Server");
+		
 		/*
 		 * if(interactiveMode.equals("true")) { while(true) { BufferedReader reader =
 		 * new BufferedReader(new InputStreamReader(System.in));

@@ -29,6 +29,8 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.exception.DumpException;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.model.Tournament;
@@ -52,20 +54,17 @@ public class TournamentService {
 	private static final String entrantUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/entrants.txt";
 	
 	@Autowired
-	private PlayerRecordRepo playerRecordRepo;
-	
-	@Autowired
 	private DumpResourceManager dumpResourceManager;
 	
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
 	private Cache<String, Tips> tipsCache = Caffeine.newBuilder()
-			  .expireAfterWrite(1, TimeUnit.HOURS)
+			  .expireAfterWrite(24, TimeUnit.HOURS)
 			  .maximumSize(1)
 			  .build();
 	
-	public Tournament getcurrentTournament() {
+	public Tournament getcurrentTournament() throws DumpException, TournamentApiException {
 		Tournament currentTournament = null;
 		
 		TournamentInfo latestTournament = this.getLatestTournamentInfo();
@@ -76,12 +75,18 @@ public class TournamentService {
 		return currentTournament;
 	}
 	
-	@SneakyThrows
 	@Cacheable("tips")
+	@SneakyThrows
 	public Tips getCurrentTips() {
 		Tips currentTip = tipsCache.getIfPresent("tips");
 		if(currentTip == null) {
-			Resource resource = new UrlResource(tipsApiUrl);
+			Resource resource;
+			try {
+				resource = new UrlResource(tipsApiUrl);
+			} catch (MalformedURLException e) {
+				log.error("Error found getting latest tournament info", e);
+				throw new TournamentApiException(e);
+			}
 			Tips tips = new Tips(resource);
 			this.tipsCache.put("tips", tips);
 			currentTip = tips;
@@ -90,20 +95,32 @@ public class TournamentService {
 		return currentTip;
 	}
 	
-	protected TournamentInfo getLatestTournamentInfo() {
+	protected TournamentInfo getLatestTournamentInfo() throws TournamentApiException {
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<TournamentInfo[]> tournamentInfo = restTemplate.getForEntity(tournamentInfoApiUri, TournamentInfo[].class);
+		ResponseEntity<TournamentInfo[]> tournamentInfo;
+		try {
+			tournamentInfo = restTemplate.getForEntity(tournamentInfoApiUri, TournamentInfo[].class);
+		} catch(Exception e) {
+			log.error("Error found getting latest tournament info", e);
+			throw new TournamentApiException(e);
+		}
 		//TournamentInfo tournamentInfo = restTemplate.getForObject(tournamentInfoApiUri, TournamentInfo.class);
 		return tournamentInfo.getBody()[0];
 	}
 	
-	protected Tournament getTournamentById(Long id) {
+	protected Tournament getTournamentById(Long id) throws TournamentApiException {
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<Tournament> latestTournament = restTemplate.getForEntity(tournamentApiBaseUri + id.toString(), Tournament.class);
+		ResponseEntity<Tournament> latestTournament;
+		try {
+			latestTournament = restTemplate.getForEntity(tournamentApiBaseUri + id.toString(), Tournament.class);
+		} catch(Exception e) {
+			log.error("Error found getting latest tournament info", e);
+			throw new TournamentApiException(e);
+		}
 		return latestTournament.getBody();
 	}
 	
-	protected List<String> getRaidBossesFromTournament(Long id) {
+	protected List<String> getRaidBossesFromTournament(Long id) throws DumpException {
 		List<String> raidbosses = new LinkedList<>();
 		Resource resource;
 		try {
@@ -127,7 +144,7 @@ public class TournamentService {
 		return raidbosses;
 	}
 	
-	public List<BattleGroundEvent> getRealBetInfoFromLatestPotFile(Long tournamentId) {
+	public List<BattleGroundEvent> getRealBetInfoFromLatestPotFile(Long tournamentId) throws DumpException {
 		List<BattleGroundEvent> result = new LinkedList<>();
 		
 		Set<String> filenamesInTournamentFolder = this.filenamesInTournamentFolder(tournamentId);
@@ -164,8 +181,7 @@ public class TournamentService {
 		return result;
 	}
 	
-	@SneakyThrows
-	protected List<BattleGroundEvent> parsePotFile(Long tournamentId, Integer potId) {
+	protected List<BattleGroundEvent> parsePotFile(Long tournamentId, Integer potId) throws DumpException {
 		List<BattleGroundEvent> result = new LinkedList<>();
 		
 		Resource resource;
@@ -199,21 +215,29 @@ public class TournamentService {
 					} 
 				} 
 			}
+		} catch (IOException e1) {
+			throw new DumpException(e1);
 		}
 		
 		return result;
 	}
 	
-	@SneakyThrows
-	protected Set<String> parseEntrantFile(Long tournamentId) {
+	protected Set<String> parseEntrantFile(Long tournamentId) throws DumpException {
 		Set<String> entrants = new HashSet<>();
-		Resource resource = new UrlResource(entrantUrlTemplateForTournament);
+		Resource resource;
+		try {
+			resource = new UrlResource(entrantUrlTemplateForTournament);
+		} catch (MalformedURLException e1) {
+			throw new DumpException(e1);
+		}
 		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
 				String cleanedString = GambleUtil.cleanString(line);
 				entrants.add(cleanedString);
 			}
+		} catch (IOException e) {
+			throw new DumpException(e);
 		}
 		
 		return entrants;
