@@ -4,12 +4,11 @@ import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public enum BattleGroundCacheEntryKey {
-	LEADERBOARD("leaderboard", TimeUnit.HOURS, Calendar.HOUR, 4),
-	BOT_LEADERBOARD("botleaderboard", TimeUnit.HOURS, Calendar.HOUR, 4),
-	BET_PERCENTILES("betpercentiles", TimeUnit.HOURS, Calendar.HOUR, 4),
-	FIGHT_PERCENTILES("fightpercentiles", TimeUnit.HOURS, Calendar.HOUR, 4),
-	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", TimeUnit.HOURS, Calendar.HOUR, 4),
-	BATCH_DATA("batchdata", TimeUnit.DAYS, Calendar.DAY_OF_WEEK, 7);
+	LEADERBOARD("leaderboard", TimeUnit.HOURS, Calendar.HOUR, 8),
+	BOT_LEADERBOARD("botleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8),
+	BET_PERCENTILES("betpercentiles", TimeUnit.HOURS, Calendar.HOUR, 8),
+	FIGHT_PERCENTILES("fightpercentiles", TimeUnit.HOURS, Calendar.HOUR, 8),
+	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8);
 	
 	BattleGroundCacheEntryKey(String key, TimeUnit timeUnit, Integer calendarUnit, Integer timeValue) {
 		this.key = key;

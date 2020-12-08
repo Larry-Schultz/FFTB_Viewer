@@ -326,7 +326,8 @@ class GenerateDataUpdateFromDump extends TimerTask {
 		this.routerRef.sendAllDataToQueues(expEvents);
 		
 		Collection<BattleGroundEvent> lastActiveEvents = this.dumpServiceRef.getLastActiveUpdatesFromDumpService();
-		lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		//lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		log.info("Updated {} lastActiveEvents", lastActiveEvents.size());
 		this.routerRef.sendAllDataToQueues(lastActiveEvents);
 		
 		return;

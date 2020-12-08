@@ -38,7 +38,7 @@ import fft_battleground.repo.BatchDataEntryType;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.util.Router;
-
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +50,7 @@ public class DumpScheduledTasks {
 	private Router<BattleGroundEvent> eventRouter;
 	
 	@Autowired
-	private DumpService dumpService;
+	@Getter private DumpService dumpService;
 	
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
@@ -71,17 +71,33 @@ public class DumpScheduledTasks {
 	@Scheduled(fixedDelay = 10800000, initialDelay=300000)
 	public void runCacheUpdates() {
 		DumpReportsService dumpReportsServiceRef = this.dumpService.getDumpReportsService();
-		DumpScheduledTask[] cacheScheduledTasks = new DumpScheduledTask[] {
-				new CacheScheduledTask<BotLeaderboard>(this, dumpReportsServiceRef::writeBotLeaderboardToCaches),
-				new CacheScheduledTask<PlayerLeaderboard>(this, dumpReportsServiceRef::writeLeaderboard),
-				new CacheScheduledTask<Map<Integer, Double>>(this, dumpReportsServiceRef::writeBetPercentile),
-				new CacheScheduledTask<Map<Integer, Double>>(this, dumpReportsServiceRef::writeFightPercentile),
-				new CacheScheduledTask<AllegianceLeaderboardWrapper>(this, dumpReportsServiceRef::writeAllegianceWrapper)
-		};
+		/*
+		 * DumpScheduledTask[] cacheScheduledTasks = new DumpScheduledTask[] { new
+		 * CacheScheduledTask<BotLeaderboard>(this,
+		 * dumpReportsServiceRef::writeBotLeaderboardToCaches), new
+		 * CacheScheduledTask<PlayerLeaderboard>(this,
+		 * dumpReportsServiceRef::writeLeaderboard), new CacheScheduledTask<Map<Integer,
+		 * Double>>(this, dumpReportsServiceRef::writeBetPercentile), new
+		 * CacheScheduledTask<Map<Integer, Double>>(this,
+		 * dumpReportsServiceRef::writeFightPercentile), new
+		 * CacheScheduledTask<AllegianceLeaderboardWrapper>(this,
+		 * dumpReportsServiceRef::writeAllegianceWrapper) };
+		 */
 		
-		for(DumpScheduledTask task : cacheScheduledTasks) {
-			this.cacheTimer.schedule(task, 0);
-		}
+		DumpScheduledTask task = new DumpScheduledTask(this) {
+
+			@Override
+			protected void task() {
+				DumpReportsService dumpReportsService = this.dumpScheduledTasksRef.getDumpService().getDumpReportsService();
+				dumpReportsService.writeBetPercentile();
+				dumpReportsService.writeFightPercentile();
+				dumpReportsService.writeBotLeaderboardToCaches();
+				dumpReportsService.writeLeaderboard();
+				dumpReportsService.writeAllegianceWrapper();
+			}
+			
+		};
+		this.cacheTimer.schedule(task, 0);
 	}
 	
 	@Scheduled(cron = "0 0 1 * * ?")
@@ -271,9 +287,15 @@ public class DumpScheduledTasks {
 	}
 	
 	public void handlePlayerSkillUpdate(String player) throws DumpException {
-		Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
-		Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
-		this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
+		try {
+			Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
+			Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
+			
+			this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
+		} catch(Exception e) {
+			log.error("Error updating player skills for player", player);
+			this.errorWebhookManager.sendException(e, "Error with processing ascension for player" + player);
+		}
 	}
 	
 	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers, Set<String> prestigeSkillPlayers) throws DumpException {

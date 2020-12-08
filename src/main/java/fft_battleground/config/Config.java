@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -31,7 +30,6 @@ import fft_battleground.event.detector.EventDetector;
 import fft_battleground.event.detector.FightDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
 import fft_battleground.event.detector.LevelUpDetector;
-import fft_battleground.event.detector.MatchInfoDetector;
 import fft_battleground.event.detector.MusicDetector;
 import fft_battleground.event.detector.OtherPlayerBalanceDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
@@ -119,6 +117,12 @@ public class Config {
 	
 	@Bean
 	public WebhookManager errorWebhookManager(@Value("${errorWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
+		WebhookManager errorWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
+		return errorWebhookManager;
+	}
+	
+	@Bean
+	public WebhookManager ascensionWebhookManager(@Value("${ascensionWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
 		WebhookManager errorWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
 		return errorWebhookManager;
 	}

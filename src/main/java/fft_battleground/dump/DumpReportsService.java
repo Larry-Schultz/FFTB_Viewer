@@ -41,6 +41,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.math.Quantiles;
 
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.dump.reports.model.AllegianceLeaderboard;
@@ -102,6 +103,9 @@ public class DumpReportsService {
 
 	@Autowired
 	private Images images;
+	
+	@Autowired
+	private WebhookManager errorWebhookManager;
 
 	@Getter private Cache<String, PlayerLeaderboard> leaderboardCache = buildCache(BattleGroundCacheEntryKey.LEADERBOARD);
 	@Getter private Cache<String, BotLeaderboard> botLeaderboardCache = buildCache(BattleGroundCacheEntryKey.BOT_LEADERBOARD);
@@ -174,11 +178,15 @@ public class DumpReportsService {
 	
 	public BotLeaderboard writeBotLeaderboardToCaches() {
 		BotLeaderboard botLeaderboard = null;
-		log.warn("bot leaderboard cache was busted, creating new value");
-		botLeaderboard = this.generateBotLeaderboard();
-		this.writeToCache(this.botLeaderboardCache, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboard);
-		this.battleGroundCacheEntryRepo.writeCacheEntry(botLeaderboard, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey());
-		
+		try {
+			log.warn("bot leaderboard cache was busted, creating new value");
+			botLeaderboard = this.generateBotLeaderboard();
+			this.writeToCache(this.botLeaderboardCache, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboard);
+			this.battleGroundCacheEntryRepo.writeCacheEntry(botLeaderboard, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey());
+		} catch(Exception e) {
+			log.error("Error writing to bot cache", e);
+			this.errorWebhookManager.sendException(e, "exception generating new bot leaderboard");
+		}
 		return botLeaderboard;
 	}
 
@@ -221,10 +229,15 @@ public class DumpReportsService {
 	
 	public PlayerLeaderboard writeLeaderboard() {
 		log.warn("Leaderboard cache was busted, creating new value");
-		PlayerLeaderboard leaderboard = this.generatePlayerLeaderboardData();
-		this.writeToCache(this.leaderboardCache, BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboard);
-		this.battleGroundCacheEntryRepo.writeCacheEntry(leaderboard, BattleGroundCacheEntryKey.LEADERBOARD.getKey());
-		
+		PlayerLeaderboard leaderboard = null;
+		try {
+			leaderboard = this.generatePlayerLeaderboardData();
+			this.writeToCache(this.leaderboardCache, BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboard);
+			this.battleGroundCacheEntryRepo.writeCacheEntry(leaderboard, BattleGroundCacheEntryKey.LEADERBOARD.getKey());
+		} catch(Exception e) {
+			log.error("Error writing to bot cache", e);
+			this.errorWebhookManager.sendException(e, "exception generating new player leaderboard");
+		}
 		return leaderboard;
 	}
 
@@ -338,10 +351,16 @@ public class DumpReportsService {
 	
 	public Map<Integer, Double> writeBetPercentile() {
 		log.warn("The Bet Percentiles cache was busted.  Rebuilding");
-		Map<Integer, Double> betPercentiles = this.calculateBetPercentiles();
-		this.writeToCache(this.betPercentilesCache, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentiles);
-		this.battleGroundCacheEntryRepo.writeCacheEntry(betPercentiles, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey());
-		log.warn("Bet Percentiles rebuild complete");
+		Map<Integer, Double> betPercentiles = null;
+		try {
+			betPercentiles = this.calculateBetPercentiles();
+			this.writeToCache(this.betPercentilesCache, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentiles);
+			this.battleGroundCacheEntryRepo.writeCacheEntry(betPercentiles, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey());
+			log.warn("Bet Percentiles rebuild complete");
+		} catch(Exception e) {
+			log.error("Error in building bet percentiles", e);
+			this.errorWebhookManager.sendException(e, "Error in building bet percentiles");
+		}
 		
 		return betPercentiles;
 	}
@@ -366,10 +385,16 @@ public class DumpReportsService {
 	
 	public Map<Integer, Double> writeFightPercentile() {
 		log.warn("The Fight Percentiles cache was busted.  Rebuilding");
-		Map<Integer, Double> fightPercentiles = this.calculateFightPercentiles();
-		this.writeToCache(this.fightPercentilesCache, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentiles);
-		this.battleGroundCacheEntryRepo.writeCacheEntry(fightPercentiles, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey());
-		log.warn("Fight Percentiles rebuild complete");
+		Map<Integer, Double> fightPercentiles = null;
+		try {
+			fightPercentiles = this.calculateFightPercentiles();
+			this.writeToCache(this.fightPercentilesCache, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentiles);
+			this.battleGroundCacheEntryRepo.writeCacheEntry(fightPercentiles, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey());
+			log.warn("Fight Percentiles rebuild complete");
+		} catch(Exception e) {
+			log.error("Error in building fight percentiles", e);
+			this.errorWebhookManager.sendException(e, "Error in building fight percentiles");
+		}
 		
 		return fightPercentiles;
 	}
@@ -389,12 +414,17 @@ public class DumpReportsService {
 	
 	public AllegianceLeaderboardWrapper writeAllegianceWrapper() {
 		log.warn("Allegiance Leaderboard cache busted.  Rebuilding.");
-		List<AllegianceLeaderboard> allegianceLeaderboard  = this.generateAllegianceData();
-		
-		AllegianceLeaderboardWrapper wrapper = new AllegianceLeaderboardWrapper(allegianceLeaderboard);
-		this.writeToCache(this.allegianceLeaderboardCache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
-		this.battleGroundCacheEntryRepo.writeCacheEntry(wrapper, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
+		AllegianceLeaderboardWrapper wrapper = null;
+		try {
+			List<AllegianceLeaderboard> allegianceLeaderboard = this.generateAllegianceData();
+			
+			wrapper = new AllegianceLeaderboardWrapper(allegianceLeaderboard);
+			this.writeToCache(this.allegianceLeaderboardCache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
+			this.battleGroundCacheEntryRepo.writeCacheEntry(wrapper, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
 		log.warn("Allegiance Leaderboard cache rebuild complete");
+		} catch(Exception e) {
+			
+		}
 		
 		return wrapper;
 	}

@@ -55,6 +55,9 @@ public class RepoManager extends Thread {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
+	@Autowired
+	private WebhookManager ascensionWebhookManager;
+	
 	public RepoManager() {
 		this.setName("RepoManagerThread");
 	}
@@ -183,16 +186,17 @@ public class RepoManager extends Thread {
 		this.repoTransactionManager.updateGlobalGilHistory(newResults.getGlobalGilHistory());
 	}
 	
-	protected void handlePrestigeAscensionEvent(PrestigeAscensionEvent event) {
+	protected void handlePrestigeAscensionEvent(final PrestigeAscensionEvent event) {
 		if(event.getCurrentBalance() != null) {
 			this.repoTransactionManager.generateSimulatedBalanceEvent(event.getPrestigeSkillsEvent().getPlayer(), (-1) * event.getCurrentBalance(), BalanceUpdateSource.PRESTIGE);
 		}
 		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
 		//use Timer to force update player skill.  May delay events behind this propagation
 		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
-		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(arg0 -> {
+		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
 			try {
-				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdate(arg0);
+				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdate(player);
+				this.ascensionWebhookManager.sendAscensionMessage(event);
 			} catch (DumpException e) {
 				log.error("Error processing Ascension refresh for player {}", id);
 				this.errorWebhookManager.sendException(e);
