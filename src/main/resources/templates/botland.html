@@ -47,7 +47,7 @@
 						</thead>
 						<tbody th:each="bot: ${botData}">
 							<tr>
-								<td th:id="${bot.player} + 'Name'" th:text ="${bot.player}" th:data-reveal-id="${bot.player} + 'Modal'" th:onclick="'revealModal(\'' + ${bot.player} + 'Modal\');'" class="botName" />
+								<td th:id="${bot.player} + 'Name'" th:text ="${bot.player}" th:data-reveal-id="${bot.player} + 'Modal'" onclick="revealModal(this.getAttribute('data-reveal-id'));" class="botName" />
 								<td th:id="${bot.player} + 'Balance'" th:text="${bot.balance}" />
 								<td th:id="${bot.player} + 'HighScore'" th:text="${bot.highestKnownValue}" />
 								<td th:id="${bot.player} + 'Wins'" th:text="${bot.wins}" />
