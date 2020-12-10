@@ -175,10 +175,15 @@ public class RepoManager extends Thread {
 	}
 	
 	protected void handlePlayerSkillRefresh(PlayerSkillRefresh event) {
-		this.repoTransactionManager.clearPlayerSkillsForPlayer(event.getPlayer());
-		this.repoTransactionManager.updatePlayerSkills(event.getPlayerSkillEvent());
-		if(event.getPrestigeSkillEvent() != null) {
-			this.repoTransactionManager.updatePlayerSkills(event.getPrestigeSkillEvent());
+		try {
+			this.repoTransactionManager.clearPlayerSkillsForPlayer(event.getPlayer());
+			this.repoTransactionManager.updatePlayerSkills(event.getPlayerSkillEvent());
+			if(event.getPrestigeSkillEvent() != null) {
+				this.repoTransactionManager.updatePlayerSkills(event.getPrestigeSkillEvent());
+			}
+		} catch(Exception e) {
+			log.error("Error processing Ascension refresh for player {}", event.getPlayer());
+			this.errorWebhookManager.sendException(e, "error processing player skill refresh");
 		}
 	}
 	
@@ -195,7 +200,7 @@ public class RepoManager extends Thread {
 		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
 		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
 			try {
-				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdate(player);
+				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdateFromRepo(player);
 				this.ascensionWebhookManager.sendAscensionMessage(event);
 			} catch (DumpException e) {
 				log.error("Error processing Ascension refresh for player {}", id);

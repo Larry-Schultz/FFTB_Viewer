@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -265,7 +266,7 @@ public class DumpScheduledTasks {
 			int count = 0;
 			//assume all players with prestige skills have user skills
 			for(String player: userSkillPlayers) {
-				this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
+				this.handlePlayerSkillUpdate(player);
 				playersUpdated++;
 				
 				if(count % 20 == 0) {
@@ -286,19 +287,23 @@ public class DumpScheduledTasks {
 		log.info("user and prestige skill cache updates complete");
 	}
 	
-	public void handlePlayerSkillUpdate(String player) throws DumpException {
+	public void handlePlayerSkillUpdateFromRepo(String player) throws DumpException {
 		try {
-			Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
-			Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
+			List<String> skillsBefore = this.dumpService.getUserSkillsCache().get(player);
+			List<String> prestigeSkillsBefore = this.dumpService.getPrestigeSkillsCache().get(player);
+			this.handlePlayerSkillUpdate(player);
+			List<String> skillsAfter = this.dumpService.getUserSkillsCache().get(player);
+			List<String> prestigeSkillsAfter = this.dumpService.getPrestigeSkillsCache().get(player);
 			
-			this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
-		} catch(Exception e) {
+			Assert.assertNotEquals(skillsBefore.size(), skillsAfter.size());
+			Assert.assertNotEquals(prestigeSkillsBefore.size(), prestigeSkillsAfter.size());
+		} catch(Exception| AssertionError e) {
 			log.error("Error updating player skills for player", player);
 			this.errorWebhookManager.sendException(e, "Error with processing ascension for player" + player);
 		}
 	}
 	
-	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers, Set<String> prestigeSkillPlayers) throws DumpException {
+	public void handlePlayerSkillUpdate(String player) throws DumpException {
 		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
 		//delete all skills from cache
 		this.dumpService.getUserSkillsCache().remove(player);
@@ -310,18 +315,22 @@ public class DumpScheduledTasks {
 		this.dumpService.getUserSkillsCache().put(player, userSkills);
 		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
 		refresh.setPlayerSkillEvent(userSkillsEvent);
-		
-		if(prestigeSkillPlayers.contains(player)) {
-			//get prestige skills
-			List<String> prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
-			
+	
+		List<String> prestigeSkills = null;
+		try {
+			//attempt to get prestige skills, this is allowed to fail meaning this player has no prestige
+			prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
+		} catch(Exception e) {
+			log.warn("Player {} does not have prestige", player);
+		}
+		if(prestigeSkills != null && prestigeSkills.size() > 0) {
 			//store prestige skills
 			this.dumpService.getPrestigeSkillsCache().remove(player);
 			this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
 			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
 			refresh.setPrestigeSkillEvent(prestigeEvent);
 		}
-		this.betResultsRouter.sendDataToQueues(refresh);
+		
 		log.info("refreshed skills for player: {}", player);
 	}
 	

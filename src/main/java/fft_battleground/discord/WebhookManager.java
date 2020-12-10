@@ -51,7 +51,7 @@ public class WebhookManager {
 		this.sendException(e, "");
 	}
 	
-	public void sendException(Exception e, String description) {
+	public void sendException(Throwable e, String description) {
 		this.sendExceptionEmbed(e, description, EmbedColor.BLUE.getColorCode());
 	}
 	
@@ -59,7 +59,7 @@ public class WebhookManager {
 		this.sendExceptionEmbed(e, description, EmbedColor.RED.getColorCode());
 	}
 	
-	protected void sendExceptionEmbed(Exception e, String description, int colorCode) {
+	protected void sendExceptionEmbed(Throwable e, String description, int colorCode) {
 		String errorMessage = ExceptionUtils.getMessage(e);
 		ErrorMessageEntry errorMessageEntry = this.writeNewErrorMessage(e);
 		String url = this.generateErrorMessageUrl(errorMessageEntry.getErrorMessageId());
