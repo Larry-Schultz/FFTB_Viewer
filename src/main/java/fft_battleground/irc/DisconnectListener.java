@@ -13,16 +13,21 @@ import fft_battleground.discord.WebhookManager;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DisconnectListener  implements TwirkListener{
+public class DisconnectListener  implements TwirkListener {
 
 	private Twirk twirk;
 	private WebhookManager errorWebhookManager;
+	private IrcReconnectListener ircReconnectListener;
+	
+	private static final String errorAvertedMessageFormat = "IRC Disconnect averted with count %o";
+	private static final String criticalErrorMessageFormat = "Critical error, unable to reconnect to IRC despite %o attempts";
 	
 	public DisconnectListener() {}
 	
-	public DisconnectListener(Twirk twirk, WebhookManager errorWebhookManager) {
+	public DisconnectListener(Twirk twirk, WebhookManager errorWebhookManager, IrcReconnectListener ircReconnectListener) {
 		this.twirk = twirk;
 		this.errorWebhookManager = errorWebhookManager;
+		this.ircReconnectListener = ircReconnectListener;
 	}
 	
 	@Override
@@ -34,15 +39,18 @@ public class DisconnectListener  implements TwirkListener{
 		catch (IOException e) { 
 			//If reconnection threw an IO exception, close the connection and release resources.
 			twirk.close();
-			this.errorWebhookManager.sendShutdownNotice(e, "Critical error, unable to communicate with IRC");
+			String message = String.format(criticalErrorMessageFormat, this.ircReconnectListener.getCurrentReconnectCount());
+			this.errorWebhookManager.sendShutdownNotice(e, message);
 			return;
 		} 
 		catch (InterruptedException e) {  }
 		
-		this.errorWebhookManager.sendMessage("IRC Disconnect averted");
+		String message = String.format(errorAvertedMessageFormat, this.ircReconnectListener.getCurrentReconnectCount());
+		this.errorWebhookManager.sendMessage(message);
+		this.ircReconnectListener.clearCount();
 	}
 	
-	@Retryable( value = Exception.class, maxAttempts = 30, backoff = @Backoff(delay = 20 * 1000, multiplier=2))
+	@Retryable( value = Exception.class, maxAttempts = 30, backoff = @Backoff(delay = 20 * 1000, multiplier=2), listeners = {"ircReconnectListener"})
 	public void retryConnection() throws IOException, InterruptedException {
 		log.error("Attempting to reconnect to IRC");
 		twirk.connect();

@@ -39,6 +39,7 @@ import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.DisconnectListener;
+import fft_battleground.irc.IrcReconnectListener;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
@@ -60,13 +61,13 @@ public class Config {
 	@Bean
 	@SneakyThrows
     public Twirk ircChatBot(@Value("${irc.username}") String username, @Value("${irc.password}") String password, @Value("${irc.channel}") String channel, 
-    		Router<ChatMessage> chatMessageRouter, WebhookManager errorWebhookManager) {
+    		Router<ChatMessage> chatMessageRouter, WebhookManager errorWebhookManager, IrcReconnectListener ircReconnectListener) {
 		
 		final Twirk twirk = new TwirkBuilder("#" +channel, username, password)
 								.build();				//Create the Twirk object
 		
 		twirk.addIrcListener(new TwirkChatListenerAdapter(chatMessageRouter, channel));
-		twirk.addIrcListener( new DisconnectListener(twirk, errorWebhookManager));
+		twirk.addIrcListener( new DisconnectListener(twirk, errorWebhookManager, ircReconnectListener));
 		
 		
 		return twirk;
