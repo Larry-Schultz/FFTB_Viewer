@@ -1,6 +1,5 @@
 package fft_battleground.config;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,7 +14,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.gikk.twirk.Twirk;
 import com.gikk.twirk.TwirkBuilder;
-import com.gikk.twirk.events.TwirkListener;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.detector.AllegianceDetector;
@@ -40,6 +38,7 @@ import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
+import fft_battleground.irc.DisconnectListener;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
@@ -61,34 +60,13 @@ public class Config {
 	@Bean
 	@SneakyThrows
     public Twirk ircChatBot(@Value("${irc.username}") String username, @Value("${irc.password}") String password, @Value("${irc.channel}") String channel, 
-    		Router<ChatMessage> chatMessageRouter) {
+    		Router<ChatMessage> chatMessageRouter, WebhookManager errorWebhookManager) {
 		
 		final Twirk twirk = new TwirkBuilder("#" +channel, username, password)
 								.build();				//Create the Twirk object
 		
 		twirk.addIrcListener(new TwirkChatListenerAdapter(chatMessageRouter, channel));
-		twirk.addIrcListener( new TwirkListener() {
-			@Override
-			public void onDisconnect() {
-				//Twitch might sometimes disconnects us from chat. If so, try to reconnect. 
-				long i = 60 * 1000; //1 minute
-				int j = 0;
-				try { 
-					log.error("Twirk disconnected.  Attempting to reconnect");
-					while( !twirk.connect() ) {
-						twirk.wait(i);
-						i = i * 2;
-						j++;
-						log.error("Attempt to reconnect {}", j);
-					}
-				} 
-				catch (IOException e) { 
-					//If reconnection threw an IO exception, close the connection and release resources.
-					twirk.close(); 
-				} 
-				catch (InterruptedException e) {  }
-			}
-		});
+		twirk.addIrcListener( new DisconnectListener(twirk, errorWebhookManager));
 		
 		
 		return twirk;
