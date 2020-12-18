@@ -1,6 +1,7 @@
 package fft_battleground.botland.bot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +137,7 @@ public class DataBetBot extends BetterBetBot {
 
 	@Override
 	public void init() {
-		this.playerBetRecords = this.generatePlayerRecordMap(getOtherPlayerBets());
+		this.playerBetRecords = this.generatePlayerRecordMap(Collections.synchronizedList(getOtherPlayerBets()));
 	}
 
 
