@@ -266,7 +266,7 @@ public class DumpScheduledTasks {
 			int count = 0;
 			//assume all players with prestige skills have user skills
 			for(String player: userSkillPlayers) {
-				this.handlePlayerSkillUpdate(player);
+				this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
 				playersUpdated++;
 				
 				if(count % 20 == 0) {
@@ -289,9 +289,12 @@ public class DumpScheduledTasks {
 	
 	public void handlePlayerSkillUpdateFromRepo(String player) throws DumpException {
 		try {
+			Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
+			Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
+			
 			List<String> skillsBefore = this.dumpService.getUserSkillsCache().get(player);
 			List<String> prestigeSkillsBefore = this.dumpService.getPrestigeSkillsCache().get(player);
-			this.handlePlayerSkillUpdate(player);
+			this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
 			List<String> skillsAfter = this.dumpService.getUserSkillsCache().get(player);
 			List<String> prestigeSkillsAfter = this.dumpService.getPrestigeSkillsCache().get(player);
 			
@@ -303,7 +306,7 @@ public class DumpScheduledTasks {
 		}
 	}
 	
-	public void handlePlayerSkillUpdate(String player) throws DumpException {
+	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException {
 		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
 		//delete all skills from cache
 		this.dumpService.getUserSkillsCache().remove(player);
