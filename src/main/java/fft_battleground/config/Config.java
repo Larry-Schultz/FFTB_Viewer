@@ -61,14 +61,12 @@ public class Config {
 	@Bean
 	@SneakyThrows
     public Twirk ircChatBot(@Value("${irc.username}") String username, @Value("${irc.password}") String password, @Value("${irc.channel}") String channel, 
-    		Router<ChatMessage> chatMessageRouter, WebhookManager errorWebhookManager, IrcReconnectListener ircReconnectListener) {
+    		Router<ChatMessage> chatMessageRouter) {
 		
 		final Twirk twirk = new TwirkBuilder("#" +channel, username, password)
 								.build();				//Create the Twirk object
 		
 		twirk.addIrcListener(new TwirkChatListenerAdapter(chatMessageRouter, channel));
-		twirk.addIrcListener( new DisconnectListener(twirk, errorWebhookManager, ircReconnectListener));
-		
 		
 		return twirk;
 	}

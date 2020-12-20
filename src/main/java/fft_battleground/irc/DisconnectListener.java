@@ -2,8 +2,10 @@ package fft_battleground.irc;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
 
 import com.gikk.twirk.Twirk;
 import com.gikk.twirk.events.TwirkListener;
@@ -13,10 +15,16 @@ import fft_battleground.discord.WebhookManager;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
 public class DisconnectListener  implements TwirkListener {
 
+	@Autowired
 	private Twirk twirk;
+	
+	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
 	private IrcReconnectListener ircReconnectListener;
 	
 	private static final String errorAvertedMessageFormat = "IRC Disconnect averted with count %o";
@@ -50,7 +58,7 @@ public class DisconnectListener  implements TwirkListener {
 		this.ircReconnectListener.clearCount();
 	}
 	
-	@Retryable( value = Exception.class, maxAttempts = 30, backoff = @Backoff(delay = 20 * 1000, multiplier=2), listeners = {"ircReconnectListener"})
+	@Retryable( value = Throwable.class, maxAttempts = 30, backoff = @Backoff(delay = 20 * 1000, multiplier=2), listeners = {"ircReconnectListener"})
 	public void retryConnection() throws IOException, InterruptedException {
 		log.error("Attempting to reconnect to IRC");
 		twirk.connect();
