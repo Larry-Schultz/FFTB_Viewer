@@ -1,6 +1,7 @@
 package fft_battleground.dump;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,6 +16,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +27,6 @@ import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
-import fft_battleground.dump.reports.model.BotLeaderboard;
-import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.PlayerSkillRefresh;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -39,6 +39,7 @@ import fft_battleground.repo.BatchDataEntryType;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.util.Router;
+
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -71,22 +72,7 @@ public class DumpScheduledTasks {
 	//every 3 hours, with an initial delay of 5 minutes
 	@Scheduled(fixedDelay = 10800000, initialDelay=300000)
 	public void runCacheUpdates() {
-		DumpReportsService dumpReportsServiceRef = this.dumpService.getDumpReportsService();
-		/*
-		 * DumpScheduledTask[] cacheScheduledTasks = new DumpScheduledTask[] { new
-		 * CacheScheduledTask<BotLeaderboard>(this,
-		 * dumpReportsServiceRef::writeBotLeaderboardToCaches), new
-		 * CacheScheduledTask<PlayerLeaderboard>(this,
-		 * dumpReportsServiceRef::writeLeaderboard), new CacheScheduledTask<Map<Integer,
-		 * Double>>(this, dumpReportsServiceRef::writeBetPercentile), new
-		 * CacheScheduledTask<Map<Integer, Double>>(this,
-		 * dumpReportsServiceRef::writeFightPercentile), new
-		 * CacheScheduledTask<AllegianceLeaderboardWrapper>(this,
-		 * dumpReportsServiceRef::writeAllegianceWrapper) };
-		 */
-		
 		DumpScheduledTask task = new DumpScheduledTask(this) {
-
 			@Override
 			protected void task() {
 				DumpReportsService dumpReportsService = this.dumpScheduledTasksRef.getDumpService().getDumpReportsService();
@@ -289,21 +275,48 @@ public class DumpScheduledTasks {
 	
 	public void handlePlayerSkillUpdateFromRepo(String player) throws DumpException {
 		try {
-			Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
-			Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
-			
-			List<String> skillsBefore = this.dumpService.getUserSkillsCache().get(player);
 			List<String> prestigeSkillsBefore = this.dumpService.getPrestigeSkillsCache().get(player);
-			this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
-			List<String> skillsAfter = this.dumpService.getUserSkillsCache().get(player);
-			List<String> prestigeSkillsAfter = this.dumpService.getPrestigeSkillsCache().get(player);
-			
-			Assert.assertNotEquals(skillsBefore.size(), skillsAfter.size());
-			Assert.assertNotEquals(prestigeSkillsBefore.size(), prestigeSkillsAfter.size());
+			int prestigeSkillsCount = prestigeSkillsBefore != null ? prestigeSkillsBefore.size() : 0;
+			PlayerSkillRefresh refresh = this.forcePlayerSkillRefreshForAscension(player, prestigeSkillsCount);
+			this.betResultsRouter.sendDataToQueues(refresh);
 		} catch(Exception| AssertionError e) {
 			log.error("Error updating player skills for player", player);
 			this.errorWebhookManager.sendException(e, "Error with processing ascension for player" + player);
 		}
+	}
+	
+	@Retryable( value = AssertionError.class, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier=2))
+	protected PlayerSkillRefresh forcePlayerSkillRefreshForAscension(String player, int prestigeSkillsBeforeCount) throws AssertionError {
+		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
+		//delete all skills from cache
+		this.dumpService.getUserSkillsCache().remove(player);
+		
+		List<String> userSkills = Collections.emptyList();
+		
+		this.dumpService.getUserSkillsCache().put(player, userSkills);
+		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
+		refresh.setPlayerSkillEvent(userSkillsEvent);
+	
+		List<String> prestigeSkills = null;
+		try {
+			//attempt to get prestige skills, this is allowed to fail meaning this player has no prestige
+			prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
+		} catch(Exception e) {
+			log.warn("Player {} does not have prestige", player);
+		}
+		
+		if(prestigeSkills != null && prestigeSkills.size() > 0) {
+			//store prestige skills
+			this.dumpService.getPrestigeSkillsCache().remove(player);
+			this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
+			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
+			refresh.setPrestigeSkillEvent(prestigeEvent);
+		}
+		
+		Assert.assertNotNull(prestigeSkills);
+		Assert.assertNotEquals(prestigeSkills.size(), prestigeSkillsBeforeCount);
+		
+		return refresh;
 	}
 	
 	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException {
@@ -333,6 +346,8 @@ public class DumpScheduledTasks {
 			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
 			refresh.setPrestigeSkillEvent(prestigeEvent);
 		}
+		
+		this.betResultsRouter.sendDataToQueues(refresh);
 		
 		log.info("refreshed skills for player: {}", player);
 	}
