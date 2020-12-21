@@ -27,17 +27,20 @@ import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.scheduled.AscensionRefreshRetry;
 import fft_battleground.event.PlayerSkillRefresh;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
+import fft_battleground.exception.AscensionException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.BatchDataEntryType;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
+import fft_battleground.util.BattlegroundRetryState;
 import fft_battleground.util.Router;
 
 import lombok.Getter;
@@ -56,6 +59,9 @@ public class DumpScheduledTasks {
 	
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
+	
+	@Autowired
+	private AscensionRefreshRetry ascensionRefreshRetry;
 	
 	@Autowired
 	private Router<DatabaseResultsData> betResultsRouter;
@@ -275,48 +281,15 @@ public class DumpScheduledTasks {
 	
 	public void handlePlayerSkillUpdateFromRepo(String player) throws DumpException {
 		try {
+			final BattlegroundRetryState state = new BattlegroundRetryState();
 			List<String> prestigeSkillsBefore = this.dumpService.getPrestigeSkillsCache().get(player);
 			int prestigeSkillsCount = prestigeSkillsBefore != null ? prestigeSkillsBefore.size() : 0;
-			PlayerSkillRefresh refresh = this.forcePlayerSkillRefreshForAscension(player, prestigeSkillsCount);
+			PlayerSkillRefresh refresh = this.ascensionRefreshRetry.forcePlayerSkillRefreshForAscension(player, prestigeSkillsCount, state);
 			this.betResultsRouter.sendDataToQueues(refresh);
-		} catch(Exception| AssertionError e) {
+		} catch(AscensionException e) {
 			log.error("Error updating player skills for player", player);
 			this.errorWebhookManager.sendException(e, "Error with processing ascension for player" + player);
 		}
-	}
-	
-	@Retryable( value = AssertionError.class, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier=2))
-	protected PlayerSkillRefresh forcePlayerSkillRefreshForAscension(String player, int prestigeSkillsBeforeCount) throws AssertionError {
-		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
-		//delete all skills from cache
-		this.dumpService.getUserSkillsCache().remove(player);
-		
-		List<String> userSkills = Collections.emptyList();
-		
-		this.dumpService.getUserSkillsCache().put(player, userSkills);
-		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
-		refresh.setPlayerSkillEvent(userSkillsEvent);
-	
-		List<String> prestigeSkills = null;
-		try {
-			//attempt to get prestige skills, this is allowed to fail meaning this player has no prestige
-			prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
-		} catch(Exception e) {
-			log.warn("Player {} does not have prestige", player);
-		}
-		
-		if(prestigeSkills != null && prestigeSkills.size() > 0) {
-			//store prestige skills
-			this.dumpService.getPrestigeSkillsCache().remove(player);
-			this.dumpService.getPrestigeSkillsCache().put(player, prestigeSkills);
-			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(player, prestigeSkills);
-			refresh.setPrestigeSkillEvent(prestigeEvent);
-		}
-		
-		Assert.assertNotNull(prestigeSkills);
-		Assert.assertNotEquals(prestigeSkills.size(), prestigeSkillsBeforeCount);
-		
-		return refresh;
 	}
 	
 	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException {
