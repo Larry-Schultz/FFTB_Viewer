@@ -15,6 +15,12 @@
 	    	</evaluator>
     		<onMatch>DENY</onMatch>
 		</filter>
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    	<evaluator>
+	        	<expression>java.lang.IllegalStateException.class.isInstance(throwable)</expression>
+	    	</evaluator>
+    		<onMatch>DENY</onMatch>
+		</filter>
 	</appender>
 
 	<appender name="EventLogsRollingFile"
@@ -27,6 +33,12 @@
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
 	    	<evaluator>
 	        	<expression>org.springframework.web.util.NestedServletException.class.isInstance(throwable)</expression>
+	    	</evaluator>
+    		<onMatch>DENY</onMatch>
+		</filter>
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    	<evaluator>
+	        	<expression>java.lang.IllegalStateException.class.isInstance(throwable)</expression>
 	    	</evaluator>
     		<onMatch>DENY</onMatch>
 		</filter>
@@ -91,6 +103,12 @@
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
 	    	<evaluator>
 	        <expression>org.springframework.web.util.NestedServletException.class.isInstance(throwable)</expression>
+	    	</evaluator>
+    		<onMatch>DENY</onMatch>
+		</filter>
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    	<evaluator>
+	        	<expression>java.lang.IllegalStateException.class.isInstance(throwable)</expression>
 	    	</evaluator>
     		<onMatch>DENY</onMatch>
 		</filter>
