@@ -1,6 +1,6 @@
-package fft_battleground.util;
+package fft_battleground.exception;
 
-public class MissingEventTypeException extends Exception {
+public class MissingEventTypeException extends BattleGroundException {
 
 	public MissingEventTypeException(String string) {
 		super(string);

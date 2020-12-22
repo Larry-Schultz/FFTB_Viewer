@@ -1,13 +1,11 @@
 package fft_battleground.exception;
 
-public class DumpException extends Exception {
+public class DumpException extends BattleGroundException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -8635987846622158116L;
-	
-	public DumpException() {}
 	
 	public DumpException(Exception e) {
 		super(e);
