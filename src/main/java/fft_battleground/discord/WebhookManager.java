@@ -36,11 +36,12 @@ public class WebhookManager {
 		this.client.send(message);
 	}
 	
-	public void sendAscensionMessage(PrestigeAscensionEvent event) {
-		String player= event.getPrestigeSkillsEvent().getPlayer();
+	public void sendAscensionMessage(String player, int prestigeSkillsCountBefore, int prestigeSkillsCountAfter) {
+		final String ascendedDescriptionFormat = "%1$s has ascended.  Has progressed from prestige level %2$o to %3$o!";
+		
 		String url = this.generatePlayerRecordUrl(player);
 		EmbedTitle title = new EmbedTitle(player + " has ascended!", url);
-		String description = player + " has ascended!";
+		String description = String.format(ascendedDescriptionFormat, player, prestigeSkillsCountBefore, prestigeSkillsCountAfter);
 		WebhookEmbed embed= new WebhookEmbedBuilder().setColor(EmbedColor.GREEN.getColorCode()).setTitle(title)
 				.setDescription(description).setTimestamp(Instant.ofEpochMilli(new Date().getTime()))
 				.build();
