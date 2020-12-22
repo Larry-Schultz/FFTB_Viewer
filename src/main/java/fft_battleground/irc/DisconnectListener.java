@@ -1,17 +1,15 @@
 package fft_battleground.irc;
 
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import com.gikk.twirk.Twirk;
 import com.gikk.twirk.events.TwirkListener;
 
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.exception.IrcConnectionException;
 import fft_battleground.util.BattlegroundRetryState;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -44,14 +42,14 @@ public class DisconnectListener  implements TwirkListener {
 		try { 
 			this.ircReconnectManager.retryConnection(this.twirk, state);
 		} 
-		catch (IOException e) { 
+		catch (IrcConnectionException e) { 
 			//If reconnection threw an IO exception, close the connection and release resources.
 			twirk.close();
 			String message = String.format(criticalErrorMessageFormat, state.getRetryCount());
+			log.error(message, e);
 			this.errorWebhookManager.sendShutdownNotice(e, message);
 			return;
-		} 
-		catch (InterruptedException e) {  }
+		}
 		
 		String message = String.format(errorAvertedMessageFormat, state.getRetryCount());
 		this.errorWebhookManager.sendMessage(message);
