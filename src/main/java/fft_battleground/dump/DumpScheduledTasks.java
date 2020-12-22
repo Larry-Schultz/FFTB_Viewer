@@ -1,7 +1,6 @@
 package fft_battleground.dump;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,10 +13,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +67,9 @@ public class DumpScheduledTasks {
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private WebhookManager ascensionWebhookManager;
 	
 	private Timer batchTimer = new Timer();
 	private Timer cacheTimer = new Timer();
@@ -284,6 +283,9 @@ public class DumpScheduledTasks {
 			final BattlegroundRetryState state = new BattlegroundRetryState();
 			List<String> prestigeSkillsBefore = this.dumpService.getPrestigeSkillsCache().get(player);
 			int prestigeSkillsCount = prestigeSkillsBefore != null ? prestigeSkillsBefore.size() : 0;
+			
+			this.ascensionWebhookManager.sendAscensionMessage(player, prestigeSkillsCount, prestigeSkillsCount + 1);
+			
 			PlayerSkillRefresh refresh = this.ascensionRefreshRetry.forcePlayerSkillRefreshForAscension(player, prestigeSkillsCount, state);
 			this.betResultsRouter.sendDataToQueues(refresh);
 		} catch(AscensionException e) {
