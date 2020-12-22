@@ -29,7 +29,7 @@ public class AscensionRefreshRetry {
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
-	@Retryable( value = AscensionException.class, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier=2))
+	@Retryable( value = AscensionException.class, maxAttempts = 5, backoff = @Backoff(delay = 20*1000, multiplier=2))
 	public PlayerSkillRefresh forcePlayerSkillRefreshForAscension(String player, int prestigeSkillsBeforeCount, final BattlegroundRetryState state) throws AscensionException {
 		state.incrementCount();
 		
