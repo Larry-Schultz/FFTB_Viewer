@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.OtherBrand</groupId>
 	<artifactId>FFT_BattleGround_Databot</artifactId>
-	<version>1.5.10-SNAPSHOT</version>
+	<version>1.5.11-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -88,7 +88,7 @@
 		<dependency>
 			<groupId>com.github.gikkman</groupId>
 			<artifactId>Java-Twirk</artifactId>
-			<version>0.6.2</version>
+			<version>0.6.3</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
 		<dependency>
