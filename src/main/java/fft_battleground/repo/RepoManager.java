@@ -55,9 +55,6 @@ public class RepoManager extends Thread {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
-	@Autowired
-	private WebhookManager ascensionWebhookManager;
-	
 	public RepoManager() {
 		this.setName("RepoManagerThread");
 	}
@@ -201,7 +198,6 @@ public class RepoManager extends Thread {
 		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
 			try {
 				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdateFromRepo(player);
-				this.ascensionWebhookManager.sendAscensionMessage(event);
 			} catch (DumpException e) {
 				log.error("Error processing Ascension refresh for player {}", id);
 				this.errorWebhookManager.sendException(e);
