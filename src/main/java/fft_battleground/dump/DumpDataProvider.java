@@ -230,7 +230,7 @@ public class DumpDataProvider {
 			resource = new UrlResource(this.getPlayerResourcePath(urlFormat, player));
 		} catch (MalformedURLException e) {
 			log.error("malformed url", e);
-			return new ArrayList<>();
+			throw new DumpException(e);
 		}
 		try(BufferedReader skillReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
@@ -243,7 +243,7 @@ public class DumpDataProvider {
 			}
 		} catch (IOException e) {
 			log.debug("no user skills data for player {}", player);
-			return new ArrayList<>();
+			throw new DumpException(e);
 		}
 		
 		return skills;
