@@ -101,4 +101,10 @@ public class Config {
 		WebhookManager errorWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
 		return errorWebhookManager;
 	}
+	
+	@Bean
+	public WebhookManager noisyWebhookManager(@Value("${noisyWebhookUrl}")  String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
+		WebhookManager noisyWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
+		return noisyWebhookManager;
+	}
 }
