@@ -58,6 +58,7 @@
 						<div class="cell large-1">
 							<br />
 							<h2>Allegiance Leaderboard</h2>
+							<p>Includes only active players that are neither in the <a href="/playerLeaderboard">Top 10 Players</a> or <a href="/botleaderboard">bots</a></p>
 						</div>
 						<div  th:each="allegianceBoard: ${allegianceLeaderboard}" th:id="${allegianceBoard.team.getTeamName() + '_grid'}" class="cell large-1">
 							<br />
