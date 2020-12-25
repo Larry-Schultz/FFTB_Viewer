@@ -19,4 +19,8 @@ public class BattleGroundException extends Exception {
 		super(string);
 	}
 
+	public BattleGroundException() {
+		super();
+	}
+
 }

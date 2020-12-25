@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @Slf4j
-public class ExceptionHandlerController implements ErrorController  {
+public class BattleGroundErrorController implements ErrorController  {
 
 	@RequestMapping("/error")
 	public String handleError(HttpServletRequest request) {
