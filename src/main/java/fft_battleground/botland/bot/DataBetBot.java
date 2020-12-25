@@ -125,7 +125,9 @@ public class DataBetBot extends BetterBetBot {
 	
 	protected Map<String, PlayerRecord> generatePlayerRecordMap(List<BetEvent> otherPlayerBets) {
 		Map<String, PlayerRecord> playerRecordMap = new HashMap<String, PlayerRecord>();
-		for(BetEvent betEvent : otherPlayerBets) {
+		
+		for(int i = 0; i < otherPlayerBets.size(); i++) {
+			BetEvent betEvent = otherPlayerBets.get(i);
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepoRef.findById(betEvent.getPlayer());
 			if(maybePlayer.isPresent()) {
 				playerRecordMap.put(betEvent.getPlayer(), maybePlayer.get());
@@ -137,7 +139,10 @@ public class DataBetBot extends BetterBetBot {
 
 	@Override
 	public void init() {
-		this.playerBetRecords = this.generatePlayerRecordMap(Collections.synchronizedList(getOtherPlayerBets()));
+		List<BetEvent> otherPlayerBets = Collections.synchronizedList(getOtherPlayerBets());
+		List<BetEvent> otherPlayerBetsCopy = new ArrayList<>(otherPlayerBets.size());
+		Collections.copy(otherPlayerBetsCopy, otherPlayerBets);
+		this.playerBetRecords = this.generatePlayerRecordMap(otherPlayerBetsCopy);
 	}
 
 
