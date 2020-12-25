@@ -53,6 +53,7 @@ import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
+import fft_battleground.exception.CacheMissException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.Images;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
@@ -166,11 +167,11 @@ public class DumpReportsService {
 		return position;
 	}
 
-	public BotLeaderboard getBotLeaderboard() {
+	public BotLeaderboard getBotLeaderboard() throws CacheMissException {
 		BotLeaderboard botLeaderboard = null;
 		botLeaderboard = this.readCache(this.botLeaderboardCache, BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey());
 		if (botLeaderboard == null) {
-			//botLeaderboard = this.writeBotLeaderboardToCaches();
+			throw new CacheMissException(BattleGroundCacheEntryKey.BOT_LEADERBOARD);
 		}
 
 		return botLeaderboard;
@@ -219,10 +220,10 @@ public class DumpReportsService {
 		return leaderboardWithoutBots;
 	}
 
-	public PlayerLeaderboard getLeaderboard() {
+	public PlayerLeaderboard getLeaderboard() throws CacheMissException {
 		PlayerLeaderboard leaderboard = this.readCache(this.leaderboardCache, BattleGroundCacheEntryKey.LEADERBOARD.getKey());
 		if (leaderboard == null) {
-
+			throw new CacheMissException(BattleGroundCacheEntryKey.LEADERBOARD);
 		}
 		return leaderboard;
 	}
@@ -324,10 +325,10 @@ public class DumpReportsService {
 		return results;
 	}
 
-	public Integer getBetPercentile(Double ratio) {
+	public Integer getBetPercentile(Double ratio) throws CacheMissException {
 		Map<Integer, Double> betPercentiles = this.readCache(this.betPercentilesCache, BattleGroundCacheEntryKey.BET_PERCENTILES.getKey());
 		if (betPercentiles == null) {
-			//betPercentiles = this.writeBetPercentile();
+			throw new CacheMissException(BattleGroundCacheEntryKey.BET_PERCENTILES);
 		}
 
 		Integer result = null;
@@ -365,11 +366,11 @@ public class DumpReportsService {
 		return betPercentiles;
 	}
 
-	public Integer getFightPercentile(Double ratio) {
+	public Integer getFightPercentile(Double ratio) throws CacheMissException {
 		Map<Integer, Double> fightPercentiles = null;
 		fightPercentiles = this.readCache(this.fightPercentilesCache, BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey());
 		if (fightPercentiles == null) {
-			//fightPercentiles = this.writeFightPercentile();
+			throw new CacheMissException(BattleGroundCacheEntryKey.FIGHT_PERCENTILES);
 		}
 
 		Integer result = null;
@@ -399,11 +400,11 @@ public class DumpReportsService {
 		return fightPercentiles;
 	}
 
-	public AllegianceLeaderboardWrapper getAllegianceData() {
+	public AllegianceLeaderboardWrapper getAllegianceData() throws CacheMissException {
 		List<AllegianceLeaderboard> allegianceLeaderboard = null;
 		AllegianceLeaderboardWrapper wrapper = this.readCache(this.allegianceLeaderboardCache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
 		if (wrapper == null) {
-			//wrapper = this.writeAllegianceWrapper();
+			throw new CacheMissException(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD);
 		}
 		if(wrapper != null) {
 			allegianceLeaderboard = wrapper.getLeaderboards();
@@ -614,8 +615,16 @@ public class DumpReportsService {
 
 			log.info("Getting quantiles for team {}", team);
 			
-			Integer betQuantile = this.getBetPercentile(betRatio);
-			Integer fightQuantile = this.getFightPercentile(fightRatio);
+			Integer betQuantile;
+			Integer fightQuantile;
+			try {
+				betQuantile = this.getBetPercentile(betRatio);
+				fightQuantile = this.getFightPercentile(fightRatio);
+			} catch (CacheMissException e) {
+				log.error("Error pulling Quantile data", e);
+				betQuantile = 0;
+				fightQuantile = 0;
+			}
 			
 			log.info("Team {} is done getting quantiles", team);
 

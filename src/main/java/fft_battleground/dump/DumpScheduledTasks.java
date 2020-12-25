@@ -287,7 +287,10 @@ public class DumpScheduledTasks {
 			this.ascensionWebhookManager.sendAscensionMessage(player, prestigeSkillsCount, prestigeSkillsCount + 1);
 			
 			PlayerSkillRefresh refresh = this.ascensionRefreshRetry.forcePlayerSkillRefreshForAscension(player, prestigeSkillsCount, state);
-			this.betResultsRouter.sendDataToQueues(refresh);
+			if(refresh != null) {
+				log.warn("No refresh found for player {}", player);
+				this.betResultsRouter.sendDataToQueues(refresh);
+			}
 		} catch(AscensionException e) {
 			log.error("Error updating player skills for player", player);
 			this.errorWebhookManager.sendException(e, "Error with processing ascension for player" + player);

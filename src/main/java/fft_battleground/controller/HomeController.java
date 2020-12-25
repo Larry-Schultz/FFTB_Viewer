@@ -50,6 +50,7 @@ import fft_battleground.dump.reports.model.BotLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
+import fft_battleground.exception.CacheMissException;
 import fft_battleground.model.Images;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
@@ -135,7 +136,7 @@ public class HomeController {
 
 	@GetMapping({"/player/{playerName}"})
 	public String playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
-			Model model, TimeZone timezone, HttpServletRequest request) {
+			Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException {
 		if(!refresh) {
 			this.logAccess(playerName + " search page " , request);
 		}
@@ -228,7 +229,7 @@ public class HomeController {
 	}
 	
 	@GetMapping("/botleaderboard")
-	public String botLeaderboardPage(Model model, HttpServletRequest request) {
+	public String botLeaderboardPage(Model model, HttpServletRequest request) throws CacheMissException {
 		this.logAccess("bot leaderboard", request);
 		BotLeaderboard leaderboardData = this.dumpReportsService.getBotLeaderboard();
 		Map<String, Integer> botLeaderboard = leaderboardData.getBotLeaderboard();
@@ -257,7 +258,7 @@ public class HomeController {
 	}
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
-	public String playerLeaderboardPage(Model model, HttpServletRequest request) {
+	public String playerLeaderboardPage(Model model, HttpServletRequest request) throws CacheMissException {
 		this.logAccess("player leaderboard", request);
 		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
 		model.addAttribute("leaderboard", leaderboard);
@@ -313,7 +314,7 @@ public class HomeController {
 	}
 	
 	@GetMapping("/allegianceLeaderboard")
-	public String allegianceLeaderboard(Model model, HttpServletRequest request) {
+	public String allegianceLeaderboard(Model model, HttpServletRequest request) throws CacheMissException {
 		this.logAccess("allegiance leaderboard", request);
 		AllegianceLeaderboardWrapper leaderboard = this.dumpReportsService.getAllegianceData();
 		model.addAttribute("allegianceLeaderboardWrapper", leaderboard);
