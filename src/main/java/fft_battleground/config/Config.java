@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.gikk.twirk.Twirk;
 import com.gikk.twirk.TwirkBuilder;
 
+import fft_battleground.Images;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BadBetDetector;
@@ -40,7 +41,6 @@ import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.model.Images;
 import fft_battleground.repo.repository.ErrorMessageEntryRepo;
 import fft_battleground.util.Router;
 

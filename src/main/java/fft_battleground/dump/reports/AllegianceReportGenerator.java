@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import fft_battleground.Images;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
@@ -36,7 +37,6 @@ import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.model.Images;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.TeamInfo;
