@@ -3,6 +3,7 @@ package fft_battleground.dump;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,11 +56,16 @@ public class DumpDataProvider {
 	@Autowired
 	private DumpService dumpService;
 	
-	@SneakyThrows
-	public Map<String, Integer> getHighScoreDump() {
+	public Map<String, Integer> getHighScoreDump() throws DumpException {
 		Map<String, Integer> data = new HashMap<>();
 		
-		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		Resource resource;
+		try {
+			resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		} catch (MalformedURLException e) {
+			log.error("Error getting high score dump");
+			throw new DumpException(e);
+		}
 		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
@@ -71,17 +77,28 @@ public class DumpDataProvider {
 				data.put(username, value);
 				this.dumpService.getLeaderboard().put(username, position);
 			}
+		} catch (DumpException e) {
+			log.error("Error getting high score dump");
+			throw e;
+		} catch (IOException e) {
+			log.error("Error getting high score dump");
+			throw new DumpException(e);
 		}
 		
 		return data;
 	}
 	
-	@SneakyThrows
-	public Pair<Integer, Long> getHighScoreTotal() {
+	public Pair<Integer, Long> getHighScoreTotal() throws DumpException {
 		long globalGil = 0L;
 		int totalPlayers = 0;
 		
-		Resource resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		Resource resource = null;
+		try {
+			resource = new UrlResource(DUMP_HIGH_SCORE_URL);
+		} catch (MalformedURLException e) {
+			log.error("Error getting high score total", e);
+			throw new DumpException(e);
+		}
 		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
@@ -90,6 +107,12 @@ public class DumpDataProvider {
 				long value = Long.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
 				globalGil += value;
 			}
+		} catch (DumpException e) {
+			log.error("Error getting high score total", e);
+			throw e;
+		} catch (IOException e) {
+			log.error("Error getting high score total", e);
+			throw new DumpException(e);
 		}
 		
 		
@@ -97,10 +120,15 @@ public class DumpDataProvider {
 		return globalGilData;
 	}
 	
-	@SneakyThrows
-	public Map<String, ExpEvent> getHighExpDump() {
+	public Map<String, ExpEvent> getHighExpDump() throws DumpException {
 		Map<String, ExpEvent> data = new HashMap<>();
-		Resource resource = new UrlResource(DUMP_HIGH_EXP_URL);
+		Resource resource;
+		try {
+			resource = new UrlResource(DUMP_HIGH_EXP_URL);
+		} catch (MalformedURLException e) {
+			log.error("Error reading high exp dump", e);
+			throw new DumpException(e);
+		}
 		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
@@ -113,15 +141,26 @@ public class DumpDataProvider {
 				this.dumpService.getExpRankLeaderboardByRank().put(position, username);
 				this.dumpService.getExpRankLeaderboardByPlayer().put(username, position);
 			}
+		} catch (DumpException e) {
+			log.error("Error reading high exp dump", e);
+			throw e;
+		} catch (IOException e) {
+			log.error("Error reading high exp dump", e);
+			throw new DumpException(e);
 		}
 		
 		return data;
 	}
 	
-	@SneakyThrows
-	public Map<String, Date> getLastActiveDump() {
+	public Map<String, Date> getLastActiveDump() throws DumpException {
 		Map<String, Date> data = new HashMap<>();
-		Resource resource = new UrlResource(DUMP_HIGH_LAST_ACTIVE_URL);
+		Resource resource;
+		try {
+			resource = new UrlResource(DUMP_HIGH_LAST_ACTIVE_URL);
+		} catch (MalformedURLException e) {
+			log.error("Error with url for dump high last active page");
+			throw new DumpException(e);
+		}
 		SimpleDateFormat dateFormatter = new SimpleDateFormat(DumpService.dateActiveFormatString);
 		try(BufferedReader highDateReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
@@ -132,6 +171,12 @@ public class DumpDataProvider {
 				Date date = dateFormatter.parse(dateStr);
 				data.put(username, date);
 			}
+		} catch (ParseException|IOException e) {
+			log.error("Error reading last active dump data", e);
+			throw new DumpException(e);
+		} catch(DumpException e) {
+			log.error("Error reading last active dump data", e);
+			throw e;
 		}
 		
 		return data;
@@ -157,32 +202,42 @@ public class DumpDataProvider {
 		return players;
 	}
 	
-	public String getPortraitForPlayer(String player) {
+	public String getPortraitForPlayer(String player) throws DumpException {
 		String playerName = StringUtils.lowerCase(player);
 		String portrait = null;
 		Resource resource = null;
 		try {
 			resource = new UrlResource(this.getPlayerResourcePath(DUMP_PORTAIL_URL_FORMAT, playerName));
 		} catch (MalformedURLException e) {
-			log.error("malformed url", e);
+			log.error("malformed url for getting portrait data for player {}", e, player);
+			throw new DumpException(e);
 		}
 		try(BufferedReader portraitReader = this.dumpResourceManager.openDumpResource(resource)) {
 			portrait = portraitReader.readLine();
 			if(StringUtils.contains(portrait, "<!DOCTYPE")) {
 				portrait = "";
 			}
-		} catch (DumpException|IOException e) {
-			return ""; //no data could be found
+		} catch (DumpException e) {
+			log.error("Error getting portrait data for player {}", e, player);
+			throw e;
+		} catch (IOException e) {
+			log.error("Error getting portrait data for player {}", e, player);
+			throw new DumpException(e);
 		}
 		
 		return portrait;
 	}
 	
-	@SneakyThrows
-	public BattleGroundTeam getAllegianceForPlayer(String player) {
+	public BattleGroundTeam getAllegianceForPlayer(String player) throws DumpException {
 		String playerName = StringUtils.lowerCase(player);
 		BattleGroundTeam allegiance = null;
-		Resource resource = new UrlResource(this.getPlayerResourcePath(DUMP_ALLEGIANCE_URL_FORMAT, playerName));
+		Resource resource;
+		try {
+			resource = new UrlResource(this.getPlayerResourcePath(DUMP_ALLEGIANCE_URL_FORMAT, playerName));
+		} catch (MalformedURLException e) {
+			log.error("Error with allegiance url for player {}", playerName);
+			throw new DumpException(e);
+		}
 		try(BufferedReader portraitReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String allegianceStr = portraitReader.readLine();
 			if(NumberUtils.isCreatable(allegianceStr)) {
@@ -192,22 +247,37 @@ public class DumpDataProvider {
 				allegiance = BattleGroundTeam.NONE;
 			}
 		} catch(IOException e) {
-			return null;
+			log.error("error getting allegiance data for player {}", playerName);
+			throw new DumpException(e);
+		} catch(DumpException e) {
+			log.error("error getting allegiance data for player {}", playerName);
+			throw e;
 		}
 		
 		return allegiance;
 	}
 	
-	@SneakyThrows
-	public Set<String> getBots() {
+	public Set<String> getBots() throws DumpException {
 		Set<String> bots = new HashSet<>();
-		Resource resource = new UrlResource(DUMP_BOT_URL);
+		Resource resource;
+		try {
+			resource = new UrlResource(DUMP_BOT_URL);
+		} catch (MalformedURLException e) {
+			log.error("Error with bots url {}", DUMP_BOT_URL);
+			throw new DumpException(e);
+		}
 		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
 				String cleanedString = StringUtils.trim(StringUtils.lowerCase(line));
 				bots.add(cleanedString);
 			}
+		} catch (DumpException e) {
+			log.error("Error accessing bots file", e);
+			throw e;
+		} catch (IOException e) {
+			log.error("Error accessing bots file", e);
+			throw new DumpException(e);
 		}
 		
 		return bots;

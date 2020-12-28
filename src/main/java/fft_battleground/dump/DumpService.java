@@ -42,6 +42,7 @@ import com.google.common.collect.Maps;
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.model.Music;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -50,6 +51,8 @@ import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
 import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
+import fft_battleground.exception.CacheBuildException;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
@@ -97,6 +100,9 @@ public class DumpService {
 	@Autowired
 	private Router<BattleGroundEvent> eventRouter;
 	
+	@Autowired
+	@Getter private WebhookManager errorWebhookManager;
+	
 	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, Date> lastActiveCache = new ConcurrentHashMap<>();
@@ -112,16 +118,15 @@ public class DumpService {
 	
 	public DumpService() {}
 	
-	@PostConstruct
+	@PostConstruct 
 	@Transactional
-	@SneakyThrows
-	private void setUpCaches() {
+	private void setUpCaches() throws CacheBuildException {
 		if (this.isCacheEnabled) {
 			this.loadCache();
 		}
 	}
 	
-	private void loadCache() {
+	private void loadCache() throws CacheBuildException {
 		log.info("loading player data cache");
 
 		List<PlayerRecord> playerRecords = this.playerRecordRepo.findAll();
@@ -133,7 +138,12 @@ public class DumpService {
 		builder.buildCache(playerRecords);
 
 		log.info("started loading bot cache");
-		this.botCache = this.dumpDataProvider.getBots();
+		try {
+			this.botCache = this.dumpDataProvider.getBots();
+		} catch (DumpException e) {
+			log.error("error loading bot file");
+			throw new CacheBuildException("error building bot file", e);
+		}
 		log.info("finished loading bot cache");
 
 		builder.buildLeaderboard();
@@ -142,7 +152,7 @@ public class DumpService {
 		log.info("player data cache load complete");
 	}
 	
-	public Collection<BattleGroundEvent> getBalanceUpdatesFromDumpService() {
+	public Collection<BattleGroundEvent> getBalanceUpdatesFromDumpService() throws DumpException {
 		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
 		log.info("updating balance cache");
 		Map<String, Integer> newBalanceDataFromDump = this.dumpDataProvider.getHighScoreDump();
@@ -170,7 +180,7 @@ public class DumpService {
 		return data;
 	}
 	
-	public Collection<BattleGroundEvent> getExpUpdatesFromDumpService() {
+	public Collection<BattleGroundEvent> getExpUpdatesFromDumpService() throws DumpException {
 		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
 		
 		log.info("updating exp cache");
@@ -198,7 +208,7 @@ public class DumpService {
 		return data;
 	}
 	
-	public Collection<BattleGroundEvent> getLastActiveUpdatesFromDumpService() {
+	public Collection<BattleGroundEvent> getLastActiveUpdatesFromDumpService() throws DumpException {
 		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
 
 		log.info("updating last active cache");
@@ -225,7 +235,7 @@ public class DumpService {
 		return data;
 	}
 	
-	public GlobalGilHistory recalculateGlobalGil() {
+	public GlobalGilHistory recalculateGlobalGil() throws DumpException {
 		Pair<Integer, Long> globalGilData = this.dumpDataProvider.getHighScoreTotal();
 		Long globalGilCount = globalGilData.getRight();
 		Integer globalPlayerCount = globalGilData.getLeft();
@@ -317,18 +327,33 @@ class GenerateDataUpdateFromDump extends TimerTask {
 	@Override
 	public void run() {
 		log.debug("updating data from dump");
-		Collection<BattleGroundEvent> balanceEvents = this.dumpServiceRef.getBalanceUpdatesFromDumpService();
-		balanceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.routerRef.sendAllDataToQueues(balanceEvents);
+		try {
+			Collection<BattleGroundEvent> balanceEvents = this.dumpServiceRef.getBalanceUpdatesFromDumpService();
+			balanceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+			this.routerRef.sendAllDataToQueues(balanceEvents);
+		} catch(DumpException e) {
+			log.error("error getting balance data from dump", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting balance data from dump");
+		}
 		
-		Collection<BattleGroundEvent> expEvents = this.dumpServiceRef.getExpUpdatesFromDumpService();
-		expEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		this.routerRef.sendAllDataToQueues(expEvents);
+		try {
+			Collection<BattleGroundEvent> expEvents = this.dumpServiceRef.getExpUpdatesFromDumpService();
+			expEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+			this.routerRef.sendAllDataToQueues(expEvents);
+		} catch(DumpException e) {
+			log.error("error getting exp data from dump", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting exp data from dump");
+		}
 		
-		Collection<BattleGroundEvent> lastActiveEvents = this.dumpServiceRef.getLastActiveUpdatesFromDumpService();
-		//lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-		log.info("Updated {} lastActiveEvents", lastActiveEvents.size());
-		this.routerRef.sendAllDataToQueues(lastActiveEvents);
+		try {
+			Collection<BattleGroundEvent> lastActiveEvents = this.dumpServiceRef.getLastActiveUpdatesFromDumpService();
+			//lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+			log.info("Updated {} lastActiveEvents", lastActiveEvents.size());
+			this.routerRef.sendAllDataToQueues(lastActiveEvents);
+		} catch(DumpException e) {
+			log.error("error getting last active data from dump", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting last active data from dump");
+		}
 		
 		return;
 	}
@@ -348,7 +373,14 @@ class UpdateGlobalGilCount extends TimerTask {
 	@Override
 	public void run() {
 		log.debug("updating global gil count");
-		GlobalGilHistory globalGilCount = this.dumpServiceRef.recalculateGlobalGil();
+		GlobalGilHistory globalGilCount = null;
+		try {
+			globalGilCount = this.dumpServiceRef.recalculateGlobalGil();
+		} catch (DumpException e) {
+			log.error("error updating global gil count", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error updating global gil count");
+			return;
+		}
 		BattleGroundEvent globalGilCountEvent = new GlobalGilHistoryUpdateEvent(globalGilCount);
 		log.info("Found event from Dump: {} with data: {}", globalGilCountEvent.getEventType().getEventStringName(), globalGilCount.toString());
 		this.routerRef.sendDataToQueues(globalGilCountEvent);

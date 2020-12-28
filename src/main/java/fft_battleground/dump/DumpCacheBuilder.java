@@ -25,6 +25,8 @@ import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.BotLeaderboard;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.model.ExpEvent;
+import fft_battleground.exception.CacheBuildException;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.PlayerRecord;
@@ -49,22 +51,7 @@ public class DumpCacheBuilder {
 	@SneakyThrows
 	public void buildCache(List<PlayerRecord> playerRecords) {
 		log.info("loading player data cache");
-		/*
-		 * List<String> playerNames = new
-		 * ArrayList<String>(this.dumpService.getDumpDataProvider().getHighExpDump().
-		 * keySet()); List<List<String>> playerNamePartitions =
-		 * Lists.partition(playerNames, playerNames.size());
-		 * List<Future<List<PlayerRecord>>> partitionPlayerRecordFutures = new
-		 * ArrayList<>(); for(List<String> partition: playerNamePartitions) {
-		 * Future<List<PlayerRecord>> playerRecordFuture = this.threadPool.submit(new
-		 * PlayerRecordFindTask(partition, this.dumpService.getPlayerRecordRepo()));
-		 * partitionPlayerRecordFutures.add(playerRecordFuture); }
-		 * 
-		 * List<PlayerRecord> playerRecords = new ArrayList<>();
-		 * for(Future<List<PlayerRecord>> future : partitionPlayerRecordFutures) {
-		 * List<PlayerRecord> records = future.get(); playerRecords.addAll(records); }
-		 */
-		log.info("finished loading player cache");
+		
 		
 		Future<Map<String, Integer>> balanceCacheTaskFuture = this.threadPool.submit(new BalanceCacheTask(playerRecords));
 		Future<Map<String, ExpEvent>> expCacheTaskFuture = this.threadPool.submit(new ExpCacheTask(playerRecords));
@@ -81,6 +68,7 @@ public class DumpCacheBuilder {
 		this.dumpService.setAllegianceCache(allegianceCacheTaskFuture.get());
 		this.dumpService.setUserSkillsCache(userSkillsCacheTaskFuture.get());
 		this.dumpService.setPrestigeSkillsCache(prestigeSkillsCacheTaskFuture.get());
+		log.info("finished loading player cache");
 
 	}
 	
@@ -297,25 +285,16 @@ implements Runnable {
 	public void run() {
 		// run this at startup so leaderboard data works properly
 		log.info("pre-cache leaderboard data");
-		this.dumpServiceRef.getDumpDataProvider().getHighScoreDump();
-		this.dumpServiceRef.getDumpDataProvider().getHighExpDump();
+		try {
+			this.dumpServiceRef.getDumpDataProvider().getHighScoreDump();
+			this.dumpServiceRef.getDumpDataProvider().getHighExpDump();
+		} catch(DumpException e) {
+			log.error("error getting high score dump", e);
+		}
 
 		this.loadDatabaseData();
 		
 		this.runCacheRebuildFunctions();
-		/*
-		 * // run this at startup so the leaderboard caches are pre-loaded (and don't
-		 * cause // lag for the rest of the machine log.info("calling bot leaderboard");
-		 * this.dumpServiceRef.getDumpReportsService().getBotLeaderboard();
-		 * 
-		 * log.info("calling player leaderboard");
-		 * this.dumpServiceRef.getDumpReportsService().getLeaderboard();
-		 * 
-		 * this.dumpServiceRef.getDumpReportsService().getBetPercentile(0.50);
-		 * this.dumpServiceRef.getDumpReportsService().getFightPercentile(0.50);
-		 * 
-		 * this.dumpServiceRef.getDumpReportsService().getAllegianceData();
-		 */
 		
 		log.info("leaderboard data cache complete");
 	}

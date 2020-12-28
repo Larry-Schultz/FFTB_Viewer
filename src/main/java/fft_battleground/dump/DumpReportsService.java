@@ -53,7 +53,9 @@ import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
+import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
+import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.Images;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
@@ -77,9 +79,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DumpReportsService {
 
 
-	private static final int HIGHEST_PLAYERS = 10;
-	private static final int TOP_PLAYERS = 100;
-	private static final int PERCENTILE_THRESHOLD = 10;
+	public static final int HIGHEST_PLAYERS = 10;
+	public static final int TOP_PLAYERS = 100;
+	public static final int PERCENTILE_THRESHOLD = 10;
 
 	@Autowired
 	private DumpService dumpService;
@@ -422,7 +424,7 @@ public class DumpReportsService {
 			wrapper = new AllegianceLeaderboardWrapper(allegianceLeaderboard);
 			this.writeToCache(this.allegianceLeaderboardCache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
 			this.battleGroundCacheEntryRepo.writeCacheEntry(wrapper, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
-		log.warn("Allegiance Leaderboard cache rebuild complete");
+			log.warn("Allegiance Leaderboard cache rebuild complete");
 		} catch(Exception e) {
 			
 		}
@@ -431,7 +433,7 @@ public class DumpReportsService {
 	}
 
 	@Transactional
-	protected List<AllegianceLeaderboard> generateAllegianceData() {
+	protected List<AllegianceLeaderboard> generateAllegianceData() throws CacheBuildException {
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
 
 		Map<BattleGroundTeam, Map<String, Integer>> allegianceData = new ConcurrentHashMap<>();
@@ -439,7 +441,15 @@ public class DumpReportsService {
 		List<BattleGroundTeam> teams = BattleGroundTeam.coreTeams();
 		teams.stream().forEach(team -> allegianceData.put(team, new ConcurrentHashMap<String, Integer>()));
 
-		Map<String, Integer> highScoreDataFromDump = this.dumpService.getDumpDataProvider().getHighScoreDump();
+		Map<String, Integer> highScoreDataFromDump;
+		try {
+			highScoreDataFromDump = this.dumpService.getDumpDataProvider().getHighScoreDump();
+		} catch (DumpException e) {
+			log.error("Error getting high score data from the dump", e);
+			CacheBuildException exception = new CacheBuildException("Error getting high score data from the dump has stopped the generation of allegiance data", e);
+			this.errorWebhookManager.sendException(exception, "Error getting high score data from the dump has stopped the generation of allegiance data");
+			throw exception;
+		}
 		Map<String, Integer> topTenPlayers = this.getTopPlayers(HIGHEST_PLAYERS);
 
 		Future<List<Optional<String>>> topTenFilter = executor
@@ -885,7 +895,7 @@ public class DumpReportsService {
 		return percentiles;
 	}
 
-	protected boolean isPlayerActiveInLastMonth(Date lastActiveDate) {
+	public boolean isPlayerActiveInLastMonth(Date lastActiveDate) {
 		if (lastActiveDate == null) {
 			return false;
 		}
