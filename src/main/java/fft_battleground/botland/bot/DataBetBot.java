@@ -140,8 +140,7 @@ public class DataBetBot extends BetterBetBot {
 	@Override
 	public void init() {
 		List<BetEvent> otherPlayerBets = Collections.synchronizedList(getOtherPlayerBets());
-		List<BetEvent> otherPlayerBetsCopy = new ArrayList<>(otherPlayerBets.size());
-		Collections.copy(otherPlayerBetsCopy, otherPlayerBets);
+		List<BetEvent> otherPlayerBetsCopy = new ArrayList<>(otherPlayerBets);
 		this.playerBetRecords = this.generatePlayerRecordMap(otherPlayerBetsCopy);
 	}
 
