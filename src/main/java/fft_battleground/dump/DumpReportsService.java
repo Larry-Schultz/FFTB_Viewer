@@ -147,26 +147,6 @@ public class DumpReportsService {
 		return leaderboard;
 	}
 
-	@SneakyThrows
-	public LeaderboardData collectPlayerLeaderboardDataByPlayer(String player) {
-		NumberFormat myFormat = NumberFormat.getInstance();
-		myFormat.setGroupingUsed(true);
-		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
-		DecimalFormat decimalFormat = new DecimalFormat("##.#########");
-
-		LeaderboardData data = null;
-		Integer gil = this.dumpService.getBalanceFromCache(player);
-		Date lastActive = this.dumpService.getLastActiveDateFromCache(player);
-
-		String gilString = myFormat.format(gil);
-		String percentageOfGlobalGil = decimalFormat.format(this.percentageOfGlobalGil(gil) * (double) 100);
-		String activeDate = dateFormat.format(lastActive);
-		data = new LeaderboardData(player, gilString, activeDate);
-		data.setPercentageOfGlobalGil(percentageOfGlobalGil);
-
-		return data;
-	}
-
 	public List<ExpLeaderboardEntry> generateExpLeaderboardData() {
 		List<ExpLeaderboardEntry> results = new ArrayList<>();
 		for (int rank = 1; rank <= TOP_PLAYERS; rank++) {
