@@ -28,4 +28,5 @@ public class ExceptionController {
 		model.addAttribute("cacheName", cacheName);
 		return "cacheNotReady.html";
 	}
+	
 }
