@@ -1,25 +1,22 @@
 package fft_battleground.event;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
+import fft_battleground.event.annotate.BattleGroundEventAnnotator;
 import fft_battleground.event.detector.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
-import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.FightBeginsEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
@@ -30,12 +27,8 @@ import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.repository.PlayerRecordRepo;
-import fft_battleground.tournament.Tips;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.tournament.model.Tournament;
-import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 
 import lombok.SneakyThrows;
@@ -44,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class EventParser extends Thread {
+	
+	private boolean logEvents = true;
 	
 	@Autowired
 	private BlockingQueue<ChatMessage> eventParserMessageQueue;
@@ -58,9 +53,6 @@ public class EventParser extends Thread {
 	private List<EventDetector> detectors;
 	
 	@Autowired
-	private PlayerRecordRepo playerRecordRepo;
-	
-	@Autowired
 	private TournamentService tournamentService;
 	
 	@Autowired
@@ -71,6 +63,24 @@ public class EventParser extends Thread {
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<BetEvent> betEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<BetInfoEvent> betInfoEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<PrestigeAscensionEvent> prestigeAscensionEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<SkillDropEvent> skillDropEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<TeamInfoEvent> teamInfoEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<UnitInfoEvent> unitInfoEventAnnotator;
 	
 	private Timer eventTimer = new Timer();
 	
@@ -84,83 +94,129 @@ public class EventParser extends Thread {
 	@Override
 	@SneakyThrows
 	public void run() {
+		this.handleRouterData();
+	}
+	
+	protected void handleRouterData() {
 		log.info("Starting parser");
 		while(true) {
+			ChatMessage message;
 			try {
-				ChatMessage message = eventParserMessageQueue.take();
+				message = eventParserMessageQueue.take();
 				log.debug("{}", message);
-				for(EventDetector detector : this.detectors) {
-					BattleGroundEvent event = detector.detect(message);
-					if(event != null) {
-						if(true) {
-							log.info("Found event: {} with data: {} from chatMessage {}", event.getEventType().getEventStringName(), event.toString(), message);
-						} 
-						
-						if(event instanceof BetEvent) {
-							this.attachMetadataToBetEvent((BetEvent) event);
-							this.eventRouter.sendDataToQueues(event);
-						} else if(event instanceof BetInfoEvent) {
-							this.attachMetadataToBetInfoEvent((BetInfoEvent) event);
-							this.eventRouter.sendDataToQueues(event);
-						} else if(event instanceof FightBeginsEvent) {
-							FightBeginsEvent fightEvent = (FightBeginsEvent) event;
-							SkillDropEvent skillDropEvent = fightEvent.generateSkillDropEvent();
-							this.eventRouter.sendDataToQueues(fightEvent);
-							this.attachMetadataToSkillDropEvent(skillDropEvent);
-							this.eventRouter.sendDataToQueues(skillDropEvent);
-						} else if(event instanceof PrestigeAscensionEvent) {
-							this.attachMetadataToPrestigeAscension((PrestigeAscensionEvent) event);
-							this.eventRouter.sendDataToQueues(event);
-						} else if(event instanceof SkillDropEvent) {
-							this.attachMetadataToSkillDropEvent((SkillDropEvent) event);
-							this.eventRouter.sendDataToQueues(event);
-						} else if(event instanceof BettingEndsEvent) {
-							this.eventRouter.sendDataToQueues(event);
-							if(this.currentTournament != null) {
-								List<BattleGroundEvent> finalBets = this.tournamentService.getRealBetInfoFromLatestPotFile(this.currentTournament.getID());
-								log.info("Sending final bet data with {} entries", finalBets.size());
-								log.info("The final bet event data: {}", finalBets);
-								finalBets.parallelStream().forEach(betInfoEvent -> this.attachMetadataToBetInfoEvent((BetInfoEvent) betInfoEvent));
-								this.eventRouter.sendAllDataToQueues(finalBets);
-							}
-						} else if(event instanceof BettingBeginsEvent) {
-							BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
-							this.eventRouter.sendDataToQueues(bettingBeginsEvent);
-							if( (bettingBeginsEvent.getTeam1() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam2() == BattleGroundTeam.BLUE)
-								|| (bettingBeginsEvent.getTeam2() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam1() == BattleGroundTeam.BLUE)
-								|| (currentTournament == null) 
-								|| (currentTournament.getWinnersCount() >= 7) ) {
-								this.currentTournament = this.tournamentService.getcurrentTournament();
-								this.startEventUpdate();
-							} else {
-								if(currentTournament.getWinnersCount() < 7) {
-									this.currentTournament.setWinnersCount(currentTournament.getWinnersCount() + 1);
-								}
-							}
-							if(this.currentTournament == null) {
-								this.currentTournament = this.tournamentService.getcurrentTournament();
-							}
-							if(this.currentTournament != null) {
-								List<BattleGroundEvent> tournamentRelatedEvents = this.currentTournament.getEventsFromTournament(bettingBeginsEvent.getTeam1(), bettingBeginsEvent.getTeam2());
-								this.handleTournamentEvents(tournamentRelatedEvents);
-							} else {
-								log.error("Contacting the tournament Service has failed!");
-							}
-						} else {
-							this.eventRouter.sendDataToQueues(event);
-						}
-					}
+				//get events from detectors
+				List<BattleGroundEvent> events = this.getEventsFromChatMessage(message);
+				for(BattleGroundEvent event : events) {
+					//log and handle each event
+					this.logEvent(event, message);
+					this.handleBattleGroundEvent(event);
 				}
 			} catch (InterruptedException e) {
-				log.error("Error found in Event Parser", e);
-			} catch(DumpException e) {
-				log.error("Error found in Event Parser", e);
-				this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
-			} catch(Exception e) {
-				log.error("Error found in Event Parser", e);
-				this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
+				log.warn("Interruption exception in EventParser", e);
 			}
 			
+				
+		}
+	}
+	
+	protected List<BattleGroundEvent> getEventsFromChatMessage(ChatMessage message) {
+		List<BattleGroundEvent> events = new LinkedList<>();
+		for(EventDetector detector : this.detectors) {
+			BattleGroundEvent event = detector.detect(message);
+			if(event != null) {
+				events.add(event);
+			}
+		}
+		
+		return events;
+	}
+	
+	protected void handleBattleGroundEvent(BattleGroundEvent event) {
+		try {
+			switch(event.getEventType()) {
+			case BET:
+				this.betEventAnnotator.annotateEvent((BetEvent)event);
+				this.eventRouter.sendDataToQueues(event);
+				break;
+			case BET_INFO:
+				this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) event);
+				this.eventRouter.sendDataToQueues(event);
+				break;
+			case FIGHT_BEGINS:
+				FightBeginsEvent fightEvent = (FightBeginsEvent) event;
+				SkillDropEvent skillDropEvent = fightEvent.generateSkillDropEvent();
+				this.eventRouter.sendDataToQueues(fightEvent);
+				this.skillDropEventAnnotator.annotateEvent(skillDropEvent);
+				this.eventRouter.sendDataToQueues(skillDropEvent);
+				break;
+			case PRESTIGE_ASCENSION:
+				this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);
+				this.eventRouter.sendDataToQueues(event);
+				break;
+			case SKILL_DROP:
+				this.skillDropEventAnnotator.annotateEvent((SkillDropEvent) event);
+				this.eventRouter.sendDataToQueues(event);
+				break;
+			case BETTING_ENDS:
+				this.handleBettingBeginsEvent(event);
+				break;
+			case BETTING_BEGINS:
+				this.handleBettingEndsEvent(event);
+				break;
+			default:
+				this.eventRouter.sendDataToQueues(event);
+				break;
+			}
+		} catch(DumpException e) {
+			log.error("Error found in Event Parser", e);
+			this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
+		} catch(TournamentApiException e) {
+			log.warn("TournamentApiException found in Event Parser", e);
+		} catch(Exception e) {
+			log.error("Error found in Event Parser", e);
+			this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
+		}
+	}
+	
+	protected void logEvent(BattleGroundEvent event, ChatMessage message) {
+		if(this.logEvents) {
+			log.info("Found event: {} with data: {} from chatMessage {}", event.getEventType().getEventStringName(), event.toString(), message);
+		}
+	}
+	
+	protected void handleBettingBeginsEvent(BattleGroundEvent event) throws DumpException {
+		this.eventRouter.sendDataToQueues(event);
+		if(this.currentTournament != null) {
+			List<BattleGroundEvent> finalBets = this.tournamentService.getRealBetInfoFromLatestPotFile(this.currentTournament.getID());
+			log.info("Sending final bet data with {} entries", finalBets.size());
+			log.info("The final bet event data: {}", finalBets);
+			finalBets.parallelStream().forEach(betInfoEvent -> this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) betInfoEvent));
+			this.eventRouter.sendAllDataToQueues(finalBets);
+		}
+	}
+	
+	protected void handleBettingEndsEvent(BattleGroundEvent event) throws DumpException, TournamentApiException {
+		BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
+		this.eventRouter.sendDataToQueues(bettingBeginsEvent);
+		if( (bettingBeginsEvent.getTeam1() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam2() == BattleGroundTeam.BLUE)
+			|| (bettingBeginsEvent.getTeam2() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam1() == BattleGroundTeam.BLUE)
+			|| (currentTournament == null) 
+			|| (currentTournament.getWinnersCount() >= 7) ) {
+			this.currentTournament = this.tournamentService.getcurrentTournament();
+			this.startEventUpdate();
+		} else {
+			if(currentTournament.getWinnersCount() < 7) {
+				this.currentTournament.setWinnersCount(currentTournament.getWinnersCount() + 1);
+			}
+		}
+		if(this.currentTournament == null) {
+			this.currentTournament = this.tournamentService.getcurrentTournament();
+		}
+		if(this.currentTournament != null) {
+			List<BattleGroundEvent> tournamentRelatedEvents = this.currentTournament.getEventsFromTournament(bettingBeginsEvent.getTeam1(), bettingBeginsEvent.getTeam2());
+			this.handleTournamentEvents(tournamentRelatedEvents);
+		} else {
+			log.error("Contacting the tournament Service has failed!");
 		}
 	}
 	
@@ -173,7 +229,7 @@ public class EventParser extends Thread {
 				switch(battleGroundEvent.getEventType()) {
 				case TEAM_INFO:
 					TeamInfoEvent teamInfoEvent = (TeamInfoEvent) battleGroundEvent;
-					this.attachMetadataToTeamInfo(teamInfoEvent);
+					this.teamInfoEventAnnotator.annotateEvent(teamInfoEvent);
 					break;
 				case MATCH_INFO:
 					MatchInfoEvent matchEvent = (MatchInfoEvent) battleGroundEvent;
@@ -191,7 +247,7 @@ public class EventParser extends Thread {
 					break;
 				case UNIT_INFO:
 					UnitInfoEvent unitEvent = (UnitInfoEvent) battleGroundEvent;
-					this.attachMetadataToUnitInfo(unitEvent);
+					this.unitInfoEventAnnotator.annotateEvent(unitEvent);
 					break;
 				default:
 					break;
@@ -204,107 +260,6 @@ public class EventParser extends Thread {
 		
 		if(!matchInfoFound) {
 			this.sendScheduledMessage("!match ", 5*1000L);
-		}
-	}
-	
-	protected void attachMetadataToBetInfoEvent(BetInfoEvent event) {
-		PlayerRecord metadata = new PlayerRecord();
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPlayer()));
-		if(maybeRecord.isPresent()) {
-			PlayerRecord record = maybeRecord.get();
-			metadata.setPlayer(event.getPlayer());
-			metadata.setWins(record.getWins());
-			metadata.setLosses(record.getLosses());
-			metadata.setLastKnownAmount(record.getLastKnownAmount());
-			event.setMetadata(metadata);
-			/*
-			 * we set the gold source value for bet info in Botland.addBetInfo, but we get the current data from the database in case its set.
-			 * that way the live page has improved bet data for BetInfo bets
-			 */
-			event.setIsSubscriber(record.isSubscriber());
-		}
-		
-		return;
-	}
-	
-	protected void attachMetadataToBetEvent(BetEvent event) {
-		PlayerRecord metadata = new PlayerRecord();
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPlayer()));
-		if(maybeRecord.isPresent()) {
-			PlayerRecord record = maybeRecord.get();
-			metadata.setPlayer(event.getPlayer());
-			metadata.setWins(record.getWins());
-			metadata.setLosses(record.getLosses());
-			metadata.setLastKnownAmount(record.getLastKnownAmount());
-			event.setMetadata(metadata);
-			event.setBetAmount(GambleUtil.getBetAmountFromBetString(record, event).toString());
-		} else {
-			event.setBetAmount(GambleUtil.MINIMUM_BET.toString());
-		}
-		
-		return;
-	}
-	
-	protected void attachMetadataToTeamInfo(TeamInfoEvent event) {
-		List<PlayerRecord> metadataRecords = new ArrayList<>();
-		List<Pair<String, String>> replacementPairList = new ArrayList<>();
-		for(Pair<String, String> playerUnitData : event.getPlayerUnitPairs()) {
-			PlayerRecord metadata = new PlayerRecord();
-			
-			//because names from the tournament api have '_' replaced with ' '.  multiple '_' are replaced with a single ' ' 
-			String playerName = playerUnitData.getLeft();
-			playerName = StringUtils.lowerCase(playerName);
-			String likePlayerNameString = StringUtils.replace(playerName, " ", "%"); 
-			List<PlayerRecord> records = this.playerRecordRepo.findLikePlayer(likePlayerNameString);
-			
-			if(records != null && records.size() > 0) {
-				PlayerRecord record = records.get(0);
-				metadata.setPlayer(record.getPlayer());
-				metadata.setFightWins(record.getFightWins());
-				metadata.setFightLosses(record.getFightLosses());
-				Pair<String, String> newPair = new ImmutablePair<>(record.getPlayer(), playerUnitData.getRight());
-				replacementPairList.add(newPair);
-			} else {
-				metadata.setPlayer(playerUnitData.getLeft());
-				metadata.setFightWins(0);
-				metadata.setFightLosses(0);
-				replacementPairList.add(playerUnitData);
-			}
-			metadataRecords.add(metadata);
-		}
-		event.setPlayerUnitPairs(replacementPairList);
-		
-		event.setMetaData(metadataRecords);
-	}
-	
-	protected void attachMetadataToUnitInfo(UnitInfoEvent event) {
-		String playerName = event.getPlayer();
-		playerName = StringUtils.lowerCase(playerName);
-		String likePlayerNameString = StringUtils.replace(playerName, " ", "%"); 
-		List<String> possiblePlayerNames = this.playerRecordRepo.findPlayerNameByLike(likePlayerNameString);
-		if(possiblePlayerNames != null && possiblePlayerNames.size() > 0) {
-			event.setPlayer(possiblePlayerNames.get(0));
-		} else {
-			event.setPlayer(playerName);
-		}
-	}
-	
-	protected void attachMetadataToPrestigeAscension(PrestigeAscensionEvent event) {
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPrestigeSkillsEvent().getPlayer()));
-		if(maybeRecord.isPresent()) {
-			event.setCurrentBalance(maybeRecord.get().getLastKnownAmount());
-		}
-		
-		return;
-	}
-	
-	protected void attachMetadataToSkillDropEvent(SkillDropEvent event) throws TournamentApiException {
-		if(event != null) {
-			Tips tipFromTournamentService = this.tournamentService.getCurrentTips();
-			String description = tipFromTournamentService.getUserSkill().get(event.getSkill());
-			description = StringUtils.replace(description, "\"", "");
-			event.setSkillDescription(description);
-			return;
 		}
 	}
 	
