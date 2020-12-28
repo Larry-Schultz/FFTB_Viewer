@@ -306,7 +306,7 @@ implements Runnable {
 		leaderboardCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.LEADERBOARD, this::deserializePlayerLeaderboard) ;
 		if(leaderboardCacheData != null) {
 			log.info("Loading player leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getLeaderboardCache().put(BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboardCacheData);
+			this.dumpServiceRef.getDumpReportsService().getPlayerLeaderboardReportGenerator().getCache().put(BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboardCacheData);
 		} else {
 			log.info("Player leaderboard data from database cache not found");
 		}
@@ -316,7 +316,7 @@ implements Runnable {
 		botLeaderboardCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.BOT_LEADERBOARD, this::deserializeBotLeaderboard);
 		if(botLeaderboardCacheData != null) {
 			log.info("Loading bot leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getBotLeaderboardCache().put(BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboardCacheData);
+			this.dumpServiceRef.getDumpReportsService().getBotLeaderboardReportGenerator().getCache().put(BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboardCacheData);
 		} else {
 			log.info("bot leaderboard data from database cache not found");
 		}
@@ -326,7 +326,7 @@ implements Runnable {
 		betPercentilesCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.BET_PERCENTILES, this::deserializeMapIntegerDouble);
 		if(betPercentilesCacheData != null) {
 			log.info("Loading bet percentiles data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getBetPercentilesCache().put(BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentilesCacheData);
+			this.dumpServiceRef.getDumpReportsService().getBetPercentileReportGenerator().getCache().put(BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentilesCacheData);
 		} else {
 			log.info("bet percentiles data from database cache not found");
 		}
@@ -336,7 +336,7 @@ implements Runnable {
 		fightPercentilesCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.FIGHT_PERCENTILES, this::deserializeMapIntegerDouble);
 		if(fightPercentilesCacheData != null) {
 			log.info("Loading fight percentiles data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getFightPercentilesCache().put(BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentilesCacheData);
+			this.dumpServiceRef.getDumpReportsService().getFightPercentileReportGenerator().getCache().put(BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentilesCacheData);
 		} else {
 			log.info("fight percentiles data from database cache not found");
 		}
@@ -346,7 +346,7 @@ implements Runnable {
 		wrapper = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD, this::deserializeAllegianceLeaderboard);
 		if(wrapper != null) {
 			log.info("Loading allegiance leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getAllegianceLeaderboardCache().put(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
+			this.dumpServiceRef.getDumpReportsService().getAllegianceReportGenerator().getCache().put(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
 		} else {
 			log.info("allegiance ledaerboard data from database cache not found");
 		}
