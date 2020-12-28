@@ -1,10 +1,12 @@
 package fft_battleground.event.model;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.botland.model.DatabaseResultsData;
+
 import lombok.Data;
 
 @Data
@@ -17,6 +19,12 @@ implements DatabaseResultsData {
 	private List<String> skills;
 	
 	public PlayerSkillEvent() {}
+	
+	public PlayerSkillEvent(String player) {
+		super(type);
+		this.player = player;
+		this.skills = Collections.emptyList();
+	}
 	
 	public PlayerSkillEvent(String player, List<String> skills) {
 		super(type);

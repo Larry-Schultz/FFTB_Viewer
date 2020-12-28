@@ -29,7 +29,6 @@ import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.SkillWinEvent;
 import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
-import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -197,8 +196,10 @@ public class RepoManager extends Thread {
 		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
 		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
 			try {
-				this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdateFromRepo(player);
-			} catch (DumpException e) {
+				//this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdateFromRepo(player);
+				PlayerSkillRefresh refresh = new PlayerSkillRefresh(event);
+				this.handlePlayerSkillRefresh(refresh);
+			} catch (Exception e) {
 				log.error("Error processing Ascension refresh for player {}", id);
 				this.errorWebhookManager.sendException(e);
 			}
