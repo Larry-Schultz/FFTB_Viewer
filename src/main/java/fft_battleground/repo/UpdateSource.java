@@ -12,6 +12,7 @@ public enum UpdateSource {
 	EXP,
 	ALLEGIANCE,
 	PLAYER_SKILLS,
-	LAST_ACTIVE,
+	LAST_ACTIVE, 
+	LAST_FIGHT_ACTIVE,
 
 }
