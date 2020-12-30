@@ -3,17 +3,18 @@ package fft_battleground.event.detector;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.botland.model.BetType;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 
-public class BetDetector implements EventDetector
+public class BetDetector implements EventDetector<BetEvent>
 {
 	private static final String ALLINBUT_FLAG_SEARCH_STRING = "allbut"; 
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public BetEvent detect(ChatMessage message) {
 		BetEvent event = null;
 		String messageText = message.getMessage();
 		if(StringUtils.contains(messageText, "!betf")) {
