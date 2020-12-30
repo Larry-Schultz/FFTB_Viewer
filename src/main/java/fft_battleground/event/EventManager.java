@@ -20,6 +20,7 @@ import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.event.model.BettingEndsEvent;
+import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.ResultEvent;
 import fft_battleground.event.model.TeamInfoEvent;
@@ -71,6 +72,11 @@ public class EventManager extends Thread {
 				switch(event.getEventType()) {
 					case FIGHT_BEGINS:
 						this.handleFight(event);
+						break;
+					case FIGHT_ENTRY:
+						FightEntryEvent fightEntryEvent = (FightEntryEvent) event;
+						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
+						this.dumpService.getLastFightActiveCache().put(fightEntryEvent.getPlayer(), event.getEventTime());
 						break;
 					case BETTING_BEGINS:
 						bettingCurrently = true;

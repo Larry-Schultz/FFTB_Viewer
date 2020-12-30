@@ -29,6 +29,7 @@ import fft_battleground.botland.model.SkillType;
 import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.PortraitEvent;
@@ -93,6 +94,10 @@ public class PlayerRecord {
     @Temporal(TemporalType.DATE)
     @Column(name="last_active", nullable=true)
     private Date lastActive;
+    
+    @Temporal(TemporalType.DATE)
+    @Column(name="last_fight_active", nullable=true)
+    private Date lastFightActive;
     
     @Column(name="is_subscriber", nullable=true)
     @Convert(converter = BooleanConverter.class)
@@ -183,6 +188,13 @@ public class PlayerRecord {
 		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.lastActive = event.getLastActive();
 		this.createdSource = createdSource;
+		
+		this.setDefaults();
+	}
+	
+	public PlayerRecord(FightEntryEvent event, UpdateSource lastFightActive2) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
+		this.lastFightActive = event.getEventTime();
 		
 		this.setDefaults();
 	}
