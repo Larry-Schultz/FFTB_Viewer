@@ -14,7 +14,7 @@ public class DomainHandlerInterceptor implements HandlerInterceptor {
 	@Value("${hostnameUrl}")
 	private String hostDomain;
 	
-	@Value("theotherbrancomputer.asuscomm.com")
+	@Value("${redirectUrl}")
 	private String oldDomain;
 	
     @Override

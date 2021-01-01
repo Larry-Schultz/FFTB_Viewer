@@ -1,5 +1,7 @@
 package fft_battleground.repo;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,17 +199,19 @@ public class RepoManager extends Thread {
 	}
 	
 	protected void handlePrestigeAscensionEvent(final PrestigeAscensionEvent event) {
+		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
 		if(event.getCurrentBalance() != null) {
 			this.repoTransactionManager.generateSimulatedBalanceEvent(event.getPrestigeSkillsEvent().getPlayer(), (-1) * event.getCurrentBalance(), BalanceUpdateSource.PRESTIGE);
 		}
 		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
 		//use Timer to force update player skill.  May delay events behind this propagation
-		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
 		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
 			try {
 				int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(player) != null ? this.dumpService.getPrestigeSkillsCache().get(player).size() : 0;
 				this.ascensionWebhookManager.sendAscensionMessage(player, prestigeBefore, prestigeBefore + 1);
-				PlayerSkillRefresh refresh = new PlayerSkillRefresh(event);
+				List<String> userSkills = Collections.emptyList();
+				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(id);
+				PlayerSkillRefresh refresh = new PlayerSkillRefresh(id, userSkills, prestigeSkills, event);
 				this.handlePlayerSkillRefresh(refresh);
 			} catch (Exception e) {
 				log.error("Error processing Ascension refresh for player {}", id);

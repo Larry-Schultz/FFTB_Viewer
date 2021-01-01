@@ -77,7 +77,9 @@ public class DumpService {
 	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
 	
 	@Value("${fft_battleground.enableCache}")
-	boolean isCacheEnabled;
+	private boolean isCacheEnabled;
+	
+	private Boolean runBatch = true;
 	
 	@Autowired
 	@Getter private DumpDataProvider dumpDataProvider;
@@ -147,8 +149,12 @@ public class DumpService {
 		}
 		log.info("finished loading bot cache");
 
-		builder.buildLeaderboard();
-		//this.dumpScheduledTasks.runAllUpdates();
+		if(this.runBatch != null && this.runBatch) {
+			builder.buildLeaderboard();
+		}
+		
+		
+		this.dumpScheduledTasks.runAllUpdates();
 
 		log.info("player data cache load complete");
 	}

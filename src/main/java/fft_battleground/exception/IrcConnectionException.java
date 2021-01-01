@@ -11,6 +11,10 @@ public class IrcConnectionException extends BattleGroundException {
 		super(e);
 	}
 	
+	public IrcConnectionException(String msg) {
+		super(msg);
+	}
+	
 	public IrcConnectionException(String msg, Exception e) {
 		super(msg, e);
 	}

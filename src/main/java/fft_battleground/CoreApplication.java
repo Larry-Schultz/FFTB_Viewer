@@ -84,7 +84,7 @@ public class CoreApplication implements ApplicationContextAware {
 		String errorMessageFormat = "Shutting down server, reason %s";
 		String errorMessage = String.format(errorMessageFormat, e.getMessage());
 		log.error(errorMessage);
-		 ((ConfigurableApplicationContext) context).close();
+		((ConfigurableApplicationContext) context).close();
 	}
 
 	@Override

@@ -395,14 +395,23 @@ public class DumpScheduledTasks {
 					lastFightActiveBeforeLastSuccessfulRun = lastFightActiveDate.compareTo(compareToPerviousUpdateComplete) > 0 || compareToPerviousUpdateComplete == null;
 				}
 				
-				int compareResult = lastActiveDate.compareTo(lastFightActiveDate); //greater than 0 means lastActive is after lastFightActive
 				boolean beforeSuccessfulRun = false;
-				if(compareResult == 0) {
-					beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun; //if equal somehow just use the last active
-				} else if(compareResult == -1) {
-					beforeSuccessfulRun = lastFightActiveBeforeLastSuccessfulRun; //this means fight active is more recent
+				if(lastFightActiveDate != null && lastActiveDate != null) {
+					int compareResult = lastActiveDate.compareTo(lastFightActiveDate); //greater than 0 means lastActive is after lastFightActive
+					
+					if(compareResult == 0) {
+						beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun; //if equal somehow just use the last active
+					} else if(compareResult == -1) {
+						beforeSuccessfulRun = lastFightActiveBeforeLastSuccessfulRun; //this means fight active is more recent
+					} else {
+						beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun; //this means last active is more recent than fight active
+					}
+				} else if(lastActiveDate != null) {
+					beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun;
+				} else if(lastFightActiveDate != null) {
+					beforeSuccessfulRun = lastFightActiveBeforeLastSuccessfulRun;
 				} else {
-					beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun; //this means last active is more recent than fight active
+					beforeSuccessfulRun = false;
 				}
 				
 				return beforeSuccessfulRun;
