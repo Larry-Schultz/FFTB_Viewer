@@ -73,7 +73,7 @@ public class EventManager extends Thread {
 					case FIGHT_BEGINS:
 						this.handleFight(event);
 						break;
-					case FIGHT_ENTRY:
+					case FIGHT_ENTRY: case DONT_FIGHT:
 						FightEntryEvent fightEntryEvent = (FightEntryEvent) event;
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
 						this.dumpService.getLastFightActiveCache().put(fightEntryEvent.getPlayer(), event.getEventTime());

@@ -36,11 +36,14 @@ public enum BattleGroundEventType {
 	FIGHT_ENTRY("Fight entry"), 
 	INVALID_FIGHT_ENTRY_COMBINATION("Invalid fight syntax"), 
 	INVALID_FIGHT_ENTRY_CLASS("Invalid fight class or monster"), 
-	UNOWNED_SKILL("Unowned skill"), 
+	UNOWNED_SKILL("Unowned skill"),
+	SKILL_ON_COOLDOWN("Skill On Cooldown"),
 	OTHER_PLAYER_UNOWNED_SKILL("Composite Unowned Skill Event"), 
 	OTHER_PLAYER_INVALID_FIGHT_COMBINATION("Composite Invalid Fight Combination"), 
 	OTHER_PLAYER_INVALID_FIGHT_CLASS("Compositive Invalid Fight Class"), 
-	PING("Websocket ping");
+	OTHER_PLAYER_SKILL_ON_COOLDOWN("Composite Skill On Cooldown"),
+	PING("Websocket ping"), 
+	DONT_FIGHT("Don't Fight");
 	
 	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;

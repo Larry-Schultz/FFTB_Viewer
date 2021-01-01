@@ -22,6 +22,7 @@ import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.OtherPlayerInvalidFightCombinationEvent;
 import fft_battleground.event.model.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.model.OtherPlayerSkillOnCooldownEvent;
 import fft_battleground.event.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
@@ -169,7 +170,7 @@ public class EventParser extends Thread {
 					FightEntryEvent fightEntryEvent = (FightEntryEvent) event;
 					this.fightEntryEventAnnotator.annotateEvent(fightEntryEvent);
 					this.eventRouter.sendDataToQueues(fightEntryEvent);
-					break;
+					break;		
 				case OTHER_PLAYER_INVALID_FIGHT_CLASS:
 					OtherPlayerInvalidFightEntryClassEvent invalidFightEntryClassEvents = (OtherPlayerInvalidFightEntryClassEvent) event;
 					this.sendAllEventsToEventRouter(invalidFightEntryClassEvents.getEvents());
@@ -181,6 +182,10 @@ public class EventParser extends Thread {
 				case OTHER_PLAYER_UNOWNED_SKILL:
 					OtherPlayerUnownedSkillEvent otherPlayerUnownedSkillEvent = (OtherPlayerUnownedSkillEvent) event;
 					this.sendAllEventsToEventRouter(otherPlayerUnownedSkillEvent.getUnownedSkillEvents());
+					break;
+				case OTHER_PLAYER_SKILL_ON_COOLDOWN:
+					OtherPlayerSkillOnCooldownEvent otherPlayerSkillOnCooldownEvent = (OtherPlayerSkillOnCooldownEvent) event;
+					this.sendAllEventsToEventRouter(otherPlayerSkillOnCooldownEvent.getEvents());
 					break;
 				case PRESTIGE_ASCENSION:
 					this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);

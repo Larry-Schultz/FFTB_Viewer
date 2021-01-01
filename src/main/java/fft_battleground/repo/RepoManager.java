@@ -156,6 +156,9 @@ public class RepoManager extends Thread {
 	
 	protected void handleLevelUpEvent(LevelUpEvent event) {
 		this.repoTransactionManager.updatePlayerLevel(event);
+		if(event.getSkill() != null && event.getSkill().getSkills().size() > 0) {
+			this.repoTransactionManager.updatePlayerSkills(event.getSkill());
+		}
 	}
 	
 	protected void handleOtherPlayerExpEvent(OtherPlayerExpEvent event) {
