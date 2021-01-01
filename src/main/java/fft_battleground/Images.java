@@ -1,4 +1,4 @@
-package fft_battleground.model;
+package fft_battleground;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.TeamInfo;
 
 import lombok.AllArgsConstructor;
@@ -48,6 +49,12 @@ public class Images {
 		
 		Json tipsJson = Json.read(this.getJsonAsString(jsonFileLocation));
 		this.characters = this.parseJsonMapObject(tipsJson, "Characters");
+		
+		//detect duplicate characters
+		List<String> duplicateLocations = this.duplicateCharacters(characters);
+		for(String duplicate : duplicateLocations) {
+			log.warn("{} is an image used for more than one character", duplicate);
+		}
 		
 		this.portraits = this.parsePotraitFolder(portraitFolderLocation);
 		this.portraits = this.portraits.parallelStream().filter(portrait -> StringUtils.endsWith(portrait.getLocation(), ".gif")).collect(Collectors.toList());
@@ -214,6 +221,24 @@ public class Images {
 		}
 		
 		return result;
+	}
+	
+	protected List<String> duplicateCharacters(Map<String, String> characterFileLocationMap) {
+		List<String> duplicatedCharacterLocation = null;
+		Map<String, Integer> characterLocationCount = new HashMap<>();
+		for(String character : characterFileLocationMap.keySet()) {
+			String location = characterFileLocationMap.get(character);
+			if(!characterLocationCount.containsKey(location)) {
+				characterLocationCount.put(location, 1);
+			} else {
+				int currentCount = characterLocationCount.get(location);
+				currentCount++;
+				characterLocationCount.put(location, currentCount);
+			}
+		}
+		
+		duplicatedCharacterLocation = characterLocationCount.keySet().stream().filter(location -> characterLocationCount.get(location) > 1).collect(Collectors.toList());
+		return duplicatedCharacterLocation;
 	}
 }
 

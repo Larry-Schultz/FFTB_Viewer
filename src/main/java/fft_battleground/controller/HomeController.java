@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import fft_battleground.Images;
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.SkillType;
 import fft_battleground.controller.model.PlayerData;
@@ -51,7 +52,6 @@ import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
-import fft_battleground.model.Images;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.PlayerRecord;
