@@ -2,17 +2,17 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.RiserSkillWinEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.util.GambleUtil;
 
-public class RiserSkillWinDetector implements EventDetector {
+public class RiserSkillWinDetector implements EventDetector<RiserSkillWinEvent> {
 
 	private static final String SEARCH_STRING = ", you learned the skill: ";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public RiserSkillWinEvent detect(ChatMessage message) {
 		RiserSkillWinEvent event = null;
 		if(StringUtils.equalsIgnoreCase(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			for(String str : StringUtils.split(message.getMessage(), ";")) {

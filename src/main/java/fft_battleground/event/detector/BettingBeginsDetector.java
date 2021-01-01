@@ -2,15 +2,16 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 
-public class BettingBeginsDetector implements EventDetector {
+public class BettingBeginsDetector implements EventDetector<BettingBeginsEvent> {
 
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public BettingBeginsEvent detect(ChatMessage message) {
 		if(StringUtils.equals(StringUtils.lowerCase(message.getUsername()), StringUtils.lowerCase("FFTBattleground")) &&
 				StringUtils.contains(message.getMessage(), "Betting is open for")) {
 			String removeBeginningText = StringUtils.substringAfter(message.getMessage(), "Betting is open for ");

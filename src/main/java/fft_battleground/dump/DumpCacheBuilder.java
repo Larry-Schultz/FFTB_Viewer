@@ -56,6 +56,7 @@ public class DumpCacheBuilder {
 		Future<Map<String, Integer>> balanceCacheTaskFuture = this.threadPool.submit(new BalanceCacheTask(playerRecords));
 		Future<Map<String, ExpEvent>> expCacheTaskFuture = this.threadPool.submit(new ExpCacheTask(playerRecords));
 		Future<Map<String, Date>> lastActiveTaskFuture = this.threadPool.submit(new LastActiveCacheTask(playerRecords));
+		Future<Map<String, Date>> lastFightActiveTaskFuture = this.threadPool.submit(new LastFightActiveCacheTask(playerRecords));
 		Future<Map<String, String>> portraitCacheTaskFuture = this.threadPool.submit(new PortraitCacheTask(playerRecords));
 		Future<Map<String, BattleGroundTeam>> allegianceCacheTaskFuture = this.threadPool.submit(new AllegianceCacheTask(playerRecords));
 		Future<Map<String, List<String>>> userSkillsCacheTaskFuture = this.threadPool.submit(new UserSkillsCacheTask(playerRecords));
@@ -64,6 +65,7 @@ public class DumpCacheBuilder {
 		this.dumpService.setBalanceCache(balanceCacheTaskFuture.get());
 		this.dumpService.setExpCache(expCacheTaskFuture.get());
 		this.dumpService.setLastActiveCache(lastActiveTaskFuture.get());
+		this.dumpService.setLastActiveCache(lastFightActiveTaskFuture.get());
 		this.dumpService.setPortraitCache(portraitCacheTaskFuture.get());
 		this.dumpService.setAllegianceCache(allegianceCacheTaskFuture.get());
 		this.dumpService.setUserSkillsCache(userSkillsCacheTaskFuture.get());
@@ -177,6 +179,37 @@ implements Callable<Map<String, Date>> {
 		log.info("finished loading last active cache");
 		
 		return lastActiveCache;
+	}
+	
+}
+
+@Slf4j
+class LastFightActiveCacheTask
+extends CacheTask
+implements Callable<Map<String, Date>> {
+	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
+	
+	public LastFightActiveCacheTask(List<PlayerRecord> playerRecords) {
+		super(playerRecords);
+	}
+
+	@Override
+	public Map<String, Date> call() throws Exception {
+		Map<String, Date> lastFightActiveCache;
+		
+		log.info("started loading last fight active cache");
+		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastFightActive() == null).forEach(playerRecord -> {
+			try {
+				SimpleDateFormat dateFormatter = new SimpleDateFormat(dateActiveFormatString);
+				playerRecord.setLastFightActive(dateFormatter.parse("Wed Jan 01 00:00:00 EDT 2020"));
+			} catch (ParseException e) {
+				log.error("error parsing date for lastActive", e);
+			}
+		});
+		lastFightActiveCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, PlayerRecord::getLastFightActive));
+		log.info("finished loading last fight active cache");
+		
+		return lastFightActiveCache;
 	}
 	
 }

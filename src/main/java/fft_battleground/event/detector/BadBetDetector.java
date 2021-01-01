@@ -5,17 +5,18 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BadBetEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.ChatMessage;
 
-public class BadBetDetector implements EventDetector {
+public class BadBetDetector implements EventDetector<BadBetEvent> {
 
 	protected static final String SEARCH_STRING = ", you don't have enough gil to make this bet!";
 	protected static final String SEARCH_STRING_2 = ", betting has closed, sorry!";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public BadBetEvent detect(ChatMessage message) {
 		BadBetEvent event = null;
 		List<String> players = new ArrayList<>();
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") 

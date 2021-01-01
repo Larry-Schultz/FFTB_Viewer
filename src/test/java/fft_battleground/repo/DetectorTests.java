@@ -12,11 +12,15 @@ import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
 import fft_battleground.event.detector.BuySkillDetector;
-import fft_battleground.event.detector.FightDetector;
+import fft_battleground.event.detector.FightBeginsDetector;
+import fft_battleground.event.detector.FightEntryDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
 import fft_battleground.event.detector.LevelUpDetector;
 import fft_battleground.event.detector.MusicDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
+import fft_battleground.event.detector.OtherPlayerInvalidFightCombinationDetector;
+import fft_battleground.event.detector.OtherPlayerInvalidFightEntryClassDetector;
+import fft_battleground.event.detector.OtherPlayerUnownedSkillDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
 import fft_battleground.event.detector.PrestigeAscensionDetector;
@@ -30,9 +34,13 @@ import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.BuySkillEvent;
+import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.MusicEvent;
+import fft_battleground.event.model.OtherPlayerInvalidFightCombinationEvent;
+import fft_battleground.event.model.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
@@ -263,7 +271,7 @@ public class DetectorTests {
 	public void testFightBeginsEventDetector() {
 		String test1 = "You may now !fight to enter the tournament! This tournament's Skill Drop is: Dragon. One random user using !fight (or !dontfight) will receive this skill. Alternately, you can buy the skill for 1,000G.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
-		FightDetector detector = new FightDetector();
+		FightBeginsDetector detector = new FightBeginsDetector();
 		BattleGroundEvent event = detector.detect(message);
 		assertTrue(event != null);
 	}
@@ -320,5 +328,61 @@ public class DetectorTests {
 		assertTrue(riserSkillEvent.getSkillEvents().get(0).getSkills().size() > 0);
 		assertTrue(StringUtils.equals("BladeGrasp", riserSkillEvent.getSkillEvents().get(0).getSkills().get(0)));
 	}
+	
+	@Test
+	public void testFightEntryDetector() {
+		ChatMessage message = new ChatMessage("OtherBrand", "!fight");
+		FightEntryDetector detector = new FightEntryDetector();
+		FightEntryEvent event = detector.detect(message);
+		assertTrue(StringUtils.equals(event.getPlayer(), "otherbrand"));
+		
+		message = new ChatMessage("OtherBrand", "!fight UltimaDemon");
+		event = detector.detect(message);
+		assertTrue(StringUtils.equals(event.getClassName(), "UltimaDemon"));
+		
+		message = new ChatMessage("OtherBrand", "!fight Squire BasicSkill");
+		event = detector.detect(message);
+		assertTrue(StringUtils.equals(event.getClassName(), "Squire"));
+		assertTrue(StringUtils.equals(event.getSkill(), "BasicSkill"));
+		
+		message = new ChatMessage("OtherBrand", "!fight Squire BasicSkill - PunchArt");
+		event = detector.detect(message);
+		assertTrue(StringUtils.equals(event.getClassName(), "Squire"));
+		assertTrue(StringUtils.equals(event.getSkill(), "BasicSkill"));
+		assertTrue(StringUtils.equals(event.getExclusionSkill(), "PunchArt"));
+	}
+	
+	@Test
+	public void testOtherPlayerInvalidFightCombinationDetector() {
+		ChatMessage message = this.createBotChatMessage("tripaplex, your bettable balance is: 4,738G (Spendable: 4,390G).; OtherBrand, invalid combination! Can only have one skill and one excluded skill, and exclusions must be prefixed with -.");
+		OtherPlayerInvalidFightCombinationDetector detector = new OtherPlayerInvalidFightCombinationDetector();
+		OtherPlayerInvalidFightCombinationEvent event = detector.detect(message);
+		assertTrue(event.getEvents().size() == 1);
+		assertTrue(StringUtils.equals(event.getEvents().get(0).getPlayer(), "otherbrand"));
+	}
+	
+	@Test
+	public void testOtherPlayerInvalidFightEntryClassDetector() {
+		ChatMessage message = this.createBotChatMessage("OtherBrand, Chem is not a valid Human or Monster class. Use !classes for a list.");
+		OtherPlayerInvalidFightEntryClassDetector detector = new OtherPlayerInvalidFightEntryClassDetector();
+		OtherPlayerInvalidFightEntryClassEvent event = detector.detect(message);
+		assertTrue(event.getEvents().size() == 1);
+		assertTrue(StringUtils.equals(event.getEvents().get(0).getPlayer(), "otherbrand"));
+		assertTrue(StringUtils.equals(event.getEvents().get(0).getClassName(), "Chem"));
+	}
+	
+	@Test
+	public void testOtherPlayerUnownedSkillDetector() {
+		ChatMessage message = this.createBotChatMessage("OtherBrand, you don't own the skill Pnchart! Type !skills to see your list of skills.; SkylerBunny, you already own the Teleport skill!; reinoe, you'll earn a +7 EXP bonus for entering as a random unit, or one of these classes: Knight, Wizard, Mime. Also, you'll earn a +2 EXP bonus for using this skill: MPRestore.");
+		OtherPlayerUnownedSkillDetector detector = new OtherPlayerUnownedSkillDetector();
+		OtherPlayerUnownedSkillEvent event = detector.detect(message);
+		assertTrue(event.getUnownedSkillEvents().size() == 1);
+		assertTrue(StringUtils.equals(event.getUnownedSkillEvents().get(0).getPlayer(), "otherbrand"));
+		assertTrue(StringUtils.equals(event.getUnownedSkillEvents().get(0).getSkill(), "Pnchart"));
+	}
 
+	protected ChatMessage createBotChatMessage(String message) {
+		ChatMessage chatMessage = new ChatMessage("fftbattleground", message);
+		return chatMessage;
+	}
 }

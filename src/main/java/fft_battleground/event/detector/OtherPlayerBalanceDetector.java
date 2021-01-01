@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
@@ -13,12 +14,12 @@ import fft_battleground.model.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class OtherPlayerBalanceDetector implements EventDetector {
+public class OtherPlayerBalanceDetector implements EventDetector<OtherPlayerBalanceEvent> {
 	
 	protected static final String findString = "your bettable balance is:";
 
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public OtherPlayerBalanceEvent detect(ChatMessage message) {
 		OtherPlayerBalanceEvent event = null;
 		if(StringUtils.equals(StringUtils.lowerCase(message.getUsername()), StringUtils.lowerCase("FFTBattleground"))) {
 			List<BalanceEvent> balanceEvents = new ArrayList<BalanceEvent>();

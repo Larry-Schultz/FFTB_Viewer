@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -11,13 +12,13 @@ import fft_battleground.model.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MatchInfoDetector implements EventDetector {
+public class MatchInfoDetector implements EventDetector<MatchInfoEvent> {
 
 	private static final String BEGIN_STRING = "Current match: ";
 	private static final String END_STRING = " seconds longer until a Time Over";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public MatchInfoEvent detect(ChatMessage message) {
 		MatchInfoEvent event = null;
 		if(StringUtils.contains(message.getMessage(), BEGIN_STRING)) {
 			String teamString = null;

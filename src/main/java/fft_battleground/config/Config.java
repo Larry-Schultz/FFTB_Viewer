@@ -16,6 +16,7 @@ import com.gikk.twirk.Twirk;
 import com.gikk.twirk.TwirkBuilder;
 
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BadBetDetector;
 import fft_battleground.event.detector.BalanceDetector;
@@ -24,13 +25,16 @@ import fft_battleground.event.detector.BetInfoEventDetector;
 import fft_battleground.event.detector.BettingBeginsDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
 import fft_battleground.event.detector.BuySkillDetector;
-import fft_battleground.event.detector.EventDetector;
-import fft_battleground.event.detector.FightDetector;
+import fft_battleground.event.detector.FightBeginsDetector;
+import fft_battleground.event.detector.FightEntryDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
 import fft_battleground.event.detector.LevelUpDetector;
 import fft_battleground.event.detector.MusicDetector;
 import fft_battleground.event.detector.OtherPlayerBalanceDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
+import fft_battleground.event.detector.OtherPlayerInvalidFightCombinationDetector;
+import fft_battleground.event.detector.OtherPlayerInvalidFightEntryClassDetector;
+import fft_battleground.event.detector.OtherPlayerUnownedSkillDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
 import fft_battleground.event.detector.PortraitEventDetector;
 import fft_battleground.event.detector.PrestigeAscensionDetector;
@@ -81,13 +85,15 @@ public class Config {
 	}
 	
 	@Bean
-	public List<EventDetector> detectors(@Value("${irc.username}") String username) {
+	public List<EventDetector<?>> detectors(@Value("${irc.username}") String username) {
 		return Arrays.asList(new EventDetector[]{
 			new BetDetector(), new LevelUpDetector(), new ResultEventDetector(), new SkillWinEventDetector(), new RiserSkillWinDetector(),
 			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(), new MusicDetector(),
 			new BettingBeginsDetector(), new AllegianceDetector(), new BetInfoEventDetector(), new SkillDropDetector(),
-			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(),
-			new FightDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()});
+			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(), 
+			new FightEntryDetector(), new FightBeginsDetector(), new OtherPlayerInvalidFightCombinationDetector(), new OtherPlayerInvalidFightEntryClassDetector(),
+			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()
+		});
 	}
 	
 	@Bean
