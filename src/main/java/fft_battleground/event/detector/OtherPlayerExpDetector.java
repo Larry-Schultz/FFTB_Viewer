@@ -5,17 +5,18 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
 import fft_battleground.model.ChatMessage;
 
-public class OtherPlayerExpDetector implements EventDetector {
+public class OtherPlayerExpDetector implements EventDetector<OtherPlayerExpEvent> {
 
 	protected static final String SEARCH_STRING = ". You will Level Up when you gain another ";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public OtherPlayerExpEvent detect(ChatMessage message) {
 		OtherPlayerExpEvent event = null;
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			List<ExpEvent> events = this.getEvents(message);

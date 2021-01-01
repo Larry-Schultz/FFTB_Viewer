@@ -32,9 +32,20 @@ public enum BattleGroundEventType {
 	PRESTIGE_ASCENSION("Prestige Ascension"), 
 	MUSIC("Music"), 
 	RISER_SKILL_WIN("Riser Skill Win"), 
-	TOURNAMENT_STATUS_UPDATE_EVENT("Tournament Status Update");
+	TOURNAMENT_STATUS_UPDATE_EVENT("Tournament Status Update"), 
+	FIGHT_ENTRY("Fight entry"), 
+	INVALID_FIGHT_ENTRY_COMBINATION("Invalid fight syntax"), 
+	INVALID_FIGHT_ENTRY_CLASS("Invalid fight class or monster"), 
+	UNOWNED_SKILL("Unowned skill"),
+	SKILL_ON_COOLDOWN("Skill On Cooldown"),
+	OTHER_PLAYER_UNOWNED_SKILL("Composite Unowned Skill Event"), 
+	OTHER_PLAYER_INVALID_FIGHT_COMBINATION("Composite Invalid Fight Combination"), 
+	OTHER_PLAYER_INVALID_FIGHT_CLASS("Compositive Invalid Fight Class"), 
+	OTHER_PLAYER_SKILL_ON_COOLDOWN("Composite Skill On Cooldown"),
+	PING("Websocket ping"), 
+	DONT_FIGHT("Don't Fight");
 	
-	BattleGroundEventType(String eventStringName) {
+	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;
 	}
 	

@@ -106,6 +106,7 @@ public class DumpService {
 	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, Date> lastActiveCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, Date> lastFightActiveCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, String> portraitCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, BattleGroundTeam> allegianceCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, List<String>> userSkillsCache = new ConcurrentHashMap<>();

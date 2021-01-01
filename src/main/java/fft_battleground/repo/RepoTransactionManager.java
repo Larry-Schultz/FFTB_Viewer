@@ -23,6 +23,7 @@ import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
@@ -390,6 +391,22 @@ public class RepoTransactionManager {
 			this.globalGilHistoryRepo.saveAndFlush(globalGilHistory);
 		}
 		
+		return;
+	}
+	
+	@Transactional
+	public void updateLastFightActive(FightEntryEvent event) {
+		String id = this.cleanString(event.getPlayer());
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
+		if(maybeRecord.isPresent()) {
+			maybeRecord.get().setLastFightActive(event.getEventTime());
+			maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
+			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+		} else {
+			event.setPlayer(this.cleanString(event.getPlayer()));
+			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_FIGHT_ACTIVE);
+			this.playerRecordRepo.saveAndFlush(record);
+		}
 	}
 	
 	@Transactional(propagation=Propagation.REQUIRED)

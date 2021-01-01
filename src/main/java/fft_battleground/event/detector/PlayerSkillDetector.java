@@ -5,18 +5,19 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.model.ChatMessage;
 
-public class PlayerSkillDetector implements EventDetector {
+public class PlayerSkillDetector implements EventDetector<PlayerSkillEvent> {
 
 	private static final String SEARCH_STRING = ", your skills: ";
 	private static final String FILTER_STRING = "None!";
 	private static final String FILTER_STRING_2 = "Invalid page";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public PlayerSkillEvent detect(ChatMessage message) {
 		PlayerSkillEvent event = null;
 		
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {

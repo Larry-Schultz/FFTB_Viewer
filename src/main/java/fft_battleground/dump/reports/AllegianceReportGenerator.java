@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderboardWrapper> {
-
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD;
 	
 	@Autowired
@@ -130,7 +130,16 @@ public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderb
 			this.errorWebhookManager.sendException(exception, "Error getting high score data from the dump has stopped the generation of allegiance data");
 			throw exception;
 		}
-		Map<String, Integer> topTenPlayers = this.dumpReportsService.getTopPlayers(DumpReportsService.HIGHEST_PLAYERS);
+		
+		Map<String, Integer> topTenPlayers = new HashMap<>();
+		try {
+			Map<String, Integer> topTenPlayersResults = this.dumpReportsService.getTopPlayers(DumpReportsService.HIGHEST_PLAYERS);
+			topTenPlayers.putAll(topTenPlayersResults);
+		} catch(CacheBuildException e) {
+			log.error("error getting top ten players", e);
+			this.errorWebhookManager.sendException(e, "Error generating top player data has stopped the generation of the allegiance report");
+			throw e;
+		}
 
 		Future<List<Optional<String>>> topTenFilter = executor
 				.submit(new FunctionCallableListResult<String, Optional<String>>(highScoreDataFromDump.keySet(),

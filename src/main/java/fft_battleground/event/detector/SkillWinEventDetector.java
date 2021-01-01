@@ -2,11 +2,11 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.SkillWinEvent;
 import fft_battleground.model.ChatMessage;
 
-public class SkillWinEventDetector implements EventDetector {
+public class SkillWinEventDetector implements EventDetector<SkillWinEvent> {
 
 	private static final String SEARCH_STRING = "! You have been bestowed the ";
 	private static final String SEARCH_STRING_2 = " skill free of charge! Additionally, ";
@@ -14,7 +14,7 @@ public class SkillWinEventDetector implements EventDetector {
 	
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public SkillWinEvent detect(ChatMessage message) {
 		SkillWinEvent event = null;
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)
 				&& StringUtils.contains(message.getMessage(), SEARCH_STRING_2) && StringUtils.contains(message.getMessage(), SEARCH_STRING_3)) {

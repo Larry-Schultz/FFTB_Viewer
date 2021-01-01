@@ -379,9 +379,34 @@ public class DumpScheduledTasks {
 		}
 		final Date compareToPerviousUpdateComplete = previousUpdateComplete; //because the compile complains that previousUpdateComplete was not a final variable
 		result = players.parallelStream()
-			.filter(player -> this.dumpService.getLastActiveCache().containsKey(player))
-			.filter(player -> this.dumpService.getLastActiveCache().get(player) != null)
-			.filter(player -> this.dumpService.getLastActiveCache().get(player).compareTo(compareToPerviousUpdateComplete) > 0 || compareToPerviousUpdateComplete == null)
+			.filter(player -> this.dumpService.getLastActiveCache().containsKey(player) || this.dumpService.getLastFightActiveCache().containsKey(player))
+			.filter(player -> this.dumpService.getLastActiveCache().get(player) != null || this.dumpService.getLastFightActiveCache().get(player) != null)
+			.filter(player -> {
+				Date lastActiveDate = this.dumpService.getLastActiveCache().get(player);
+				Date lastFightActiveDate = this.dumpService.getLastFightActiveCache().get(player);
+				
+				boolean lastActiveBeforeLastSuccessfulRun = false;
+				if(this.dumpService.getLastActiveCache().get(player) != null) {
+					lastActiveBeforeLastSuccessfulRun = lastActiveDate.compareTo(compareToPerviousUpdateComplete) > 0 || compareToPerviousUpdateComplete == null;
+				}
+				
+				boolean lastFightActiveBeforeLastSuccessfulRun = false;
+				if(this.dumpService.getLastFightActiveCache().get(player) != null) {
+					lastFightActiveBeforeLastSuccessfulRun = lastFightActiveDate.compareTo(compareToPerviousUpdateComplete) > 0 || compareToPerviousUpdateComplete == null;
+				}
+				
+				int compareResult = lastActiveDate.compareTo(lastFightActiveDate); //greater than 0 means lastActive is after lastFightActive
+				boolean beforeSuccessfulRun = false;
+				if(compareResult == 0) {
+					beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun; //if equal somehow just use the last active
+				} else if(compareResult == -1) {
+					beforeSuccessfulRun = lastFightActiveBeforeLastSuccessfulRun; //this means fight active is more recent
+				} else {
+					beforeSuccessfulRun = lastActiveBeforeLastSuccessfulRun; //this means last active is more recent than fight active
+				}
+				
+				return beforeSuccessfulRun;
+			})
 			.collect(Collectors.toSet());
 		return result;
 	}

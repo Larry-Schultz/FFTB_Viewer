@@ -1,5 +1,6 @@
 package fft_battleground.event;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -12,18 +13,23 @@ import org.springframework.stereotype.Service;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
-import fft_battleground.event.detector.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
 import fft_battleground.event.model.FightBeginsEvent;
+import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.MatchInfoEvent;
+import fft_battleground.event.model.OtherPlayerInvalidFightCombinationEvent;
+import fft_battleground.event.model.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.model.OtherPlayerSkillOnCooldownEvent;
+import fft_battleground.event.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.exception.DumpException;
+import fft_battleground.exception.MissingEventTypeException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
@@ -50,7 +56,7 @@ public class EventParser extends Thread {
 	private Router<ChatMessage> messageSenderRouter;
 	
 	@Autowired
-	private List<EventDetector> detectors;
+	private List<EventDetector<?>> detectors;
 	
 	@Autowired
 	private TournamentService tournamentService;
@@ -82,6 +88,9 @@ public class EventParser extends Thread {
 	@Autowired
 	private BattleGroundEventAnnotator<UnitInfoEvent> unitInfoEventAnnotator;
 	
+	@Autowired
+	private BattleGroundEventAnnotator<FightEntryEvent> fightEntryEventAnnotator;
+	
 	private Timer eventTimer = new Timer();
 	
 	public EventParser() {
@@ -108,8 +117,12 @@ public class EventParser extends Thread {
 				List<BattleGroundEvent> events = this.getEventsFromChatMessage(message);
 				for(BattleGroundEvent event : events) {
 					//log and handle each event
-					this.logEvent(event, message);
-					this.handleBattleGroundEvent(event);
+					try {
+						this.logEvent(event, message);
+						this.handleBattleGroundEvent(event);
+					} catch(MissingEventTypeException e) {
+						log.error("Missing event type for event of type: {}", event.getClass().toString(), e);
+					}
 				}
 			} catch (InterruptedException e) {
 				log.warn("Interruption exception in EventParser", e);
@@ -121,7 +134,7 @@ public class EventParser extends Thread {
 	
 	protected List<BattleGroundEvent> getEventsFromChatMessage(ChatMessage message) {
 		List<BattleGroundEvent> events = new LinkedList<>();
-		for(EventDetector detector : this.detectors) {
+		for(EventDetector<?> detector : this.detectors) {
 			BattleGroundEvent event = detector.detect(message);
 			if(event != null) {
 				events.add(event);
@@ -131,55 +144,90 @@ public class EventParser extends Thread {
 		return events;
 	}
 	
-	protected void handleBattleGroundEvent(BattleGroundEvent event) {
+	protected void handleBattleGroundEvent(BattleGroundEvent event) throws MissingEventTypeException {
 		try {
-			switch(event.getEventType()) {
-			case BET:
-				this.betEventAnnotator.annotateEvent((BetEvent)event);
-				this.eventRouter.sendDataToQueues(event);
-				break;
-			case BET_INFO:
-				this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) event);
-				this.eventRouter.sendDataToQueues(event);
-				break;
-			case FIGHT_BEGINS:
-				FightBeginsEvent fightEvent = (FightBeginsEvent) event;
-				SkillDropEvent skillDropEvent = fightEvent.generateSkillDropEvent();
-				this.eventRouter.sendDataToQueues(fightEvent);
-				this.skillDropEventAnnotator.annotateEvent(skillDropEvent);
-				this.eventRouter.sendDataToQueues(skillDropEvent);
-				break;
-			case PRESTIGE_ASCENSION:
-				this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);
-				this.eventRouter.sendDataToQueues(event);
-				break;
-			case SKILL_DROP:
-				this.skillDropEventAnnotator.annotateEvent((SkillDropEvent) event);
-				this.eventRouter.sendDataToQueues(event);
-				break;
-			case BETTING_ENDS:
-				this.handleBettingBeginsEvent(event);
-				break;
-			case BETTING_BEGINS:
-				this.handleBettingEndsEvent(event);
-				break;
-			default:
-				this.eventRouter.sendDataToQueues(event);
-				break;
+			if(event != null) {
+				if(event.getEventType() == null) {
+					throw new MissingEventTypeException("missing event type for class " + event.getClass().toString());
+				}
+				switch(event.getEventType()) {
+				case BET:
+					this.betEventAnnotator.annotateEvent((BetEvent)event);
+					this.eventRouter.sendDataToQueues(event);
+					break;
+				case BET_INFO:
+					this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) event);
+					this.eventRouter.sendDataToQueues(event);
+					break;
+				case FIGHT_BEGINS:
+					FightBeginsEvent fightEvent = (FightBeginsEvent) event;
+					SkillDropEvent skillDropEvent = fightEvent.generateSkillDropEvent();
+					this.eventRouter.sendDataToQueues(fightEvent);
+					this.skillDropEventAnnotator.annotateEvent(skillDropEvent);
+					this.eventRouter.sendDataToQueues(skillDropEvent);
+					break;
+				case FIGHT_ENTRY:
+					FightEntryEvent fightEntryEvent = (FightEntryEvent) event;
+					this.fightEntryEventAnnotator.annotateEvent(fightEntryEvent);
+					this.eventRouter.sendDataToQueues(fightEntryEvent);
+					break;		
+				case OTHER_PLAYER_INVALID_FIGHT_CLASS:
+					OtherPlayerInvalidFightEntryClassEvent invalidFightEntryClassEvents = (OtherPlayerInvalidFightEntryClassEvent) event;
+					this.sendAllEventsToEventRouter(invalidFightEntryClassEvents.getEvents());
+					break;
+				case OTHER_PLAYER_INVALID_FIGHT_COMBINATION:
+					OtherPlayerInvalidFightCombinationEvent invalidFightEntryFightCombinationEvents = (OtherPlayerInvalidFightCombinationEvent) event;
+					this.sendAllEventsToEventRouter(invalidFightEntryFightCombinationEvents.getEvents());
+					break;
+				case OTHER_PLAYER_UNOWNED_SKILL:
+					OtherPlayerUnownedSkillEvent otherPlayerUnownedSkillEvent = (OtherPlayerUnownedSkillEvent) event;
+					this.sendAllEventsToEventRouter(otherPlayerUnownedSkillEvent.getUnownedSkillEvents());
+					break;
+				case OTHER_PLAYER_SKILL_ON_COOLDOWN:
+					OtherPlayerSkillOnCooldownEvent otherPlayerSkillOnCooldownEvent = (OtherPlayerSkillOnCooldownEvent) event;
+					this.sendAllEventsToEventRouter(otherPlayerSkillOnCooldownEvent.getEvents());
+					break;
+				case PRESTIGE_ASCENSION:
+					this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);
+					this.eventRouter.sendDataToQueues(event);
+					break;
+				case SKILL_DROP:
+					this.skillDropEventAnnotator.annotateEvent((SkillDropEvent) event);
+					this.eventRouter.sendDataToQueues(event);
+					break;
+				case BETTING_ENDS:
+					this.handleBettingBeginsEvent(event);
+					break;
+				case BETTING_BEGINS:
+					this.handleBettingEndsEvent(event);
+					break;
+				default:
+					if(event != null) {
+						this.eventRouter.sendDataToQueues(event);
+					}
+					break;
+				}
 			}
 		} catch(DumpException e) {
 			log.error("Error found in Event Parser", e);
 			this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
 		} catch(TournamentApiException e) {
 			log.warn("TournamentApiException found in Event Parser", e);
+		} catch(MissingEventTypeException e) {
+			throw e;
 		} catch(Exception e) {
 			log.error("Error found in Event Parser", e);
 			this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
 		}
 	}
 	
-	protected void logEvent(BattleGroundEvent event, ChatMessage message) {
-		if(this.logEvents) {
+	protected void logEvent(BattleGroundEvent event, ChatMessage message) throws MissingEventTypeException {
+		if(this.logEvents && event != null) {
+			if(event.getEventType() == null) {
+				MissingEventTypeException exception = new MissingEventTypeException("missing event type for class " + event.getClass().toString());
+				throw exception;
+			}
+			
 			log.info("Found event: {} with data: {} from chatMessage {}", event.getEventType().getEventStringName(), event.toString(), message);
 		}
 	}
@@ -270,4 +318,13 @@ public class EventParser extends Thread {
 	protected void startEventUpdate() {
 		this.eventTimer.schedule(this.dumpService.getDataUpdateTask(), BattleGroundEventBackPropagation.delayIncrement);
 	}
+	
+	protected <T extends BattleGroundEvent> void sendAllEventsToEventRouter(Collection<T> events) {
+		if(events != null) {
+			for(T event : events) {
+				this.eventRouter.sendDataToQueues(event);
+			}
+		}
+	}
+	
 }

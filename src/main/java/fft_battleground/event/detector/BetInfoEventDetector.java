@@ -2,17 +2,18 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 
-public class BetInfoEventDetector implements EventDetector {
+public class BetInfoEventDetector implements EventDetector<BetInfoEvent> {
 
 	private static final String SEARCH_STRING = " share of your team's winnings, and stand to win ";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public BetInfoEvent detect(ChatMessage message) {
 		BetInfoEvent event = null;
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			for(String split : StringUtils.split(message.getMessage(), ";")) {

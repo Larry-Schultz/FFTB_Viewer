@@ -77,6 +77,9 @@ function parseEvents(event) {
 		case 'BET':
 			handleBet(event);
 			break;
+		case 'FIGHT_ENTRY':
+			handleFightEntry(event);
+			break;
 		case 'BET_INFO':
 			handleBetInfo(event);
 			break;
@@ -94,11 +97,7 @@ function parseEvents(event) {
 			}
 			break;
 		case 'FIGHT_BEGINS':
-			$('.fightData').hide();
-			$('.fightLoading').show();
-			$('.notice').hide();
-			$('#fightNotice').show();
-			loading = false;
+			handleFightBegins(event);
 			break;
 		case 'RESULT':
 			$('.notice').hide();
@@ -122,6 +121,11 @@ function parseEvents(event) {
 			break;
 		case 'BAD_BET':
 			handleBadBet(event);
+			decrementFightEntryCount();
+			break;
+		case 'INVALID_FIGHT_ENTRY_COMBINATION': case 'INVALID_FIGHT_ENTRY_CLASS': case 'UNOWNED_SKILL':
+		case 'OTHER_PLAYER_SKILL_ON_COOLDOWN':
+			removeBadFightEntry(event.player);
 			break;
 		case 'MUSIC':
 			handleMusicEvent(event);
@@ -131,9 +135,80 @@ function parseEvents(event) {
 	//tippy('[data-tippy-content]');
 }
 
+function handleFightBegins(event) {
+	$("#fightGrid").children().remove();
+	$("#team1").children().remove();
+	$("#team2").children().remove();
+	
+	$('#fightEntryCounter').text(0);
+	$('#fightGridContainer').show();
+	$('#betGridContainer').hide();
+	
+	$('.fightData').hide();
+	$('.fightLoading').show();
+	$('.notice').hide();
+	$('#fightNotice').show();
+	loading = false;
+}
+
+function handleFightEntry(event) {
+	var entryId = event.player + 'Entry';
+	if(document.getElementById(entryId) != null) {
+		document.getElementById(entryId).remove();
+		decrementFightEntryCount();
+	}
+	
+	$('#fightGrid').prepend(createFightEntry(event));
+	incrementFightEntryCount();
+}
+
+
+function createFightEntry(event) {
+	var entryId = event.player + 'Entry';
+	var title = generateFightEntryTooltip(event);
+	var result = '<li id="' + entryId + '" style="color: inherit;">' +'<a id="' + event.player + 'EntryDataLink" href="/player/'+ event.player + '" target="_blank" style="color: inherit;" title="' + title +'" >' + event.player 
+		+ '</a><span>: </span><span>' + event.command + '</span></li>';
+	return result;
+}
+
+function generateFightEntryTooltip(event) {
+	var result = "";
+	var metadata = event.metadata;
+	var wins = (metadata.fightWins != null && metadata.fightWins > 0 ? metadata.fightWins : 1);
+	var losses = (metadata.fightLosses != null && metadata.fightLosses > 0 ? metadata.fightLosses : 1);
+	var playerWinLossRatio = wins / (wins+losses);
+	result = "Wins: " + wins + " Losses: " + losses + " Ratio: " + playerWinLossRatio;
+	return result;
+}
+
+function removeBadFightEntry(player) {
+	var id = player + 'Entry';
+	var element = document.getElementById(id);
+	if(element != null) {
+		document.getElementById(id).remove();
+	}
+	return;
+}
+
+function incrementFightEntryCount() {
+	var count = parseInt($('#fightEntryCounter').text());
+	count++;
+	$('#fightEntryCounter').text(count);
+	return;
+}
+
+function decrementFightEntryCount() {
+	var count = parseInt($('#fightEntryCounter').text());
+	count--;
+	$('#fightEntryCounter').text(count);
+	return;
+}
+
 function handleBetBegins(event) {
 	loading = false;
 	resetMatchBlock();
+	$('#fightGridContainer').hide();
+	$('#betGridContainer').show();
 	$('#team1').find('.player').each(function() { destroyTippyIfPresent($(this).attr('id'))});
 	$('#team1').find('.example').each(function() { destroyTippyIfPresent($(this).attr('id'))});
 	$("#team1").children().remove();

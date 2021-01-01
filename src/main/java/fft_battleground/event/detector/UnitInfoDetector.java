@@ -2,16 +2,16 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.ChatMessage;
 
-public class UnitInfoDetector implements EventDetector {
+public class UnitInfoDetector implements EventDetector<UnitInfoEvent> {
 
 	private static final String ANTI_SEARCH_STRING = "your last three skill";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public UnitInfoEvent detect(ChatMessage message) {
 		UnitInfoEvent event = null;
 		if(StringUtils.contains(message.getUsername(), "fftbattleground") && !StringUtils.contains(message.getMessage(), ANTI_SEARCH_STRING) && 
 				StringUtils.countMatches(message.getMessage(), "-") >= 4) {

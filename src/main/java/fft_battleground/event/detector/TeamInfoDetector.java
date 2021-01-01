@@ -7,12 +7,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 
-public class TeamInfoDetector implements EventDetector {
+public class TeamInfoDetector implements EventDetector<TeamInfoEvent> {
 
 	private String SEARCH_STRING_POSTFIX = " Team:";
 	private String SEARCH_STRING_POSTFIX_2 = " Team (";
@@ -49,7 +49,7 @@ public class TeamInfoDetector implements EventDetector {
 	}
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public TeamInfoEvent detect(ChatMessage message) {
 		TeamInfoEvent event = null;
 		if(StringUtils.contains(message.getUsername(), "fftbattleground") && this.eventDetected(message.getMessage())) {
 			String[] splitStrings = StringUtils.split(message.getMessage(), ";");

@@ -5,17 +5,18 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.event.EventDetector;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.model.ChatMessage;
 
-public class BuySkillDetector implements EventDetector {
+public class BuySkillDetector implements EventDetector<BuySkillEvent> {
 	
 	private static final String SEARCH_STRING = ", you bought the ";
 	
 	@Override
-	public BattleGroundEvent detect(ChatMessage message) {
+	public BuySkillEvent detect(ChatMessage message) {
 		BuySkillEvent event = null;
 		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
 			for(String str: StringUtils.split(message.getMessage(), ";")) {

@@ -18,6 +18,7 @@ import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BuySkillEvent;
 import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
@@ -53,6 +54,9 @@ public class RepoManager extends Thread {
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private WebhookManager ascensionWebhookManager;
 	
 	public RepoManager() {
 		this.setName("RepoManagerThread");
@@ -97,6 +101,8 @@ public class RepoManager extends Thread {
 					this.handleGlobalGilHistoryUpdateEvent((GlobalGilHistoryUpdateEvent) newResults);
 				} else if(newResults instanceof PrestigeAscensionEvent) {
 					this.handlePrestigeAscensionEvent((PrestigeAscensionEvent) newResults);
+				} else if(newResults instanceof FightEntryEvent) {
+					this.handleFightEntryEvent((FightEntryEvent)newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
@@ -150,6 +156,9 @@ public class RepoManager extends Thread {
 	
 	protected void handleLevelUpEvent(LevelUpEvent event) {
 		this.repoTransactionManager.updatePlayerLevel(event);
+		if(event.getSkill() != null && event.getSkill().getSkills().size() > 0) {
+			this.repoTransactionManager.updatePlayerSkills(event.getSkill());
+		}
 	}
 	
 	protected void handleOtherPlayerExpEvent(OtherPlayerExpEvent event) {
@@ -196,7 +205,8 @@ public class RepoManager extends Thread {
 		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
 		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
 			try {
-				//this.dumpService.getDumpScheduledTasks().handlePlayerSkillUpdateFromRepo(player);
+				int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(player) != null ? this.dumpService.getPrestigeSkillsCache().get(player).size() : 0;
+				this.ascensionWebhookManager.sendAscensionMessage(player, prestigeBefore, prestigeBefore + 1);
 				PlayerSkillRefresh refresh = new PlayerSkillRefresh(event);
 				this.handlePlayerSkillRefresh(refresh);
 			} catch (Exception e) {
@@ -219,6 +229,10 @@ public class RepoManager extends Thread {
 	
 	protected void handleLastActiveSkillEvent(LastActiveEvent event) {
 		this.repoTransactionManager.updatePlayerLastActive(event);
+	}
+	
+	private void handleFightEntryEvent(FightEntryEvent newResults) {
+		this.repoTransactionManager.updateLastFightActive(newResults);
 	}
 	
 	private void handleGiftSkillEvent(GiftSkillEvent newResults) {
