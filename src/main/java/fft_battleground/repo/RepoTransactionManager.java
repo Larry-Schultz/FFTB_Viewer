@@ -394,11 +394,12 @@ public class RepoTransactionManager {
 		return;
 	}
 	
+	@Transactional
 	public void updateLastFightActive(FightEntryEvent event) {
 		String id = this.cleanString(event.getPlayer());
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
-			maybeRecord.get().setLastActive(event.getEventTime());
+			maybeRecord.get().setLastFightActive(event.getEventTime());
 			maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
 		} else {

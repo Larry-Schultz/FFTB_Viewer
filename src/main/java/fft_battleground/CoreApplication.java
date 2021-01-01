@@ -1,8 +1,12 @@
 package fft_battleground;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +17,13 @@ import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
 import fft_battleground.irc.IrcChatbotThread;
 import fft_battleground.repo.RepoManager;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class CoreApplication {
+public class CoreApplication implements ApplicationContextAware {
 
 	@Autowired
 	private IrcChatbotThread ircChatbotThread;
@@ -47,9 +52,11 @@ public class CoreApplication {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
+	private ApplicationContext context;
+	
 	@EventListener(ApplicationReadyEvent.class)
 	@SneakyThrows
-	void run() {
+	public void run() {
 		log.error("Starting application");
 		
 		parser.start();
@@ -71,5 +78,17 @@ public class CoreApplication {
 		 * // Reading data using readLine String message = reader.readLine();
 		 * eventManager.sendMessage(message); } }
 		 */
+	}
+	
+	public void shutdownServer(Exception e) {
+		String errorMessageFormat = "Shutting down server, reason %s";
+		String errorMessage = String.format(errorMessageFormat, e.getMessage());
+		log.error(errorMessage);
+		 ((ConfigurableApplicationContext) context).close();
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.context = applicationContext;
 	}
 }

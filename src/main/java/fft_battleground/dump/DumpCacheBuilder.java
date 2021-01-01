@@ -15,24 +15,19 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.botland.model.SkillType;
-import fft_battleground.dump.reports.model.AllegianceLeaderboard;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.BotLeaderboard;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.model.ExpEvent;
-import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
-import lombok.Data;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

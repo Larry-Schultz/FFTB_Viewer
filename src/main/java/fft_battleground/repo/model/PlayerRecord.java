@@ -192,9 +192,10 @@ public class PlayerRecord {
 		this.setDefaults();
 	}
 	
-	public PlayerRecord(FightEntryEvent event, UpdateSource lastFightActive2) {
+	public PlayerRecord(FightEntryEvent event, UpdateSource createdSource) {
 		this.player = GambleUtil.cleanString(event.getPlayer());
 		this.lastFightActive = event.getEventTime();
+		this.updateSource = createdSource;
 		
 		this.setDefaults();
 	}

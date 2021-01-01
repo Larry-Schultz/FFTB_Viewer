@@ -2,6 +2,7 @@ package fft_battleground.event.model;
 
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.botland.model.DatabaseResultsData;
+
 import lombok.Data;
 
 @Data
@@ -11,6 +12,7 @@ public class LevelUpEvent extends BattleGroundEvent implements DatabaseResultsDa
 	
 	private String player;
 	private Short level;
+	private PlayerSkillEvent skill;
 	
 	public LevelUpEvent() {}
 	

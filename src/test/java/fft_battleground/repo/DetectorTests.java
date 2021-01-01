@@ -61,18 +61,23 @@ public class DetectorTests {
 	@Test
 	public void testLevelUpDetector() {
 		LevelUpDetector detector = new LevelUpDetector();
-		ChatMessage message = new ChatMessage("FFTBattleground",
-				"Dakren, you advanced to Level 32! Your gil floor has increased to 328!");
-		BattleGroundEvent event = detector.detect(message);
+		ChatMessage message = this.createBotChatMessage("Dakren, you advanced to Level 32! Your gil floor has increased to 328!");
+		LevelUpEvent event = detector.detect(message);
 		assertNotNull(event);
 		assertTrue(event instanceof LevelUpEvent);
-		LevelUpEvent levelUpEvent = (LevelUpEvent) event;
-		assertTrue(levelUpEvent.getPlayer().contentEquals("Dakren"));
-		assertTrue(levelUpEvent.getLevel().equals((short) 32));
+		assertTrue(event.getPlayer().contentEquals("Dakren"));
+		assertTrue(event.getLevel().equals((short) 32));
 
-		ChatMessage message2 = new ChatMessage("FFTBattleground", "Bilabrin, your balance is: 292G (Spendable: 0G).");
-		BattleGroundEvent event2 = detector.detect(message2);
-		assertNull(event2);
+		message = this.createBotChatMessage("Bilabrin, your balance is: 292G (Spendable: 0G).");
+		event = detector.detect(message);
+		assertNull(event);
+		
+		message = this.createBotChatMessage("Smugzug, you advanced to Level 67! Your gil floor has increased to 368! You learned the skill: ArchaicDemon!");
+		event = detector.detect(message);
+		assertNotNull(event.getSkill());
+		assertNotNull(event.getSkill().getPlayer());
+		assertTrue(event.getSkill().getSkills().size() == 1);
+		assertTrue(StringUtils.equals(event.getSkill().getSkills().get(0), "ArchaicDemon"));
 	}
 
 	@Test

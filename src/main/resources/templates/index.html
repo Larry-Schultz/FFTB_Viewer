@@ -129,7 +129,11 @@
 								<div class="cell small-4 text-center">
 									<span id="loadingNotice" class="notice" title="FFTBViewer uses data from IRC to track the current tournament's progress.  Once the stream's bot announces a new match, the application will know which two teams are fighting.">Please wait.  Viewer will sync with stream during the beginning of the next !bet or !fight phase.</span>
 									<span id="matchNotice" class="notice" title="Current phase is Match">Match</span>
-									<span id="fightNotice" class="notice" title="Current phase is !fight">Fight</span>
+									<div id="fightNotice" class="notice" title="Current phase is !fight">
+										<span>Fight</span>
+										<br />
+										<span id='fightEntryCounter'>0</span><span> fight entries</span>
+									</div>
 									<span id="bettingNotice" class="notice" title="Current phase is !bet">Betting</span>
 									<span id="resultsNotice" class="notice" title="Current phase is results.  Next !bet or !fight phase is upcoming">Results</span>
 								</div>
@@ -330,7 +334,7 @@
 			</div>
 			<div class="cell small-1"><br /></div>
 			<div class="cell small-3">
-				<div class="grid-container">
+				<div class="grid-container" id="betGridContainer">
 					<div class="grid-x">
 						<div id="team1grid" class="cell small-5" style="border-style: solid; word-wrap: break-word; color: blue; border-radius: 25px; background-color: white;">
 						<ul id="team1" style="list-style-type: none;">
@@ -345,6 +349,15 @@
 						</div>
 					</div>
 				</div>
+				<div class="grid-container" id="fightGridContainer">
+					<div class="grid-x">
+						<div class="cell small-3"></div>
+						<div class="cell small-6" style="border-style: solid; word-wrap: break-word; color: black; border-radius: 25px; background-color: white;">
+							<ul id="fightGrid" style="list-style-type: none;">
+							</ul>
+						</div>
+						<div class="cell small-3"></div>
+					</div>
 			</div>
 		</div>
 			<div class="cell small-1"></div>
@@ -360,6 +373,7 @@
     $(document).foundation();
     $('#twitch-hide-text').show();
 	$('#twitch-show-text').hide();
+	$('#fightGridContainer').hide();
     </script>
     <script th:src="@{/js/app.js}"></script>
     <script>

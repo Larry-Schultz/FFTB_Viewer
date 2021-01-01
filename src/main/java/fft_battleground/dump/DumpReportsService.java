@@ -32,6 +32,7 @@ import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
+import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
@@ -117,9 +118,9 @@ public class DumpReportsService {
 		return result;
 	}
 
-	public Map<String, Integer> getTopPlayers(Integer count) {
+	public Map<String, Integer> getTopPlayers(Integer count) throws CacheBuildException {
 		BiMap<String, Integer> topPlayers = HashBiMap.create();
-		topPlayers.putAll(this.dumpService.getLeaderboard().keySet().parallelStream()
+		Map<String, Integer> topPlayerDataMap = this.dumpService.getLeaderboard().keySet().parallelStream()
 				.filter(player -> !this.dumpService.getBotCache().contains(player))
 				.filter(player -> this.playerRecordRepo.findById(StringUtils.lowerCase(player)).isPresent())
 				.filter(player -> {
@@ -128,7 +129,19 @@ public class DumpReportsService {
 					boolean result = lastActive != null && this.isPlayerActiveInLastMonth(lastActive);
 					return result;
 				}).collect(Collectors.toMap(Function.identity(),
-						player -> this.dumpService.getLeaderboard().get(player))));
+						player -> this.dumpService.getLeaderboard().get(player)));
+		Map.Entry<String, Integer> currentEntry = null;
+		try {
+			for(Map.Entry<String, Integer> entry : topPlayerDataMap.entrySet()) {
+				currentEntry = entry;
+				topPlayers.put(entry.getKey(), entry.getValue());
+			}
+		} catch(IllegalArgumentException e) {
+			String errorMessageFormat = "Illegal argument exception populating BiMap.  The current entry is %1$s and %2$o";
+			String errorMessage = String.format(errorMessageFormat, currentEntry.getKey(), currentEntry.getValue());
+			log.error(errorMessage, e);
+			throw new CacheBuildException(errorMessage, e);
+		}
 		Set<Integer> topValues = topPlayers.values().stream().sorted().limit(count).collect(Collectors.toSet());
 
 		BiMap<Integer, String> topPlayersInverseMap = topPlayers.inverse();

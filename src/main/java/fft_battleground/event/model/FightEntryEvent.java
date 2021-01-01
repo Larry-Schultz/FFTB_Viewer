@@ -24,6 +24,10 @@ public class FightEntryEvent extends BattleGroundEvent implements DatabaseResult
 	public FightEntryEvent() {
 		super(type);
 	}
+	
+	public FightEntryEvent(BattleGroundEventType type) {
+		super(type);
+	}
 
 	public FightEntryEvent(String command, String player, String className, Gender gender, String skill, String exclusionSkill) {
 		super(type);
@@ -32,6 +36,13 @@ public class FightEntryEvent extends BattleGroundEvent implements DatabaseResult
 		this.gender = gender;
 		this.skill = skill;
 		this.exclusionSkill = exclusionSkill;
+		this.command = command;
+	}
+	
+	public FightEntryEvent(BattleGroundEventType type, String command, String player) {
+		super(type);
+		this.player = player;
+		this.command = command;
 	}
 
 }
