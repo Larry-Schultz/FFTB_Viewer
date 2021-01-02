@@ -154,7 +154,6 @@ public class DumpService {
 			builder.buildLeaderboard();
 		}
 		
-		
 		this.dumpScheduledTasks.runAllUpdates();
 
 		log.info("player data cache load complete");

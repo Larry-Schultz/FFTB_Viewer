@@ -23,7 +23,7 @@ public class DomainHandlerInterceptor implements HandlerInterceptor {
     	if(StringUtils.contains(requestDomain, oldDomain)) {
     		String path = request.getRequestURI();
     		String schema = request.getScheme();
-    		String newUrl = schema + "://" + path + this.hostDomain;
+    		String newUrl = schema + "://" + this.hostDomain + path;
             response.sendRedirect(newUrl);
             return false;
     	}
