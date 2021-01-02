@@ -46,6 +46,11 @@ public class BattleGroundEventBackPropagation {
 	public <T> void sendConsumerThroughTimer(Consumer<T> consumer, T input) {
 		this.eventTimer.schedule(new ConsumerTask<T>(consumer, input), delayIncrement);
 	}
+
+	public <T> void sendConsumerThroughTimer(Consumer<T> consumer, T input, long delay) {
+		this.eventTimer.schedule(new ConsumerTask<T>(consumer, input), delay);
+		
+	}
 	
 }
 

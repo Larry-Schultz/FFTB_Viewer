@@ -297,6 +297,28 @@ public class DumpScheduledTasks {
 		}
 	}
 	
+	public void handlePlayerUserSkillUpdateFromRepo(String player) { 
+		try {
+		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
+		//delete all skills from cache
+		this.dumpService.getUserSkillsCache().remove(player);
+		
+		//get user skills
+		List<String> userSkills = this.dumpDataProvider.getSkillsForPlayer(player);
+		
+		//store user skills
+		this.dumpService.getUserSkillsCache().put(player, userSkills);
+		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
+		refresh.setPlayerSkillEvent(userSkillsEvent);
+		
+		this.betResultsRouter.sendDataToQueues(refresh);
+		log.info("refreshed skills for player: {}", player);
+		} catch(DumpException e) {
+			log.error("Error updating user skills on ascension for player {}", player);
+			this.errorWebhookManager.sendException(e, "error updating user skills on ascension for player " + player);
+		}
+	}
+	
 	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException {
 		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
 		//delete all skills from cache

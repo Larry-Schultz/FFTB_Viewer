@@ -79,7 +79,8 @@ public class DumpService {
 	@Value("${fft_battleground.enableCache}")
 	private boolean isCacheEnabled;
 	
-	private Boolean runBatch = true;
+	@Value("${runBatchAtStartup}")
+	private Boolean runBatch;
 	
 	@Autowired
 	@Getter private DumpDataProvider dumpDataProvider;

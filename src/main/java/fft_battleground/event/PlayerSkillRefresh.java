@@ -1,6 +1,9 @@
 package fft_battleground.event;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.event.model.PlayerSkillEvent;
@@ -28,9 +31,15 @@ public class PlayerSkillRefresh implements DatabaseResultsData {
 
 	public PlayerSkillRefresh(String id, List<String> userSkills, List<String> prestigeSkills, PrestigeAscensionEvent event) {
 		this.playerSkillEvent = new PlayerSkillEvent(id, userSkills);
-		this.prestigeSkillEvent = new PrestigeSkillsEvent(id, prestigeSkills);
+		
+		Set<String> skillSet = new HashSet<>();
+		skillSet.addAll(prestigeSkills);
 		if(event.getPrestigeSkillsEvent().getSkills() != null) {
-			this.prestigeSkillEvent.getSkills().addAll(event.getPrestigeSkillsEvent().getSkills());
+			skillSet.addAll(event.getPrestigeSkillsEvent().getSkills());
 		}
+		
+		List<String> prestigeSkillsNonDuplicates = new ArrayList<String>(skillSet);
+		this.prestigeSkillEvent = new PrestigeSkillsEvent(id, prestigeSkillsNonDuplicates);
+		
 	}
 }

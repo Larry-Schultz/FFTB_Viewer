@@ -1,6 +1,6 @@
 package fft_battleground.repo;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -209,10 +209,16 @@ public class RepoManager extends Thread {
 			try {
 				int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(player) != null ? this.dumpService.getPrestigeSkillsCache().get(player).size() : 0;
 				this.ascensionWebhookManager.sendAscensionMessage(player, prestigeBefore, prestigeBefore + 1);
-				List<String> userSkills = Collections.emptyList();
+				List<String> userSkills = new ArrayList<>();
 				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(id);
+				
+				this.dumpService.getUserSkillsCache().put(id, userSkills);
+				this.dumpService.getPrestigeSkillsCache().put(id, prestigeSkills);
+				
 				PlayerSkillRefresh refresh = new PlayerSkillRefresh(id, userSkills, prestigeSkills, event);
 				this.handlePlayerSkillRefresh(refresh);
+				
+				this.battleGroundEventBackPropagation.sendConsumerThroughTimer(this.dumpService.getDumpScheduledTasks()::handlePlayerUserSkillUpdateFromRepo, player, 60 * 1000);
 			} catch (Exception e) {
 				log.error("Error processing Ascension refresh for player {}", id);
 				this.errorWebhookManager.sendException(e);
