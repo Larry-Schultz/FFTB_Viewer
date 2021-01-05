@@ -58,6 +58,7 @@ import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 
@@ -98,6 +99,9 @@ public class DumpService {
 	@Getter private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
+	@Getter private PlayerSkillRepo playerSkillRepo;
+	
+	@Autowired
 	@Getter private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
 	
 	@Autowired
@@ -128,6 +132,7 @@ public class DumpService {
 		if (this.isCacheEnabled) {
 			this.loadCache();
 		}
+		
 	}
 	
 	private void loadCache() throws CacheBuildException {
@@ -151,10 +156,11 @@ public class DumpService {
 		log.info("finished loading bot cache");
 
 		if(this.runBatch != null && this.runBatch) {
-			builder.buildLeaderboard();
+			//this.dumpScheduledTasks.runAllUpdates();
 		}
+		builder.buildLeaderboard();
 		
-		this.dumpScheduledTasks.runAllUpdates();
+		
 
 		log.info("player data cache load complete");
 	}

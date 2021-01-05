@@ -1,5 +1,6 @@
 package fft_battleground.repo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -323,7 +324,9 @@ public class RepoTransactionManager {
 	
 	@Transactional
 	public void clearPlayerSkillsForPlayer(String player) {
-		this.playerSkillRepo.deleteSkillsByPlayer(this.cleanString(player));
+		String id = this.cleanString(player);
+		this.playerSkillRepo.deleteSkillsByPlayer(id);
+		this.dumpService.getUserSkillsCache().put(id, new ArrayList<>());
 	}
 	
 	@Transactional(propagation=Propagation.REQUIRED)

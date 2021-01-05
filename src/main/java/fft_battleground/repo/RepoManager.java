@@ -1,7 +1,9 @@
 package fft_battleground.repo;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,25 +207,26 @@ public class RepoManager extends Thread {
 		}
 		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
 		//use Timer to force update player skill.  May delay events behind this propagation
-		this.battleGroundEventBackPropagation.sendConsumerThroughTimer(player -> {
-			try {
-				int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(player) != null ? this.dumpService.getPrestigeSkillsCache().get(player).size() : 0;
-				this.ascensionWebhookManager.sendAscensionMessage(player, prestigeBefore, prestigeBefore + 1);
-				List<String> userSkills = new ArrayList<>();
-				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(id);
-				
-				this.dumpService.getUserSkillsCache().put(id, userSkills);
-				this.dumpService.getPrestigeSkillsCache().put(id, prestigeSkills);
-				
-				PlayerSkillRefresh refresh = new PlayerSkillRefresh(id, userSkills, prestigeSkills, event);
-				this.handlePlayerSkillRefresh(refresh);
-				
-				this.battleGroundEventBackPropagation.sendConsumerThroughTimer(this.dumpService.getDumpScheduledTasks()::handlePlayerUserSkillUpdateFromRepo, player, 60 * 1000);
-			} catch (Exception e) {
-				log.error("Error processing Ascension refresh for player {}", id);
-				this.errorWebhookManager.sendException(e);
+		try {
+			int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(id) != null ? this.dumpService.getPrestigeSkillsCache().get(id).size() : 0;
+			this.ascensionWebhookManager.sendAscensionMessage(id, prestigeBefore, prestigeBefore + 1);
+			List<String> userSkills = new ArrayList<>();
+			Set<String> prestigeSkills = new HashSet<>(this.dumpService.getPrestigeSkillsCache().get(id));
+			if(prestigeSkills != null && event.getPrestigeSkillsEvent() != null && event.getPrestigeSkillsEvent().getSkills() != null && event.getPrestigeSkillsEvent().getSkills().size() > 0) {
+				prestigeSkills.add(event.getPrestigeSkillsEvent().getSkills().get(0));
 			}
-		}, id);
+			
+			List<String> uniquePrestigeSkillList = new ArrayList<>(prestigeSkills);
+			
+			this.dumpService.getUserSkillsCache().put(id, userSkills);
+			this.dumpService.getPrestigeSkillsCache().put(id, uniquePrestigeSkillList);
+			
+			PlayerSkillRefresh refresh = new PlayerSkillRefresh(id, userSkills, uniquePrestigeSkillList, event);
+			this.handlePlayerSkillRefresh(refresh);
+		} catch (Exception e) {
+			log.error("Error processing Ascension refresh for player {}", id);
+			this.errorWebhookManager.sendException(e);
+		}
 	}
 	
 	@SneakyThrows

@@ -46,6 +46,7 @@ public class TournamentService {
 	
 	private static final String tournamentInfoApiUri = "https://fftbg.com/api/tournaments?limit=1";
 	private static final String tournamentApiBaseUri = "https://fftbg.com/api/tournament/";
+	private static final String prestigeSkillsMasterListUri = "http://www.fftbattleground.com/fftbg/PrestigeSkills.txt";
 	
 	private static final String tipsApiUrl = "https://fftbg.com/api/tips";
 	private static final String tournamentFolderUrlTemplate = "http://www.fftbattleground.com/fftbg/tournament_%s/";

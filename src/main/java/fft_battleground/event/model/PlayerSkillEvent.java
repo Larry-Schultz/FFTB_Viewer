@@ -1,7 +1,7 @@
 package fft_battleground.event.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import fft_battleground.botland.model.BattleGroundEventType;
@@ -23,7 +23,7 @@ implements DatabaseResultsData {
 	public PlayerSkillEvent(String player) {
 		super(type);
 		this.player = player;
-		this.skills = Collections.emptyList();
+		this.skills = new ArrayList<>();
 	}
 	
 	public PlayerSkillEvent(String player, List<String> skills) {
@@ -41,7 +41,7 @@ implements DatabaseResultsData {
 	public PlayerSkillEvent(String player, String skill) {
 		super(type);
 		this.player = player;
-		this.skills = Arrays.asList(new String[] {skill});
+		this.skills = new ArrayList<>(Arrays.asList(new String[] {skill}));
 	}
 
 	@Override
