@@ -328,7 +328,7 @@ public class DumpDataProvider {
 	@SneakyThrows
 	protected Set<String> getPlayerListFromUrl(String url) {
 		Set<String> players = new HashSet<>();
-		Document doc = Jsoup.connect(url).get();
+		Document doc = this.dumpResourceManager.openPlayerList(url);
 		
 		Elements playerNodes = doc.select("a[href$=txt]");
 		for(Element element : playerNodes) {
