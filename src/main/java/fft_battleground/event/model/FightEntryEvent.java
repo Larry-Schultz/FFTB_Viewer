@@ -20,13 +20,27 @@ public class FightEntryEvent extends BattleGroundEvent implements DatabaseResult
 	private String command;
 	
 	private PlayerRecord metadata;
+	private Integer gilCost;
+	private Integer sortingGilCost;
+	private boolean skillPrestige = false;
+	private boolean exclusionSkillPrestige = false;
+	
+	private String classDescription;
+	private String skillDescription;
+	private String exclusionSkillDescription;
+	
+	private String classColor;
+	private String skillColor;
+	private String exclusionSkillColor;
 	
 	public FightEntryEvent() {
 		super(type);
+		this.gilCost = 0;
 	}
 	
 	public FightEntryEvent(BattleGroundEventType type) {
 		super(type);
+		this.gilCost = 0;
 	}
 
 	public FightEntryEvent(String command, String player, String className, Gender gender, String skill, String exclusionSkill) {
@@ -37,12 +51,16 @@ public class FightEntryEvent extends BattleGroundEvent implements DatabaseResult
 		this.skill = skill;
 		this.exclusionSkill = exclusionSkill;
 		this.command = command;
+		
+		this.gilCost = 0;
 	}
 	
 	public FightEntryEvent(BattleGroundEventType type, String command, String player) {
 		super(type);
 		this.player = player;
 		this.command = command;
+		
+		this.gilCost = 0;
 	}
 
 }

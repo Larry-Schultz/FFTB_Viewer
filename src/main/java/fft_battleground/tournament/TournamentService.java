@@ -60,10 +60,19 @@ public class TournamentService {
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
+	private static final String tipsCacheKey = "tips";
 	private Cache<String, Tips> tipsCache = Caffeine.newBuilder()
 			  .expireAfterWrite(24, TimeUnit.HOURS)
 			  .maximumSize(1)
 			  .build();
+	private Object tipsCacheLock = new Object();
+	
+	private static final String prestigeSkillSetKey = "PRESTIGESKILLSET";
+	private Cache<String, Set<String>> prestigeSkillSetCache = Caffeine.newBuilder()
+			  .expireAfterWrite(24, TimeUnit.HOURS)
+			  .maximumSize(1)
+			  .build();
+	private Object prestigeSkillSetCacheLock = new Object();
 	
 	public Tournament getcurrentTournament() throws DumpException, TournamentApiException {
 		Tournament currentTournament = null;
@@ -77,25 +86,52 @@ public class TournamentService {
 	}
 	
 	@Cacheable("tips")
-	@SneakyThrows
-	public Tips getCurrentTips() {
-		Tips currentTip = tipsCache.getIfPresent("tips");
-		if(currentTip == null) {
-			Resource resource;
-			try {
-				resource = new UrlResource(tipsApiUrl);
-			} catch (MalformedURLException e) {
-				log.error("Error found getting latest tournament info", e);
-				throw new TournamentApiException(e);
+	public Tips getCurrentTips() throws TournamentApiException {
+		Tips currentTip;
+		synchronized(tipsCacheLock) {
+			currentTip = tipsCache.getIfPresent(tipsCacheKey);
+			if(currentTip == null) {
+				Resource resource;
+				try {
+					resource = new UrlResource(tipsApiUrl);
+				} catch (MalformedURLException e) {
+					log.error("Error found getting latest tournament info", e);
+					throw new TournamentApiException(e);
+				}
+				Tips tips = new Tips(resource);
+				this.tipsCache.put(tipsCacheKey, tips);
+				currentTip = tips;
 			}
-			Tips tips = new Tips(resource);
-			this.tipsCache.put("tips", tips);
-			currentTip = tips;
 		}
 		
 		return currentTip;
 	}
 	
+	public List<BattleGroundEvent> getRealBetInfoFromLatestPotFile(Long tournamentId) throws DumpException {
+		List<BattleGroundEvent> result = new LinkedList<>();
+		
+		Set<String> filenamesInTournamentFolder = this.filenamesInTournamentFolder(tournamentId);
+		Integer potId = this.getIdOfLatestPotFile(filenamesInTournamentFolder);
+		result = this.parsePotFile(tournamentId, potId);
+		
+		return result;
+	}
+	
+	public Set<String> getPrestigeSkills() throws DumpException {
+		synchronized(this.prestigeSkillSetCacheLock) {
+			Set<String> prestigeSkills = this.prestigeSkillSetCache.getIfPresent(prestigeSkillSetKey);
+			if(prestigeSkills == null) {
+				prestigeSkills = this.getPrestigeSkillList();
+				this.prestigeSkillSetCache.put(prestigeSkillSetKey, prestigeSkills);
+			}
+			
+			return prestigeSkills;
+		}
+		
+	}
+	
+	
+
 	protected TournamentInfo getLatestTournamentInfo() throws TournamentApiException {
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<TournamentInfo[]> tournamentInfo;
@@ -143,16 +179,6 @@ public class TournamentService {
 		}
 		
 		return raidbosses;
-	}
-	
-	public List<BattleGroundEvent> getRealBetInfoFromLatestPotFile(Long tournamentId) throws DumpException {
-		List<BattleGroundEvent> result = new LinkedList<>();
-		
-		Set<String> filenamesInTournamentFolder = this.filenamesInTournamentFolder(tournamentId);
-		Integer potId = this.getIdOfLatestPotFile(filenamesInTournamentFolder);
-		result = this.parsePotFile(tournamentId, potId);
-		
-		return result;
 	}
 	
 	@SneakyThrows
@@ -228,6 +254,27 @@ public class TournamentService {
 		Resource resource;
 		try {
 			resource = new UrlResource(entrantUrlTemplateForTournament);
+		} catch (MalformedURLException e1) {
+			throw new DumpException(e1);
+		}
+		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			while((line = botReader.readLine()) != null) {
+				String cleanedString = GambleUtil.cleanString(line);
+				entrants.add(cleanedString);
+			}
+		} catch (IOException e) {
+			throw new DumpException(e);
+		}
+		
+		return entrants;
+	}
+	
+	private Set<String> getPrestigeSkillList() throws DumpException {
+		Set<String> entrants = new HashSet<>();
+		Resource resource;
+		try {
+			resource = new UrlResource(prestigeSkillsMasterListUri);
 		} catch (MalformedURLException e1) {
 			throw new DumpException(e1);
 		}

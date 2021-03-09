@@ -355,6 +355,8 @@ public class DetectorTests {
 		assertTrue(StringUtils.equals(event.getClassName(), "Squire"));
 		assertTrue(StringUtils.equals(event.getSkill(), "BasicSkill"));
 		assertTrue(StringUtils.equals(event.getExclusionSkill(), "PunchArt"));
+		
+		message = new ChatMessage("OtherBrand", "!fight Monk Female BraveSave -Parry");
 	}
 	
 	@Test

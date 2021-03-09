@@ -34,14 +34,17 @@ import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.repository.BalanceHistoryRepo;
 import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GenericResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -78,13 +81,15 @@ public class PlayerRecordController {
 	private Map<String, LeaderboardBalanceData> playerLeaderboardData = new HashMap<>();
 	
 	@GetMapping("/playerRecord/{playerName}")
-	public ResponseEntity<GenericResponse<PlayerRecord>> getPlayerData(@PathVariable("playerName") String playerName, HttpServletRequest request) {
+	public ResponseEntity<GenericResponse<PlayerRecord>> getPlayerData(@PathVariable("playerName") String playerName, HttpServletRequest request) throws TournamentApiException {
 		log.info("Player api called for player {}", playerName);
 		String idString = StringUtils.lowerCase(playerName);
 		Optional<PlayerRecord> maybePlayer =  this.playerRecordRepo.findById(idString);
 		if(maybePlayer.isPresent()) {
 			//map metadata
-			maybePlayer.get().getPlayerSkills().stream().forEach(playerSkill -> playerSkill.setMetadata(this.tournamentService.getCurrentTips().getPlayerSkillMetadata(playerSkill.getSkill())));
+			for(PlayerSkills playerSkill : maybePlayer.get().getPlayerSkills()) {
+				playerSkill.setMetadata(this.tournamentService.getCurrentTips().getPlayerSkillMetadata(playerSkill.getSkill()));
+			}
 			
 			return GenericResponse.createGenericResponseEntity(maybePlayer.get());
 		} else {

@@ -160,24 +160,60 @@ function handleFightEntry(event) {
 	
 	$('#fightGrid').prepend(createFightEntry(event));
 	incrementFightEntryCount();
+	sortFightEntryList('fightGrid');
 }
 
 
 function createFightEntry(event) {
 	var entryId = event.player + 'Entry';
-	var title = generateFightEntryTooltip(event);
-	var result = '<li id="' + entryId + '" style="color: inherit;">' +'<a id="' + event.player + 'EntryDataLink" href="/player/'+ event.player + '" target="_blank" style="color: inherit;" title="' + title +'" >' + event.player 
-		+ '</a><span>: </span><span>' + event.command + '</span></li>';
+	var playerTitle = generateFightEntryTooltip(event);
+	var playerTag = '<a id="' + event.player + 'EntryDataLink" href="/player/'+ event.player + '" target="_blank" style="color: inherit;" title="' + playerTitle +'" >' + event.player + '</a><span>: </span>';
+	var command = '!fight';
+	if(event.className != null) {
+		var classTitle = event.classDescription != null ? event.classDescription : '';
+		var style = '';
+		if(event.classColor != null) {
+			style = 'color: ' + event.classColor +';';
+		}
+		var classTag = '<span id="' + event.player + 'FightEntryClassNameTag" title="' + classTitle + '" style="' + style + '" >' + event.className + '</span>';
+		command = command + ' ' + classTag;
+	}
+	if(event.gender != null && event.gender != 'MONSTER') {
+		var genderTag = '<span>' + event.gender.toLowerCase() + '</span>';
+		command = command + ' ' + genderTag;
+	}
+	if(event.skill != null) {
+		var skillTitle = event.skillDescription != null ? event.skillDescription : '';
+		var id = event.player + 'FightEntrySkillTag'; 
+		var style = '';
+		if(event.skillColor != null) {
+			style = 'color: ' + event.skillColor +';';
+		}
+		var eventTag = '<span id="' + id + '" title="' + skillTitle + '" style="' + style + '" >' + event.skill + '</span>';
+		command = command + ' ' + eventTag;
+	}
+	if(event.exclusionSkill != null) {
+		var exclusionSkillTitle = event.exclusionSkillDescription != null ? exclusionSkillDescription : '';
+		var style = '';
+		if(event.exclusionSkillColor != null) {
+			style = 'color: ' + event.exclusionSkillColor +';';
+		}
+		var exclusionSkillTag = '<span id="' + event.player + 'FightEntrySkillExclusionTag" title="' + exclusionSkillTitle + '" style="' + style + '" >' + event.skill + '</span>';
+		command = command + ' - ' + exclusionSkillTag;
+	}
+	var result = '<li id="' + entryId + '" style="color: inherit;" data-sortinggilcost="' + event.sortingGilCost + '" >' + playerTag + '<span>' + command + '</span></li>';
 	return result;
 }
 
 function generateFightEntryTooltip(event) {
 	var result = "";
 	var metadata = event.metadata;
-	var wins = (metadata.fightWins != null && metadata.fightWins > 0 ? metadata.fightWins : 1);
-	var losses = (metadata.fightLosses != null && metadata.fightLosses > 0 ? metadata.fightLosses : 1);
-	var playerWinLossRatio = wins / (wins+losses);
-	result = "Wins: " + wins + " Losses: " + losses + " Ratio: " + playerWinLossRatio;
+	if(metadata != null) {
+		var wins = (metadata.fightWins != null && metadata.fightWins > 0 ? metadata.fightWins : 1);
+		var losses = (metadata.fightLosses != null && metadata.fightLosses > 0 ? metadata.fightLosses : 1);
+		var playerWinLossRatio = wins / (wins+losses);
+		result = "Wins: " + wins + " Losses: " + losses + " Ratio: " + playerWinLossRatio;
+	}
 	return result;
 }
 
@@ -542,6 +578,38 @@ function sortList(id) {
     }
   }
 }
+
+function sortFightEntryList(id) {
+	  var list, i, switching, b, shouldSwitch;
+	  list = document.getElementById(id);
+	  switching = true;
+	  /* Make a loop that will continue until
+	  no switching has been done: */
+	  while (switching) {
+	    // Start by saying: no switching is done:
+	    switching = false;
+	    b = list.getElementsByTagName("LI");
+	    // Loop through all list items:
+	    for (i = 0; i < (b.length - 1); i++) {
+	      // Start by saying there should be no switching:
+	      shouldSwitch = false;
+	      /* Check if the next item should
+	      switch place with the current item: */
+	      if (parseInt(b[i].dataset.sortinggilcost) < parseInt(b[i + 1].dataset.sortinggilcost)) {
+	        /* If next item is alphabetically lower than current item,
+	        mark as a switch and break the loop: */
+	        shouldSwitch = true;
+	        break;
+	      }
+	    }
+	    if (shouldSwitch) {
+	      /* If a switch has been marked, make the switch
+	      and mark the switch as done: */
+	      b[i].parentNode.insertBefore(b[i + 1], b[i]);
+	      switching = true;
+	    }
+	  }
+	}
 
 function attachTabindexToGridElements(indexStart, gridName) {
 	var i = indexStart

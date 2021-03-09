@@ -1,7 +1,9 @@
 package fft_battleground.event.detector;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,7 +14,7 @@ import fft_battleground.model.Gender;
 
 public class FightEntryDetector implements EventDetector<FightEntryEvent> {
 	private static final String SEARCH_STRING = "!fight";
-	
+			
 	public FightEntryDetector() {
 		
 	}
@@ -38,6 +40,7 @@ public class FightEntryDetector implements EventDetector<FightEntryEvent> {
 	 * !fight Squire Female
 	 * !fight Squire Female Dance
 	 * !fight Squire Female Dance - PunchArt 
+	 * !fight Squire Female Dance -PunchArt
 	 * 
 	 *  lets not check correctness, let the stream bot handle that
 	 *  
@@ -114,8 +117,15 @@ public class FightEntryDetector implements EventDetector<FightEntryEvent> {
 		 *               OR
 		 * (!fight, class, gender, skill, -, exclusion)              
 		 *    0       1      2       3    4    5
+		 *    			 OR
+		 * (!fight, class, gender, skill, -exclusion)
+		 *    0     1      2       3      4
 		 */
 		String exclusion = null;
+		String lastToken = tokens.get(tokens.size() - 1);
+		if(StringUtils.startsWith("-", lastToken)) {
+			exclusion = StringUtils.remove(lastToken, "-");
+		}
 		if(tokens.size() < 5) {
 			exclusion = null;
 		} else if(tokens.size() == 5 && (gender == null || gender == Gender.MONSTER)) {
@@ -126,5 +136,6 @@ public class FightEntryDetector implements EventDetector<FightEntryEvent> {
 		
 		return exclusion;
 	}
+
 
 }

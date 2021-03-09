@@ -51,6 +51,7 @@ import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Images;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
@@ -136,7 +137,7 @@ public class HomeController {
 
 	@GetMapping({"/player/{playerName}"})
 	public String playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
-			Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException {
+			Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
 		if(!refresh) {
 			this.logAccess(playerName + " search page " , request);
 		}
@@ -146,8 +147,9 @@ public class HomeController {
 			if(maybePlayer.isPresent()) {
 				PlayerData playerData = new PlayerData();
 				PlayerRecord record = maybePlayer.get();
-				record.getPlayerSkills().stream().forEach(
-						playerSkill -> playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", "")));
+				for(PlayerSkills playerSkill : record.getPlayerSkills()) {
+					playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", ""));
+				}
 				playerData.setPlayerRecord(record);
 				
 				boolean isBot = this.dumpService.getBotCache().contains(record.getPlayer());
