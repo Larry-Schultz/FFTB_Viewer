@@ -28,9 +28,7 @@
 				<tbody>
 					<tr th:each="music: ${playlist}">
 						<td th:id="${music.songName} + 'NameCell'" th:data-search="${music.songName}">
-							<a th:id="${music.songName} + 'Link'" th:href="'https://www.youtube.com/results?search_query=' + ${music.songName}" target="_blank" style="color: inherit;" >
-								<span style="text-decoration: underline;" th:id="${music.songName} + 'Name'" th:text="${music.songName}" />
-							</a>
+							<span th:id="${music.songName} + 'Name'" th:text="${music.songName}" />
 						</td>
 						<td th:id="${music.songName} + 'Duration'" th:text="${music.minutes} + ':' + ${music.seconds}" />
 					</tr>

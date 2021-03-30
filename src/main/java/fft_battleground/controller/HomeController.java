@@ -33,6 +33,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -52,6 +53,7 @@ import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
+import fft_battleground.metrics.AccessTracker;
 import fft_battleground.model.Images;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
@@ -101,6 +103,9 @@ public class HomeController {
 	@Autowired
 	private BetBotFactory betBotFactory;
 	
+	@Autowired
+	private AccessTracker accessTracker;
+	
 	@GetMapping(value = "/images/characters/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
 		String basePath = "/static";
@@ -118,28 +123,28 @@ public class HomeController {
 	}
 	
 	@GetMapping("/")
-	public String homePage(Model model, HttpServletRequest request) {
-		this.logAccess("index page" , request);
+	public String homePage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		this.logAccess("index page", userAgent, request);
 		return "index.html";
 	}
 	
 	@GetMapping("/apidocs")
-	public String apiDocsPage(Model Model, HttpServletRequest request) {
-		this.logAccess("apidocs" , request);
+	public String apiDocsPage(@RequestHeader(value = "User-Agent") String userAgent, Model Model, HttpServletRequest request) {
+		this.logAccess("apidocs", userAgent, request);
 		return "api.html";
 	}
 	
 	@GetMapping({"/player", "/player/"})
-	public String playerDataPage(Model model, HttpServletRequest request) {
-		this.logAccess("player search page" , request);
+	public String playerDataPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		this.logAccess("player search page", userAgent, request);
 		return "playerRecord.html";
 	}
 
 	@GetMapping({"/player/{playerName}"})
 	public String playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
-			Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
+			@RequestHeader(value = "User-Agent") String userAgent, Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
 		if(!refresh) {
-			this.logAccess(playerName + " search page " , request);
+			this.logAccess(playerName + " search page ", userAgent, request);
 		}
 		if(playerName != null) {
 			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
@@ -222,8 +227,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/music")
-	public String musicPage(Model model, HttpServletRequest request) {
-		this.logAccess("music search page", request);
+	public String musicPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		this.logAccess("music search page", userAgent, request);
 		Collection<Music> music = this.dumpService.getPlaylist();
 		model.addAttribute("playlist", music);
 		
@@ -231,8 +236,9 @@ public class HomeController {
 	}
 	
 	@GetMapping("/botleaderboard")
-	public String botLeaderboardPage(Model model, HttpServletRequest request) throws CacheMissException {
-		this.logAccess("bot leaderboard", request);
+	public String botLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, 
+			Model model, HttpServletRequest request) throws CacheMissException {
+		this.logAccess("bot leaderboard", userAgent, request);
 		BotLeaderboard leaderboardData = this.dumpReportsService.getBotLeaderboard();
 		Map<String, Integer> botLeaderboard = leaderboardData.getBotLeaderboard();
 		NumberFormat myFormat = NumberFormat.getInstance();
@@ -260,8 +266,9 @@ public class HomeController {
 	}
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
-	public String playerLeaderboardPage(Model model, HttpServletRequest request) throws CacheMissException {
-		this.logAccess("player leaderboard", request);
+	public String playerLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, 
+			HttpServletRequest request) throws CacheMissException {
+		this.logAccess("player leaderboard", userAgent, request);
 		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
 		model.addAttribute("leaderboard", leaderboard);
 		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
@@ -271,8 +278,8 @@ public class HomeController {
 	
 	@GetMapping("/expLeaderboard")
 	@SneakyThrows
-	public String expLeaderboard(Model model, HttpServletRequest request) {
-		this.logAccess("exp leaderboard", request);
+	public String expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		this.logAccess("exp leaderboard", userAgent, request);
 		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
 		List<PrestigeTableEntry> prestigeEntries = this.dumpReportsService.generatePrestigeTable();
 		
@@ -289,8 +296,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/gilCount")
-	public String gilCountPage(Model model, HttpServletRequest request) {
-		this.logAccess("global gil count", request);
+	public String gilCountPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		this.logAccess("global gil count", userAgent, request);
 		GlobalGilPageData data = this.dumpReportsService.getGlobalGilData();
 		model.addAttribute("globalGilData", data);
 		return "globalGil.html";
@@ -298,9 +305,10 @@ public class HomeController {
 	}
 	
 	@GetMapping("/botland")
-	public String botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, Model model, HttpServletRequest request) {
+	public String botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
+			@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		if(!refresh) {
-			this.logAccess("botland", request);
+			this.logAccess("botland", userAgent, request);
 		}
 		List<Bots> botData = this.botsRepo.getBotsForToday();
 		Collections.sort(botData, Collections.reverseOrder());
@@ -316,15 +324,16 @@ public class HomeController {
 	}
 	
 	@GetMapping("/allegianceLeaderboard")
-	public String allegianceLeaderboard(Model model, HttpServletRequest request) throws CacheMissException {
-		this.logAccess("allegiance leaderboard", request);
+	public String allegianceLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) throws CacheMissException {
+		this.logAccess("allegiance leaderboard", userAgent, request);
 		AllegianceLeaderboardWrapper leaderboard = this.dumpReportsService.getAllegianceData();
 		model.addAttribute("allegianceLeaderboardWrapper", leaderboard);
 		return "allegianceLeaderboard.html";
 	}
 	
 	@GetMapping("/robots.txt")
-	public ResponseEntity<String> robots() {
+	public ResponseEntity<String> robots(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) {
+		this.logAccess("robots.txt", userAgent, request);
 		String response = null;
 		StringBuilder robotsBuilder = new StringBuilder();
 		robotsBuilder.append("User-agent: *\n");
@@ -354,10 +363,14 @@ public class HomeController {
 	}
 	
 	@SneakyThrows
-	protected void logAccess(String pageName, HttpServletRequest request) {
-		InetAddress addr = InetAddress.getByName(request.getRemoteAddr());
-		String host = addr.getHostName();
-		log.info("{} page accessed from user: {} with hostname {}", pageName, request.getRemoteAddr(), host);
+	protected void logAccess(String pageName, String userAgent, HttpServletRequest request) {
+		this.accessTracker.addAccessEntry(pageName, userAgent, request);
+		/*
+		 * InetAddress addr = InetAddress.getByName(request.getRemoteAddr()); String
+		 * host = addr.getHostName();
+		 * log.info("{} page accessed from user: {} with hostname {}", pageName,
+		 * request.getRemoteAddr(), host);
+		 */
 	}
 	
 }

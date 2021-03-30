@@ -34,6 +34,7 @@ import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
@@ -171,6 +172,7 @@ public class DumpReportsService {
 				Short exp = maybePlayer.get().getLastKnownRemainingExp();
 				SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
 				String lastActive = format.format(maybePlayer.get().getLastActive());
+				BattleGroundTeam team = maybePlayer.get().getAllegiance();
 
 				Integer prestigeLevel = 0;
 				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(player);
@@ -178,7 +180,7 @@ public class DumpReportsService {
 					prestigeLevel = prestigeSkills.size();
 				}
 
-				result = new ExpLeaderboardEntry(rank, player, level, exp, prestigeLevel, lastActive);
+				result = new ExpLeaderboardEntry(rank, player, level, exp, prestigeLevel, lastActive, team);
 				results.add(result);
 			}
 		}

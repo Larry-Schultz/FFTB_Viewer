@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import fft_battleground.model.BattleGroundTeam;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +14,7 @@ public class PrestigeTableEntry implements Comparable<PrestigeTableEntry> {
 	public String name;
 	public Integer prestigeLevel;
 	public String lastActive;
+	public BattleGroundTeam allegiance;
 	
 	public PrestigeTableEntry() {}
 	

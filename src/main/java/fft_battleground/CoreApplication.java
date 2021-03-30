@@ -16,6 +16,7 @@ import fft_battleground.event.EventManager;
 import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
 import fft_battleground.irc.IrcChatbotThread;
+import fft_battleground.metrics.AccessTracker;
 import fft_battleground.repo.RepoManager;
 
 import lombok.SneakyThrows;
@@ -43,6 +44,9 @@ public class CoreApplication implements ApplicationContextAware {
 	@Autowired
 	private WebsocketThread websocketThread;
 	
+	@Autowired
+	private AccessTracker accessTracker;
+	
 	@Value("${fft_battleground.interactive}") 
 	private String interactiveMode;
 	
@@ -63,6 +67,7 @@ public class CoreApplication implements ApplicationContextAware {
 		eventManager.start();
 		repoManager.start();
 		websocketThread.start();
+		//accessTracker.start();
 		
 		if(useIrc.equalsIgnoreCase("true")) {
 			ircChatMessenger.start();

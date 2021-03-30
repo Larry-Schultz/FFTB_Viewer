@@ -150,7 +150,7 @@
 		<appender-ref ref="Console" />
 		<appender-ref ref="GeneralRollingFile" />
 	</root>
-	<logger name="fft_battleground.controller" level="INFO" additivity="false">
+	<logger name="accessLog" level="INFO" additivity="false">
 		<appender-ref ref="AccessLogsRollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
