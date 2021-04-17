@@ -18,9 +18,10 @@ public class PrestigeTableEntry implements Comparable<PrestigeTableEntry> {
 	
 	public PrestigeTableEntry() {}
 	
-	public PrestigeTableEntry(String player, int size) {
+	public PrestigeTableEntry(String player, int size, BattleGroundTeam allegiance) {
 		this.name = player;
 		this.prestigeLevel = size;
+		this.allegiance = allegiance;
 	}
 
 	@Override

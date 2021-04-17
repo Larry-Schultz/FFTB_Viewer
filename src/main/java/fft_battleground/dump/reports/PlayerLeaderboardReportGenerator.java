@@ -19,8 +19,10 @@ import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,12 +103,17 @@ public class PlayerLeaderboardReportGenerator extends ReportGenerator<PlayerLead
 		LeaderboardData data = null;
 		Integer gil = this.dumpService.getBalanceFromCache(player);
 		Date lastActive = this.dumpService.getLastActiveDateFromCache(player);
+		BattleGroundTeam allegiance = this.dumpService.getAllegianceCache().get(player);
+		if(allegiance == null) {
+			allegiance = BattleGroundTeam.NONE;
+		}
 
 		String gilString = myFormat.format(gil);
 		String percentageOfGlobalGil = decimalFormat.format(this.dumpReportsService.percentageOfGlobalGil(gil) * (double) 100);
 		String activeDate = dateFormat.format(lastActive);
 		data = new LeaderboardData(player, gilString, activeDate);
 		data.setPercentageOfGlobalGil(percentageOfGlobalGil);
+		data.setAllegiance(allegiance);
 
 		return data;
 	}

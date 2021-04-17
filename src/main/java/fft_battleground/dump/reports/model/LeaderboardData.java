@@ -2,6 +2,8 @@ package fft_battleground.dump.reports.model;
 
 import java.text.NumberFormat;
 
+import fft_battleground.model.BattleGroundTeam;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -14,6 +16,7 @@ public class LeaderboardData implements Comparable<LeaderboardData> {
 	private String gil;
 	private String lastActiveDate;
 	private String percentageOfGlobalGil;
+	private BattleGroundTeam allegiance;
 	
 	public LeaderboardData() {}
 	public LeaderboardData(String name, String gil, String lastActiveDate) {

@@ -21,6 +21,7 @@ import fft_battleground.dump.cache.PrestigeSkillsCacheTask;
 import fft_battleground.dump.cache.UserSkillsCacheTask;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.BotLeaderboard;
+import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.exception.DumpException;
@@ -156,6 +157,16 @@ implements Runnable {
 			log.info("allegiance ledaerboard data from database cache not found");
 		}
 		
+		log.info("Searching for exp leaderboard data from database cache");
+		ExpLeaderboard expLeaderboard = new ExpLeaderboard();
+		expLeaderboard = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.EXPERIENCE_LEADERBOARD, this::deserializeExpLeaderboard);
+		if(expLeaderboard != null) {
+			log.info("Loading exp leaderboard data from database cache");
+			this.dumpServiceRef.getDumpReportsService().getExpLeaderboardGenerator().getCache().put(BattleGroundCacheEntryKey.EXPERIENCE_LEADERBOARD.getKey(), expLeaderboard);
+		} else {
+			log.info("exp leaderboard data from database cache not found");
+		}
+		
 		return;
 	}
 	
@@ -212,6 +223,13 @@ implements Runnable {
 	protected AllegianceLeaderboardWrapper deserializeAllegianceLeaderboard(String str) {
 		ObjectMapper mapper = new ObjectMapper();
 		AllegianceLeaderboardWrapper leaderboard = mapper.readValue(str, AllegianceLeaderboardWrapper.class);
+		return leaderboard;
+	}
+	
+	@SneakyThrows
+	protected ExpLeaderboard deserializeExpLeaderboard(String str) {
+		ObjectMapper mapper = new ObjectMapper();
+		ExpLeaderboard leaderboard = mapper.readValue(str, ExpLeaderboard.class);
 		return leaderboard;
 	}
 }

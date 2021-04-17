@@ -28,6 +28,7 @@
 								<th>Name</th>
 								<th>Balance</th>
 								<th>Percentage of Global Gil</th>
+								<th>Allegiance</th>
 								<th>Last Active</th>
 							</tr>	
 						</thead>
@@ -41,9 +42,20 @@
 								</td>
 								<td th:id="${player.name} + 'Amount'" th:text="${player.gil}" />
 								<td th:id="${player.name} + 'PercentageOfGlobalGil'" th:text="${player.percentageOfGlobalGil} + '%'" />
+								<td th:id="${player.name} + 'Allegiance'" th:text="${player.allegiance}" class="allegianceEntry" />
 								<td th:id="${player.name} + 'LastActive'" th:text="${player.lastActiveDate}" />
 							</tr>
 						</tbody>
+						<tfoot>
+							<tr>
+								<th>Rank</th>
+								<th>Name</th>
+								<th>Balance</th>
+								<th>Percentage of Global Gil</th>
+								<th>Allegiance</th>
+								<th>Last Active</th>
+							</tr>	
+						</tfoot>
 					</table>
 				</div>
 				<div class="cell small-3">
@@ -75,6 +87,7 @@
 								<th>Name</th>
 								<th>Balance</th>
 								<th>Percentage of Global Gil</th>
+								<th>Allegiance</th>
 								<th>Last Active</th>
 							</tr>	
 						</thead>
@@ -88,9 +101,20 @@
 								</td>
 								<td th:id="${player.name} + 'Amount'" th:text="${player.gil}" />
 								<td th:id="${player.name} + 'PercentageOfGlobalGil'" th:text="${player.percentageOfGlobalGil} + '%'" />
+								<td th:id="${player.name} + 'Allegiance'" th:text="${player.allegiance}" class="allegianceEntry" />
 								<td th:id="${player.name} + 'LastActive'" th:text="${player.lastActiveDate}" />
 							</tr>
 						</tbody>
+						<tfoot>
+							<tr>
+								<th>Rank</th>
+								<th>Name</th>
+								<th>Balance</th>
+								<th>Percentage of Global Gil</th>
+								<th>Allegiance</th>
+								<th>Last Active</th>
+							</tr>	
+						</tfoot>
 					</table>
 				</div>
 				<div class="cell small-3">
@@ -117,6 +141,11 @@
 	<script th:src="@{/webjars/foundation/6.4.3-1/dist/js/foundation.min.js}"></script>
 	<script th:src="@{/webjars/chartjs/2.9.3/Chart.min.js}"></script>
 	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
-	<script>$(document).foundation();</script>
 	<script th:src="@{/js/playerLeaderboard.js}"></script>
+	<script>
+		$(document).foundation();
+		$(".allegianceEntry").each(function() {
+    		setColor(this.id);
+    	});
+	</script>
 </body>

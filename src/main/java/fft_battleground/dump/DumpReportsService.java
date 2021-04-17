@@ -1,8 +1,6 @@
 package fft_battleground.dump;
 
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -26,15 +24,14 @@ import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.dump.reports.ReportGenerator;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.reports.model.AscensionData;
 import fft_battleground.dump.reports.model.BotLeaderboard;
-import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
+import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
-import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
-import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
@@ -77,6 +74,9 @@ public class DumpReportsService {
 	
 	@Autowired
 	@Getter private ReportGenerator<AllegianceLeaderboardWrapper> allegianceReportGenerator;
+	
+	@Autowired
+	@Getter private ReportGenerator<ExpLeaderboard> expLeaderboardGenerator;
 
 	public GlobalGilPageData getGlobalGilData() {
 		GlobalGilPageData data = null;
@@ -161,48 +161,24 @@ public class DumpReportsService {
 		return leaderboard;
 	}
 
-	public List<ExpLeaderboardEntry> generateExpLeaderboardData() {
-		List<ExpLeaderboardEntry> results = new ArrayList<>();
-		for (int rank = 1; rank <= TOP_PLAYERS; rank++) {
-			ExpLeaderboardEntry result = null;
-			String player = this.dumpService.getExpRankLeaderboardByRank().get(rank);
-			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(player);
-			if (maybePlayer.isPresent() && this.isPlayerActiveInLastMonth(maybePlayer.get().getLastActive())) {
-				Short level = maybePlayer.get().getLastKnownLevel();
-				Short exp = maybePlayer.get().getLastKnownRemainingExp();
-				SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
-				String lastActive = format.format(maybePlayer.get().getLastActive());
-				BattleGroundTeam team = maybePlayer.get().getAllegiance();
-
-				Integer prestigeLevel = 0;
-				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(player);
-				if (prestigeSkills != null) {
-					prestigeLevel = prestigeSkills.size();
-				}
-
-				result = new ExpLeaderboardEntry(rank, player, level, exp, prestigeLevel, lastActive, team);
-				results.add(result);
-			}
-		}
-
-		return results;
-	}
-
 	@SneakyThrows
-	public List<PrestigeTableEntry> generatePrestigeTable() {
+	public AscensionData generatePrestigeTable() {
 		List<PrestigeTableEntry> results = this.dumpService.getPrestigeSkillsCache().keySet().parallelStream()
 				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player) != null)
 				.filter(player -> !this.dumpService.getPrestigeSkillsCache().get(player).isEmpty())
 				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player).size() != 417)
 				.map(player -> new PrestigeTableEntry(player,
-						this.dumpService.getPrestigeSkillsCache().get(player).size()))
+						this.dumpService.getPrestigeSkillsCache().get(player).size(), 
+						this.dumpService.getAllegianceCache().get(player)))
 				.collect(Collectors.toList());
 		SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
 		results.stream().forEach(prestigeTableEntry -> prestigeTableEntry
 				.setLastActive(format.format(this.dumpService.getLastActiveCache().get(prestigeTableEntry.getName()))));
 		Collections.sort(results);
 
-		return results;
+		AscensionData data = new AscensionData(results);
+		
+		return data;
 	}
 
 	public Integer getBetPercentile(Double ratio) throws CacheMissException {
@@ -259,6 +235,16 @@ public class DumpReportsService {
 	public AllegianceLeaderboardWrapper writeAllegianceWrapper() {
 		AllegianceLeaderboardWrapper wrapper = this.allegianceReportGenerator.writeReport();
 		return wrapper;
+	}
+	
+	public ExpLeaderboard getExpLeaderboard() throws CacheMissException {
+		ExpLeaderboard leaderboard = this.expLeaderboardGenerator.getReport();
+		return leaderboard;
+	}
+	
+	public ExpLeaderboard writeExpLeaderboard() {
+		ExpLeaderboard leaderboard = this.expLeaderboardGenerator.writeReport();
+		return leaderboard;
 	}
 
 	// this time let's take it hour by hour, and then use my original date slice

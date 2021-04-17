@@ -29,6 +29,7 @@
 								<th>Level</th>
 								<th>Exp</th>
 								<th>Prestige Level*</th>
+								<th>Allegiance</th>
 								<th>Last Active</th>
 							</tr>	
 						</thead>
@@ -43,6 +44,7 @@
 								<td th:id="${player.player} + 'Level'" th:text="${player.level}" />
 								<td th:id="${player.player} + 'Exp'" th:text="${player.exp}" />
 								<td th:id="${player.player} + 'PrestigeLevel'" th:text="${player.prestigeLevel}" />
+								<td th:id="${player.player} + 'Allegiance'" th:text="${player.team}" class="allegianceEntry" />
 								<td th:id="${player.player} + 'LastActive'" th:text="${player.lastActive}" />
 							</tr>
 						</tbody>
@@ -53,6 +55,7 @@
 								<th>Level</th>
 								<th>Exp</th>
 								<th>Prestige Level*</th>
+								<th>Allegiance</th>
 								<th>Last Active</th>
 							</tr>	
 						</tfoot>
@@ -61,43 +64,6 @@
 				<div class="cell small-3">
 					<br />
 				</div>
-			</div>
-		</div>
-		<div class="cell small-5">
-			<div class="grid-x">
-				<div class="cell small-3"></div>
-				<div class="cell small-6">
-					<br />
-					<h3 id="Ascended">The Ascended</h3>
-					<table class="hover">
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Prestige Level</th>
-								<th>Last Active</th>
-							</tr>	
-						</thead>
-						<tbody th:each="player: ${prestigeTable}">
-							<tr>
-								<td th:id="${player.name} + 'NameCell'">
-									<a th:id="${player.name} + 'Link'" th:href="'/player/' + ${player.name}" target="_blank" style="color: inherit;" >
-										<span style="text-decoration: underline;" th:id="${player.name} + 'Name'" th:text="${player.name}" />
-									</a>
-								</td>
-								<td th:id="${player.name} + 'PrestigeLevel'" th:text="${player.prestigeLevel}" />
-								<td th:id="${player.name} + 'LastActive'" th:text="${player.lastActive}" />
-							</tr>
-						</tbody>
-						<tfoot>
-							<tr>
-								<th>Name</th>
-								<th>Prestige Level</th>
-								<th>Last Active</th>
-							</tr>	
-						</tfoot>
-					</table>
-				</div>
-				<div class="cell small-3"></div>
 			</div>
 		</div>
 		<div class="cell small-2">
@@ -119,5 +85,11 @@
 	<script th:src="@{/webjars/foundation/6.4.3-1/dist/js/foundation.min.js}"></script>
 	<script th:src="@{/webjars/chartjs/2.9.3/Chart.min.js}"></script>
 	<script th:src="@{/webjars/github-com-nagix-chartjs-plugin-colorschemes/0.3.0/chartjs-plugin-colorschemes.min.js}"></script>
-	<script>$(document).foundation();</script>
+	<script th:src="@{/js/ascension.js}"></script>
+	<script>
+		$(document).foundation();
+		$(".allegianceEntry").each(function() {
+    		setColor(this.id);
+    	});
+	</script>
 </body>

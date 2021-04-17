@@ -8,7 +8,8 @@ public enum BattleGroundCacheEntryKey {
 	BOT_LEADERBOARD("botleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8),
 	BET_PERCENTILES("betpercentiles", TimeUnit.HOURS, Calendar.HOUR, 8),
 	FIGHT_PERCENTILES("fightpercentiles", TimeUnit.HOURS, Calendar.HOUR, 8),
-	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8);
+	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8), 
+	EXPERIENCE_LEADERBOARD("experienceLeaderboard", TimeUnit.HOURS, Calendar.HOUR, 1);
 	
 	BattleGroundCacheEntryKey(String key, TimeUnit timeUnit, Integer calendarUnit, Integer timeValue) {
 		this.key = key;

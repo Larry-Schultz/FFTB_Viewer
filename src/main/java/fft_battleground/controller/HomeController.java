@@ -3,7 +3,6 @@ package fft_battleground.controller;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -45,10 +44,10 @@ import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.model.Music;
-import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.reports.model.AscensionData;
 import fft_battleground.dump.reports.model.BotLeaderboard;
-import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
+import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
@@ -280,19 +279,34 @@ public class HomeController {
 	@SneakyThrows
 	public String expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("exp leaderboard", userAgent, request);
-		List<ExpLeaderboardEntry> leaderboardEntries = this.dumpReportsService.generateExpLeaderboardData();
-		List<PrestigeTableEntry> prestigeEntries = this.dumpReportsService.generatePrestigeTable();
+		ExpLeaderboard leaderboard = this.dumpReportsService.getExpLeaderboard();
 		
 		Date generationDate = new Date();
 		String generationDateFormatString = "yyyy-MM-dd hh:mm:ss aa zzz";
 		SimpleDateFormat sdf = new SimpleDateFormat(generationDateFormatString);
 		String generationDateString = sdf.format(generationDate);
 		
-		model.addAttribute("leaderboard", leaderboardEntries);
-		model.addAttribute("prestigeTable", prestigeEntries);
+		model.addAttribute("leaderboard", leaderboard.getLeaderboardEntries());
 		model.addAttribute("generationDate", generationDateString);
 		
 		return "expLeaderboard.html";
+	}
+	
+	@GetMapping("/ascension")
+	@SneakyThrows
+	public String ascension(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		this.logAccess("ascension", userAgent, request);
+		AscensionData prestigeEntries = this.dumpReportsService.generatePrestigeTable();
+		
+		Date generationDate = new Date();
+		String generationDateFormatString = "yyyy-MM-dd hh:mm:ss aa zzz";
+		SimpleDateFormat sdf = new SimpleDateFormat(generationDateFormatString);
+		String generationDateString = sdf.format(generationDate);
+		
+		model.addAttribute("prestigeTable", prestigeEntries.getPrestigeData());
+		model.addAttribute("generationDate", generationDateString);
+		
+		return "ascension.html";
 	}
 	
 	@GetMapping("/gilCount")

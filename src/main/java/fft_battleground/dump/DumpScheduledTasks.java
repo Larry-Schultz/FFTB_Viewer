@@ -86,6 +86,7 @@ public class DumpScheduledTasks {
 				dumpReportsService.writeBotLeaderboardToCaches();
 				dumpReportsService.writeLeaderboard();
 				dumpReportsService.writeAllegianceWrapper();
+				dumpReportsService.writeExpLeaderboard();
 			}
 			
 		};
