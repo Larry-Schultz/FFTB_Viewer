@@ -10,7 +10,7 @@ public class SkillWinEventDetector implements EventDetector<SkillWinEvent> {
 
 	private static final String SEARCH_STRING = "! You have been bestowed the ";
 	private static final String SEARCH_STRING_2 = " skill free of charge! Additionally, ";
-	private static final String SEARCH_STRING_3 = " has also received it from the subscriber-only pool!";
+	private static final String SEARCH_STRING_3 = " received it from the subscriber-only pool!";
 	
 	
 	@Override

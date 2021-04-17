@@ -23,6 +23,9 @@ public class IrcChatbotThread extends Thread {
     
     @Autowired
 	private WebhookManager errorWebhookManager;
+    
+    @Autowired
+    private IrcInitialConnectManager ircInitialConnectManager;
 	
     @Autowired
     private Twirk ircChatBot;
@@ -47,10 +50,7 @@ public class IrcChatbotThread extends Thread {
         log.info("Starting IrcChatbotThread");
         log.info("Joining channel: " + "#" + this.channel);
         try {
-	        boolean startupSuccessful = this.ircChatBot.connect();
-	        if(!startupSuccessful) {
-	        	throw new IrcConnectionException("twitch irc connection permanently closed");
-	        }
+	        boolean startupSuccessful = this.ircInitialConnectManager.connectToIrc(this.ircChatBot);
         } catch(IrcConnectionException e) {
         	log.error(e.getMessage(), e);
         	this.errorWebhookManager.sendShutdownNotice(e, e.getMessage());
