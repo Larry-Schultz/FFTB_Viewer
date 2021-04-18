@@ -34,6 +34,12 @@ public class MatchController {
 
 	@Autowired
 	private MatchRepo matchRepo;
+	
+	@RequestMapping(value= "/health", method = RequestMethod.GET)
+	public ResponseEntity<GenericResponse<Boolean>> healthCheck() {
+		Boolean result = true;
+		return GenericResponse.createGenericResponseEntity(result);
+	}
 
 	@RequestMapping(value = "/matches", method = RequestMethod.GET)
 	public ResponseEntity<GenericResponse<List<Match>>> getMatches(

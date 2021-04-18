@@ -22,8 +22,15 @@ function connect() {
         		console.log(error.stack);
         	}
         });
+    }, function(errorMessage) {
+    	if(errorMessage != null && typeof(errorMessage) !== 'undefined') {
+	    	if(errorMessage.startsWith('Whoops! Lost connection to ')) {
+	    		manuallyReconnectToServer();
+	    	}
+    	}
     });
     
+    console.log("stompClient disconnected");
 }
 
 var eventIndex = null;
@@ -55,6 +62,23 @@ function manuallyCallToRetrieveEvent(indexes) {
 			events = result;
 	  }});
 	
+}
+
+function manuallyReconnectToServer() {
+	setInterval(function(){ 
+		$.ajax({
+		    url: 'api/matches/health',
+		    type: "GET",
+		    dataType: "json",
+		    success: function (data) {
+		    	//if successful at calling healthcheck, reload the page
+		    	location.reload();
+		    },
+		    error: function (error) {
+		        console.log('Error reconnecting to server');
+		    }
+		});
+	}, 30000);
 }
 
 function pullCurrentData() {
