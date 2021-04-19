@@ -379,12 +379,6 @@ public class HomeController {
 	@SneakyThrows
 	protected void logAccess(String pageName, String userAgent, HttpServletRequest request) {
 		this.accessTracker.addAccessEntry(pageName, userAgent, request);
-		/*
-		 * InetAddress addr = InetAddress.getByName(request.getRemoteAddr()); String
-		 * host = addr.getHostName();
-		 * log.info("{} page accessed from user: {} with hostname {}", pageName,
-		 * request.getRemoteAddr(), host);
-		 */
 	}
 	
 }

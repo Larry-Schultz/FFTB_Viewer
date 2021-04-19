@@ -2,17 +2,19 @@ package fft_battleground.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,10 +22,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.metrics.AccessTracker;
 import fft_battleground.repo.model.Match;
-import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.util.GenericElementOrdering;
 import fft_battleground.util.GenericResponse;
+
+import lombok.SneakyThrows;
 
 @Controller
 @RequestMapping("/api/matches")
@@ -33,10 +37,11 @@ public class MatchController {
 	private WebsocketThread websocketThread;
 
 	@Autowired
-	private MatchRepo matchRepo;
+	private AccessTracker accessTracker;
 	
 	@RequestMapping(value= "/health", method = RequestMethod.GET)
-	public ResponseEntity<GenericResponse<Boolean>> healthCheck() {
+	public ResponseEntity<GenericResponse<Boolean>> healthCheck(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		//this.logAccess("health check", userAgent, request);
 		Boolean result = true;
 		return GenericResponse.createGenericResponseEntity(result);
 	}
@@ -49,7 +54,8 @@ public class MatchController {
 	}
 
 	@RequestMapping(value = "/currentData", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<GenericResponse<List<GenericElementOrdering<BattleGroundEvent>>>> getCurrentMatch() {
+	public @ResponseBody ResponseEntity<GenericResponse<List<GenericElementOrdering<BattleGroundEvent>>>> 
+	getCurrentMatch(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		List<GenericElementOrdering<BattleGroundEvent>> events = this.websocketThread.getCurrentEventCache();
 		return GenericResponse.createGenericResponseEntity(events);
 	}
@@ -66,6 +72,11 @@ public class MatchController {
 		
 		return GenericResponse.createGenericResponseEntity(elements);
 	
+	}
+	
+	@SneakyThrows
+	protected void logAccess(String pageName, String userAgent, HttpServletRequest request) {
+		this.accessTracker.addAccessEntry(pageName, userAgent, request);
 	}
 	 
 }

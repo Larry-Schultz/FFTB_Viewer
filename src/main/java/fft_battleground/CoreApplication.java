@@ -67,7 +67,7 @@ public class CoreApplication implements ApplicationContextAware {
 		eventManager.start();
 		repoManager.start();
 		websocketThread.start();
-		//accessTracker.start();
+		accessTracker.start();
 		
 		if(useIrc.equalsIgnoreCase("true")) {
 			ircChatMessenger.start();

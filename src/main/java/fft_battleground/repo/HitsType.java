@@ -5,7 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 public enum HitsType {
 	USER(),
 	CRAWLER,
-	NONE;
+	NONE,
+	BOTH;
 	
 	@Override
 	public String toString() {
