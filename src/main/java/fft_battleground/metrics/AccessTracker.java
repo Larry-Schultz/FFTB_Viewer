@@ -56,7 +56,7 @@ public class AccessTracker extends Thread {
 	}
 
 	protected void setUpMetrics() {
-		HitsMetricsTrackerBuilder builder = new HitsMetricsTrackerBuilder(this.meterRegistry);
+		MetricsTrackerBuilder builder = new MetricsTrackerBuilder(this.meterRegistry);
 		this.metricsTrackers = Arrays.asList(new HitsMetricsTracker[] {
 			builder.buildMetricsTracker(HitsType.BOTH, TimeUnit.HOURS, 24, "fft_viewer.hits.totalDaily", "Total Hits from Crawlers and Users"),
 			builder.buildMetricsTracker(HitsType.USER, TimeUnit.HOURS, 24, "fft_viewer.hits.userDaily", "Total daily user hits"),
