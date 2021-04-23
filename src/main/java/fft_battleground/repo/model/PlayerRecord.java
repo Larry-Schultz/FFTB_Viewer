@@ -103,20 +103,22 @@ public class PlayerRecord {
     @Convert(converter = BooleanConverter.class)
     private Boolean isSubscriber;
     
-    @JsonIgnore
     @CreationTimestamp
+    @JsonIgnore
     private Date createDateTime;
  
-    @JsonIgnore
     @UpdateTimestamp
+    @JsonIgnore
     private Date updateDateTime;
     
     @Column(name="createdSource", nullable=true)
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private UpdateSource createdSource;
     
     @Column(name="updateSource", nullable=true)
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private UpdateSource updateSource;
     
     public PlayerRecord() {}
