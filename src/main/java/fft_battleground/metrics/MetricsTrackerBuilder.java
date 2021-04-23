@@ -10,11 +10,11 @@ import fft_battleground.repo.HitsType;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 
-public class HitsMetricsTrackerBuilder {
+public class MetricsTrackerBuilder {
 	
 	private MeterRegistry meterRegistry;
 	
-	public HitsMetricsTrackerBuilder(MeterRegistry meterRegistry) {
+	public MetricsTrackerBuilder(MeterRegistry meterRegistry) {
 		this.meterRegistry = meterRegistry;
 	}
 	
