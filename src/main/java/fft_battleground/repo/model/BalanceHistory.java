@@ -49,6 +49,7 @@ public class BalanceHistory {
     @Column(name="balance_change", nullable=true)
     private Integer balanceChange;
     
+    @JsonIgnore
     @Column(name="type", nullable = false, length=10)
     @Enumerated(EnumType.STRING)
 	private BalanceType type;
@@ -58,7 +59,6 @@ public class BalanceHistory {
     @Enumerated(EnumType.STRING)
     private BalanceUpdateSource updateSource;
 	
-    @JsonIgnore
 	@CreationTimestamp
 	private Timestamp create_timestamp;
 	
