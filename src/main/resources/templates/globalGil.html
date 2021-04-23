@@ -29,6 +29,7 @@
 						<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">By Day</a></li>
 						<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">By Week</a></li>
 						<li class="tabs-title"><a data-tabs-target="panel3" href="#panel3">By Month</a></li>
+						<li class="tabs-title"><a data-tabs-target="panel4" href="#panel4">By Year</a></li>
 					</ul>
 					<div class="tabs-content" data-tabs-content="global-gil-tabs">
 						<div class="tabs-panel is-active" id="panel1">
@@ -120,6 +121,36 @@
 							</table>
 							<br />
 							<canvas id="countByMonthChart" width="400" height="225"></canvas>
+						</div>
+						<div class="tabs-panel" id="panel4">
+							<table>
+								<thead>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="globalGilCount: ${globalGilData.countByYear}">
+										<td th:text="${globalGilCount.displayDateWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGlobalGilCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayPlayerCountWithWebFormat()}" />
+										<td th:text="${globalGilCount.displayGilPerPlayerWithWebFormat()}" />
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr>
+										<th>Date</th>
+										<th>Gil Count</th>
+										<th>Player Count</th>
+										<th>Gil Per Player</th>
+									</tr>
+								</tfoot>
+							</table>
+							<br />
+							<canvas id="countByYearChart" width="400" height="225"></canvas>
 						</div>
 					</div>
 				</div>

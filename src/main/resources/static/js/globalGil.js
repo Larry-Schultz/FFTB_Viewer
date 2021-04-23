@@ -54,3 +54,4 @@ function populateChart(unit, chartName) {
 populateChart('day', 'countByDayChart');
 populateChart('week', 'countByWeekChart');
 populateChart('month', 'countByMonthChart');
+populateChart('year', 'countByYearChart')

@@ -87,8 +87,10 @@ public class DumpReportsService {
 				.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.WEEKS);
 		List<GlobalGilHistory> historyByMonth = this.globalGilHistoryRepo
 				.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.MONTHS);
+		List<GlobalGilHistory> historyByYear = this.globalGilHistoryRepo
+				.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.YEARS);
 
-		data = new GlobalGilPageData(todaysData, historyByDay, historyByWeek, historyByMonth);
+		data = new GlobalGilPageData(todaysData, historyByDay, historyByWeek, historyByMonth, historyByYear);
 
 		return data;
 	}
