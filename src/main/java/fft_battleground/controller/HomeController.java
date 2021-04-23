@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.controller.model.MusicData;
 import fft_battleground.controller.model.PlayerData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
@@ -66,7 +67,7 @@ import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;
-
+import fft_battleground.util.GenericResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -134,22 +135,25 @@ public class HomeController {
 	}
 	
 	@GetMapping({"/player", "/player/"})
-	public String playerDataPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("player search page", userAgent, request);
-		return "playerRecord.html";
+		PlayerData data = null;
+		return GenericResponse.createGenericResponseEntity("No player provided", data);
 	}
 
 	@GetMapping({"/player/{playerName}"})
-	public String playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
+	public ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
 			@RequestHeader(value = "User-Agent") String userAgent, Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
 		if(!refresh) {
 			this.logAccess(playerName + " search page ", userAgent, request);
 		}
+		
+		PlayerData playerData = new PlayerData();
 		if(playerName != null) {
 			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
 			if(maybePlayer.isPresent()) {
-				PlayerData playerData = new PlayerData();
+				
 				PlayerRecord record = maybePlayer.get();
 				for(PlayerSkills playerSkill : record.getPlayerSkills()) {
 					playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", ""));
@@ -213,25 +217,25 @@ public class HomeController {
 				Integer leaderboardRank = this.dumpReportsService.getLeaderboardPosition(playerName);
 				playerData.setLeaderboardPosition(leaderboardRank);
 				
-				model.addAttribute("playerData", playerData);
+				//model.addAttribute("playerData", playerData);
 			} else {
-				PlayerData playerData = new PlayerData();
+				playerData = new PlayerData();
 				playerData.setNotFound(true);
 				playerData.setPlayerRecord(new PlayerRecord());
 				playerData.getPlayerRecord().setPlayer(GambleUtil.cleanString(playerName));
 				model.addAttribute("playerData", playerData);
 			}
 		}
-		return "playerRecord.html";
+		return GenericResponse.createGenericResponseEntity(playerData);
 	}
 	
 	@GetMapping("/music")
-	public String musicPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("music search page", userAgent, request);
 		Collection<Music> music = this.dumpService.getPlaylist();
-		model.addAttribute("playlist", music);
+		Collection<MusicData> data = music.parallelStream().map(musicEntry -> new MusicData(musicEntry)).collect(Collectors.toList());
 		
-		return "musicList.html";
+		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
 	@GetMapping("/botleaderboard")
