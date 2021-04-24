@@ -43,7 +43,8 @@ public enum BattleGroundEventType {
 	OTHER_PLAYER_INVALID_FIGHT_CLASS("Compositive Invalid Fight Class"), 
 	OTHER_PLAYER_SKILL_ON_COOLDOWN("Composite Skill On Cooldown"),
 	PING("Websocket ping"), 
-	DONT_FIGHT("Don't Fight");
+	DONT_FIGHT("Don't Fight"), 
+	BUY_SKILL_RANDOM("Buy Skill Random");
 	
 	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;
