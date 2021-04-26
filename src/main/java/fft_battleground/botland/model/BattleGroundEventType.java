@@ -1,5 +1,9 @@
 package fft_battleground.botland.model;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum BattleGroundEventType {
 	FIGHT_BEGINS("Fight Begins"),
 	BETTING_BEGINS("Betting Begins"),
@@ -59,5 +63,11 @@ public enum BattleGroundEventType {
 	@Override
 	public String toString() {
 		return this.eventStringName;
+	}
+	
+	@JsonValue
+	public String jsonValue() {
+		String result = StringUtils.upperCase(this.name());
+		return result;
 	}
 }
