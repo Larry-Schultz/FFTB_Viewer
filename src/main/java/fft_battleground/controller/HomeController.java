@@ -39,8 +39,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.controller.model.ExpLeaderboardData;
 import fft_battleground.controller.model.MusicData;
 import fft_battleground.controller.model.PlayerData;
+import fft_battleground.controller.model.PlayerLeaderboardData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.GlobalGilPageData;
@@ -269,19 +271,21 @@ public class HomeController {
 	}
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
-	public String playerLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, 
+	public ResponseEntity<GenericResponse<PlayerLeaderboardData>> playerLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, 
 			HttpServletRequest request) throws CacheMissException {
 		this.logAccess("player leaderboard", userAgent, request);
 		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
 		model.addAttribute("leaderboard", leaderboard);
-		model.addAttribute("topPlayersCommaSplit", StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ','));
+		String commaDelimitedTopPlayersString = StringUtils.join(leaderboard.getHighestPlayers().stream().map(highestPlayer -> highestPlayer.getName()).collect(Collectors.toList()), ',');
 		
-		return "playerLeaderboard.html";
+		PlayerLeaderboardData data = new PlayerLeaderboardData(leaderboard, leaderboard.formattedGenerationDate(), commaDelimitedTopPlayersString);
+		
+		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
 	@GetMapping("/expLeaderboard")
 	@SneakyThrows
-	public String expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public ResponseEntity<GenericResponse<ExpLeaderboardData>> expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("exp leaderboard", userAgent, request);
 		ExpLeaderboard leaderboard = this.dumpReportsService.getExpLeaderboard();
 		
@@ -290,15 +294,14 @@ public class HomeController {
 		SimpleDateFormat sdf = new SimpleDateFormat(generationDateFormatString);
 		String generationDateString = sdf.format(generationDate);
 		
-		model.addAttribute("leaderboard", leaderboard.getLeaderboardEntries());
-		model.addAttribute("generationDate", generationDateString);
+		ExpLeaderboardData data = new ExpLeaderboardData(leaderboard, generationDateString);
 		
-		return "expLeaderboard.html";
+		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
 	@GetMapping("/ascension")
 	@SneakyThrows
-	public String ascension(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public ResponseEntity<GenericResponse<AscensionData>> ascension(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("ascension", userAgent, request);
 		AscensionData prestigeEntries = this.dumpReportsService.generatePrestigeTable();
 		
@@ -307,10 +310,9 @@ public class HomeController {
 		SimpleDateFormat sdf = new SimpleDateFormat(generationDateFormatString);
 		String generationDateString = sdf.format(generationDate);
 		
-		model.addAttribute("prestigeTable", prestigeEntries.getPrestigeData());
-		model.addAttribute("generationDate", generationDateString);
+		prestigeEntries.setGenerationDateString(generationDateString);
 		
-		return "ascension.html";
+		return GenericResponse.createGenericResponseEntity(prestigeEntries);
 	}
 	
 	@GetMapping("/gilCount")

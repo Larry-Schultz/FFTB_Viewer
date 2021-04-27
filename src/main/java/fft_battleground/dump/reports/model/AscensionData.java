@@ -13,4 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AscensionData {
 	private List<PrestigeTableEntry> prestigeData;
+	private String generationDateString;
+	
+	public AscensionData(List<PrestigeTableEntry> prestigeData) {
+		this.prestigeData = prestigeData;
+	}
 }

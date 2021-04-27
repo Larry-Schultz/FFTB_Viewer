@@ -154,18 +154,6 @@ public class PlayerRecordController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
-	@Cacheable("playerBalanceHistory")
-	public LeaderboardBalanceData generatePlayerBalanceHistory(String players, int count) {
-		Map<String, List<BalanceHistory>> playerBalanceHistories = Arrays.asList(StringUtils.split(players, ",")).parallelStream()
-				.collect(Collectors.toMap(Function.identity(), playerName -> this.balanceHistoryRepo.getTournamentBalanceHistoryFromPastWeek(playerName)));
-		List<LeaderboardBalanceHistoryEntry> playerBalanceHistoryEntries = playerBalanceHistories.keySet().parallelStream().map(playerName -> new LeaderboardBalanceHistoryEntry(playerName, playerBalanceHistories.get(playerName)))
-				.filter(leaderboardBalanceHistory -> leaderboardBalanceHistory.getBalanceHistory().size() >= count).collect(Collectors.toList());
-		
-		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(playerBalanceHistoryEntries, count);
-		
-		return data;
-	}
-	
 	@GetMapping("/playerList")
 	public ResponseEntity<GenericResponse<List<String>>> playerNames() {
 		List<String> playerNames = this.playerRecordRepo.findPlayerNames().stream().map(player -> StringUtils.trim(StringUtils.lowerCase(player)))
@@ -195,5 +183,17 @@ public class PlayerRecordController {
 		
 		return GenericResponse.createGenericResponseEntity(results);
 		
+	}
+	
+	@Cacheable("playerBalanceHistory")
+	public LeaderboardBalanceData generatePlayerBalanceHistory(String players, int count) {
+		Map<String, List<BalanceHistory>> playerBalanceHistories = Arrays.asList(StringUtils.split(players, ",")).parallelStream()
+				.collect(Collectors.toMap(Function.identity(), playerName -> this.balanceHistoryRepo.getTournamentBalanceHistoryFromPastWeek(playerName)));
+		List<LeaderboardBalanceHistoryEntry> playerBalanceHistoryEntries = playerBalanceHistories.keySet().parallelStream().map(playerName -> new LeaderboardBalanceHistoryEntry(playerName, playerBalanceHistories.get(playerName)))
+				.filter(leaderboardBalanceHistory -> leaderboardBalanceHistory.getBalanceHistory().size() >= count).collect(Collectors.toList());
+		
+		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(playerBalanceHistoryEntries, count);
+		
+		return data;
 	}
 }
