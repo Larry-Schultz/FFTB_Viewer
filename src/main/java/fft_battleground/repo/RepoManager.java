@@ -21,6 +21,7 @@ import fft_battleground.event.model.AllegianceEvent;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BuySkillEvent;
+import fft_battleground.event.model.BuySkillRandomEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.GiftSkillEvent;
@@ -107,6 +108,8 @@ public class RepoManager extends Thread {
 					this.handlePrestigeAscensionEvent((PrestigeAscensionEvent) newResults);
 				} else if(newResults instanceof FightEntryEvent) {
 					this.handleFightEntryEvent((FightEntryEvent)newResults);
+				} else if(newResults instanceof BuySkillRandomEvent) {
+					this.handleBuySkillRandomEvent((BuySkillRandomEvent) newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
@@ -237,6 +240,15 @@ public class RepoManager extends Thread {
 			if(balanceUpdate != null) {
 				this.battleGroundEventBackPropagation.SendUnitThroughTimer(balanceUpdate);
 			}
+		}
+	}
+	
+	@SneakyThrows
+	private void handleBuySkillRandomEvent(BuySkillRandomEvent event) {
+		this.handlePlayerSkillEvent(event.getSkillEvent());
+		BattleGroundEvent balanceUpdate = this.repoTransactionManager.generateSimulatedBalanceEvent(event.getPlayer(), event.getSkillBuyBalanceUpdate(), BalanceUpdateSource.BUYSKILL);
+		if(balanceUpdate != null) {
+			this.battleGroundEventBackPropagation.SendUnitThroughTimer(balanceUpdate);
 		}
 	}
 	

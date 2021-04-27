@@ -1,20 +1,19 @@
 package fft_battleground.metrics;
 
-import java.util.UUID;
-
 import com.google.common.cache.Cache;
 import fft_battleground.repo.HitsType;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class HitsMetricsTracker {
+@EqualsAndHashCode(callSuper=true)
+public class HitsMetricsTracker extends MetricsTracker<String, String> {
 	private HitsType hitsType;
-	private Cache<String, String> currentHitsCache;
 	
 	public HitsMetricsTracker(HitsType hitsType, Cache<String, String> currentHitsCache) {
+		super(currentHitsCache);
 		this.hitsType = hitsType;
-		this.currentHitsCache = currentHitsCache;
 	}
 	
 	/*
@@ -24,24 +23,8 @@ public class HitsMetricsTracker {
 		if(this.hitsType == HitsType.BOTH || this.hitsType == hitsType) {
 			String id = this.generateId(url);
 			String value = url != null ? url : "dummyName";
-			this.currentHitsCache.put(id, value);
+			this.getCache().put(id, value);
 		}
 	}
 	
-	public long getSize() {
-		long result = this.currentHitsCache.size();
-		return result;
-	}
-	
-	protected String generateId(String url) {
-		UUID uuid = null;
-		try {
-			uuid = url != null ? UUID.fromString(url) : UUID.randomUUID();
-		} catch(IllegalArgumentException e) {
-			uuid = UUID.randomUUID();
-		}
-		
-		String id = uuid.toString();
-		return id;
-	}
 }

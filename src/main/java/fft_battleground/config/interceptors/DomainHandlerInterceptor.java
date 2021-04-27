@@ -24,7 +24,7 @@ public class DomainHandlerInterceptor implements HandlerInterceptor {
     		String path = request.getRequestURI();
     		String schema = request.getScheme();
     		String newUrl = this.hostDomain + path;
-            response.sendRedirect(newUrl);
+            response.sendRedirect("https://" + newUrl);
             return false;
     	}
     	

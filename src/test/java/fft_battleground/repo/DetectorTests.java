@@ -12,6 +12,7 @@ import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
 import fft_battleground.event.detector.BuySkillDetector;
+import fft_battleground.event.detector.BuySkillRandomDetector;
 import fft_battleground.event.detector.FightBeginsDetector;
 import fft_battleground.event.detector.FightEntryDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
@@ -34,6 +35,7 @@ import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingEndsEvent;
 import fft_battleground.event.model.BuySkillEvent;
+import fft_battleground.event.model.BuySkillRandomEvent;
 import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.LevelUpEvent;
@@ -174,6 +176,18 @@ public class DetectorTests {
 		BuySkillDetector detector = new BuySkillDetector();
 		BattleGroundEvent event = detector.detect(message);
 		assertTrue(event != null && event instanceof BuySkillEvent);
+	}
+	
+	@Test
+	public void testBuySkillRandomDetector() {
+		String test1 = "OtherBrand, you rolled the dice and bought the Perfume skill for 5,000G. Your new balance is 12,560G.";
+		ChatMessage message = this.createBotChatMessage(test1);
+		BuySkillRandomDetector detector = new BuySkillRandomDetector();
+		BuySkillRandomEvent event = detector.detect(message);
+		assertTrue(event != null);
+		assertTrue(event.getSkillEvent() != null && event.getSkillEvent().getSkills() != null && event.getSkillEvent().getSkills().size() > 0 && StringUtils.equals(event.getSkillEvent().getSkills().get(0), "Perfume"));
+		assertTrue(event.getSkillBuyBalanceUpdate() != null && event.getSkillBuyBalanceUpdate().equals(-5000));
+		assertTrue(StringUtils.equalsIgnoreCase(event.getPlayer(), "OtherBrand"));
 	}
 
 	@Test

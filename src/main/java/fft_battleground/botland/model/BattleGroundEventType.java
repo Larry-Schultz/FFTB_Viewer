@@ -1,5 +1,9 @@
 package fft_battleground.botland.model;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum BattleGroundEventType {
 	FIGHT_BEGINS("Fight Begins"),
 	BETTING_BEGINS("Betting Begins"),
@@ -43,7 +47,8 @@ public enum BattleGroundEventType {
 	OTHER_PLAYER_INVALID_FIGHT_CLASS("Compositive Invalid Fight Class"), 
 	OTHER_PLAYER_SKILL_ON_COOLDOWN("Composite Skill On Cooldown"),
 	PING("Websocket ping"), 
-	DONT_FIGHT("Don't Fight");
+	DONT_FIGHT("Don't Fight"), 
+	BUY_SKILL_RANDOM("Buy Skill Random");
 	
 	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;
@@ -58,5 +63,11 @@ public enum BattleGroundEventType {
 	@Override
 	public String toString() {
 		return this.eventStringName;
+	}
+	
+	@JsonValue
+	public String jsonValue() {
+		String result = StringUtils.upperCase(this.name());
+		return result;
 	}
 }
