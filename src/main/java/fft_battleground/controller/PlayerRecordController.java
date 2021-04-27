@@ -172,6 +172,8 @@ public class PlayerRecordController {
 			timeUnit = ChronoUnit.WEEKS;
 		} else if(StringUtils.equalsIgnoreCase(unit, "month")) {
 			timeUnit = ChronoUnit.MONTHS;
+		} else if(StringUtils.equalsIgnoreCase(unit, "year")) {
+			timeUnit = ChronoUnit.YEARS;
 		}
 		
 		if(timeUnit != null) {

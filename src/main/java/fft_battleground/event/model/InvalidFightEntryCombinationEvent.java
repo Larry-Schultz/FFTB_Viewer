@@ -1,7 +1,5 @@
 package fft_battleground.event.model;
 
-import java.util.List;
-
 import fft_battleground.botland.model.BattleGroundEventType;
 
 import lombok.Data;
