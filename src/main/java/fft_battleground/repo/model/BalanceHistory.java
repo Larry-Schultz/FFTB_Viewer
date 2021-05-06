@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.event.model.BalanceEvent;
+
 import lombok.Data;
 
 @Entity
@@ -36,6 +37,7 @@ public class BalanceHistory {
 	@SequenceGenerator(name="balance_history_generator", sequenceName = "balance_history_seq")
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "balance_history_generator")
     @Column(name = "balance_history_id", nullable = false)
+    @JsonIgnore
 	private Long balanceHistoryId;
     
     @Column(name = "player", nullable = false)
@@ -47,10 +49,12 @@ public class BalanceHistory {
     @Column(name="balance_change", nullable=true)
     private Integer balanceChange;
     
+    @JsonIgnore
     @Column(name="type", nullable = false, length=10)
     @Enumerated(EnumType.STRING)
 	private BalanceType type;
     
+    @JsonIgnore
     @Column(name="update_source", nullable=false, length=10)
     @Enumerated(EnumType.STRING)
     private BalanceUpdateSource updateSource;

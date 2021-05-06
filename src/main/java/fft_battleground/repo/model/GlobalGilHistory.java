@@ -16,6 +16,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -32,11 +33,14 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 	
     @Id
     @Column(name = "date_string", nullable = false)
+    @JsonIgnore
 	private String date_string;
 	
+    @JsonIgnore
     @Column(name = "player_count", nullable = false)
 	private Integer player_count;
 	
+    @JsonIgnore
     @Column(name = "global_gil_count", nullable = false)
 	private Long global_gil_count;
     
@@ -58,6 +62,7 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 	}
 	
 	@SneakyThrows
+	@JsonProperty("dateWebFormat")
 	public String displayDateWithWebFormat() {
 		SimpleDateFormat pageFormat = new SimpleDateFormat(DISPLAY_FORMAT);
 		Date historyDate = this.getDate();
@@ -65,6 +70,7 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 		return newFormat;
 	}
 	
+	@JsonProperty("globalGilCountWebFormat")
 	public String displayGlobalGilCountWithWebFormat() {
 		DecimalFormat decimalFormat = new DecimalFormat();
 		decimalFormat.setGroupingUsed(true);
@@ -73,6 +79,7 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 		return result;
 	}
 	
+	@JsonProperty("playerCountWebFormat")
 	public String displayPlayerCountWithWebFormat() {
 		DecimalFormat decimalFormat = new DecimalFormat();
 		decimalFormat.setGroupingUsed(true);
@@ -81,6 +88,7 @@ public class GlobalGilHistory implements Comparable<GlobalGilHistory> {
 		return result;
 	}
 	
+	@JsonProperty("gilPerPlayerWebFormat")
 	public String displayGilPerPlayerWithWebFormat() {
 		DecimalFormat decimalFormat = new DecimalFormat();
 		decimalFormat.setGroupingUsed(true);

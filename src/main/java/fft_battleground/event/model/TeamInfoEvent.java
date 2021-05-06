@@ -4,17 +4,26 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import fft_battleground.botland.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.util.GenericPairing;
+
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class TeamInfoEvent extends BattleGroundEvent {
 
 	private static final BattleGroundEventType type = BattleGroundEventType.TEAM_INFO;
 	
 	public BattleGroundTeam team;
+	
+	@JsonIgnore
 	public List<Pair<String, String>> playerUnitPairs;
 	
 	public List<PlayerRecord> metaData;
@@ -23,6 +32,12 @@ public class TeamInfoEvent extends BattleGroundEvent {
 		super(type);
 		this.team = team;
 		this.playerUnitPairs = unitData;
+	}
+	
+	@JsonProperty("playerUnitPairs")
+	public List<GenericPairing<String, String>> getPlayerUnitGenericPairList() {
+		List<GenericPairing<String, String>> result = GenericPairing.convertPairToGenericPair(this.playerUnitPairs);
+		return result;
 	}
 
 	@Override
