@@ -11,7 +11,7 @@ public class LevelUpDetector implements EventDetector<LevelUpEvent> {
 
 	private static final String findString = "you advanced to Level ";
 	private static final String endCharacter = "!";
-	private static final String findString_2 = " Your gil floor has increased to 368! You learned the skill:";
+	private static final String findString_2 = " Your Gil Floor has increased to 368! You learned the skill:";
 	
 	@Override
 	public LevelUpEvent detect(ChatMessage message) {

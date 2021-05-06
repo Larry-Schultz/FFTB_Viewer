@@ -1,7 +1,9 @@
 package fft_battleground.event.model;
 
 import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
+
 import lombok.Data;
 
 @Data
@@ -12,6 +14,8 @@ public class UnitInfoEvent extends BattleGroundEvent {
 	private String unitInfoString;
 	private Unit unit;
 	private Boolean isRaidBoss = false;
+	private BattleGroundTeam team;
+	private Integer position;
 
 	public UnitInfoEvent() {}
 	

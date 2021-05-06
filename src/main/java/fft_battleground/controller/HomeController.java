@@ -39,6 +39,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.controller.model.BotLeaderboardData;
+import fft_battleground.controller.model.BotlandData;
 import fft_battleground.controller.model.ExpLeaderboardData;
 import fft_battleground.controller.model.MusicData;
 import fft_battleground.controller.model.PlayerData;
@@ -70,6 +72,7 @@ import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;
 import fft_battleground.util.GenericResponse;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -137,14 +140,14 @@ public class HomeController {
 	}
 	
 	@GetMapping({"/player", "/player/"})
-	public ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("player search page", userAgent, request);
 		PlayerData data = null;
 		return GenericResponse.createGenericResponseEntity("No player provided", data);
 	}
 
 	@GetMapping({"/player/{playerName}"})
-	public ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
+	public @ResponseBody ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
 			@RequestHeader(value = "User-Agent") String userAgent, Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
 		if(!refresh) {
 			this.logAccess(playerName + " search page ", userAgent, request);
@@ -232,7 +235,7 @@ public class HomeController {
 	}
 	
 	@GetMapping("/music")
-	public ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("music search page", userAgent, request);
 		Collection<Music> music = this.dumpService.getPlaylist();
 		Collection<MusicData> data = music.parallelStream().map(musicEntry -> new MusicData(musicEntry)).collect(Collectors.toList());
@@ -241,8 +244,8 @@ public class HomeController {
 	}
 	
 	@GetMapping("/botleaderboard")
-	public String botLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, 
-			Model model, HttpServletRequest request) throws CacheMissException {
+	public @ResponseBody ResponseEntity<GenericResponse<BotLeaderboardData>> botLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, 
+			HttpServletRequest request) throws CacheMissException {
 		this.logAccess("bot leaderboard", userAgent, request);
 		BotLeaderboard leaderboardData = this.dumpReportsService.getBotLeaderboard();
 		Map<String, Integer> botLeaderboard = leaderboardData.getBotLeaderboard();
@@ -265,13 +268,13 @@ public class HomeController {
 		for(int i = 0; i < output.size(); i++) { 
 			output.get(i).setRank(i + 1); 
 		}
-		model.addAttribute("leaderboard", output);
-		model.addAttribute("generationDate", leaderboardData.formattedGenerationDate());
-		return "botLeaderboard.html";
+
+		BotLeaderboardData data = new BotLeaderboardData(output, leaderboardData.formattedGenerationDate());
+		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
-	public ResponseEntity<GenericResponse<PlayerLeaderboardData>> playerLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, 
+	public @ResponseBody ResponseEntity<GenericResponse<PlayerLeaderboardData>> playerLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, 
 			HttpServletRequest request) throws CacheMissException {
 		this.logAccess("player leaderboard", userAgent, request);
 		PlayerLeaderboard leaderboard = this.dumpReportsService.getLeaderboard();
@@ -285,7 +288,7 @@ public class HomeController {
 	
 	@GetMapping("/expLeaderboard")
 	@SneakyThrows
-	public ResponseEntity<GenericResponse<ExpLeaderboardData>> expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<ExpLeaderboardData>> expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("exp leaderboard", userAgent, request);
 		ExpLeaderboard leaderboard = this.dumpReportsService.getExpLeaderboard();
 		
@@ -301,7 +304,7 @@ public class HomeController {
 	
 	@GetMapping("/ascension")
 	@SneakyThrows
-	public ResponseEntity<GenericResponse<AscensionData>> ascension(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<AscensionData>> ascension(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("ascension", userAgent, request);
 		AscensionData prestigeEntries = this.dumpReportsService.generatePrestigeTable();
 		
@@ -316,39 +319,34 @@ public class HomeController {
 	}
 	
 	@GetMapping("/gilCount")
-	public String gilCountPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<GlobalGilPageData>> gilCountPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("global gil count", userAgent, request);
 		GlobalGilPageData data = this.dumpReportsService.getGlobalGilData();
 		model.addAttribute("globalGilData", data);
-		return "globalGil.html";
+		return GenericResponse.createGenericResponseEntity(data);
 		
 	}
 	
 	@GetMapping("/botland")
-	public String botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
+	public @ResponseBody ResponseEntity<GenericResponse<BotlandData>> botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
 			@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		if(!refresh) {
 			this.logAccess("botland", userAgent, request);
 		}
 		List<Bots> botData = this.botsRepo.getBotsForToday();
 		Collections.sort(botData, Collections.reverseOrder());
-		model.addAttribute("botData", botData);
-		model.addAttribute("primaryBotAccountName", this.betBotFactory.getIrcName());
-		model.addAttribute("primaryBotName", this.betBotFactory.getPrimaryBotName());
-		model.addAttribute("botConfigData", this.betBotFactory.getBotDataMap());
 		
 		List<String> botNames = botData.parallelStream().map(bots -> bots.getPlayer()).collect(Collectors.toList());
 		Map<String, List<GenericElementOrdering<BotHourlyData>>> botHourlyDataMap = this.botsHourlyDataRepo.getOrderedBotHourlyDataForBots(botNames);
-		model.addAttribute("botHourlyDataMap", botHourlyDataMap);
-		return "botland.html";
+		BotlandData data = new BotlandData(botData, this.betBotFactory.getIrcName(), this.betBotFactory.getPrimaryBotName(), this.betBotFactory.getBotDataMap(), botHourlyDataMap);
+		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
 	@GetMapping("/allegianceLeaderboard")
-	public String allegianceLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) throws CacheMissException {
+	public @ResponseBody ResponseEntity<GenericResponse<AllegianceLeaderboardWrapper>> allegianceLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) throws CacheMissException {
 		this.logAccess("allegiance leaderboard", userAgent, request);
 		AllegianceLeaderboardWrapper leaderboard = this.dumpReportsService.getAllegianceData();
-		model.addAttribute("allegianceLeaderboardWrapper", leaderboard);
-		return "allegianceLeaderboard.html";
+		return GenericResponse.createGenericResponseEntity(leaderboard);
 	}
 	
 	@GetMapping("/robots.txt")

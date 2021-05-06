@@ -60,9 +60,14 @@ public class Tournament {
 		
 		List<UnitInfoEvent> unitInfoEventsForTeam1 = this.Teams.getUnitInfoEventByBattleGroundTeam(team1);
 		this.attachRaidbossDataToUnitInfoEventList(unitInfoEventsForTeam1);
+		this.attachTeamToUnitList(unitInfoEventsForTeam1, team1);
+		this.attachPositionToUnitList(unitInfoEventsForTeam1);
 		events.addAll(unitInfoEventsForTeam1);
+		
 		List<UnitInfoEvent> unitInfoEventsForTeam2 = this.Teams.getUnitInfoEventByBattleGroundTeam(team2);
 		this.attachRaidbossDataToUnitInfoEventList(unitInfoEventsForTeam2);
+		this.attachTeamToUnitList(unitInfoEventsForTeam2, team2);
+		this.attachPositionToUnitList(unitInfoEventsForTeam2);
 		events.addAll(unitInfoEventsForTeam2);
 		
 		MatchInfoEvent matchInfoEvent = this.getMatchInfo(team1, team2);
@@ -109,6 +114,18 @@ public class Tournament {
 			if(this.raidbosses.contains(GambleUtil.cleanString(event.getPlayer()))) {
 				event.setIsRaidBoss(true);
 			}
+		}
+	}
+	
+	public void attachTeamToUnitList(List<UnitInfoEvent> eventList, BattleGroundTeam team) {
+		if(eventList != null) {
+			eventList.stream().forEach(event -> event.setTeam(team));
+		}
+	}
+	
+	public void attachPositionToUnitList(List<UnitInfoEvent> eventList) {
+		for(int i = 0; i < eventList.size(); i++) {
+			eventList.get(i).setPosition(i);
 		}
 	}
 }
