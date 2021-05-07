@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -124,6 +125,9 @@ public class DumpService {
 	@Getter private Map<Integer, String> expRankLeaderboardByRank = new ConcurrentHashMap<>();
 	@Getter private Map<String, Integer> expRankLeaderboardByPlayer = new ConcurrentHashMap<>(); 
 	
+	private Object musicCacheLock = new Object();
+	@Getter private Collection<Music> musicCache = Collections.<Music>emptyList();
+	
 	public DumpService() {}
 	
 	@PostConstruct 
@@ -160,7 +164,7 @@ public class DumpService {
 		}
 		builder.buildLeaderboard();
 		
-		
+		this.setPlaylist();
 
 		log.info("player data cache load complete");
 	}
@@ -289,6 +293,16 @@ public class DumpService {
 
 	@SneakyThrows
 	public Collection<Music> getPlaylist() {
+		Collection<Music> musicList;
+		synchronized(this.musicCacheLock) {
+			musicList = this.musicCache;
+		}
+		return musicList;
+	}
+	
+	@SneakyThrows
+	public void setPlaylist() {
+		log.info("Updating music data");
 		Set<Music> musicSet = new HashSet<>();
 		
 		Resource resource = new UrlResource(DUMP_PLAYLIST_URL);
@@ -319,10 +333,11 @@ public class DumpService {
 		}
 		
 		Collection<Music> musicList = musicSet.stream().collect(Collectors.toList()).stream().sorted().collect(Collectors.toList());
-		
-		return musicList;
+		synchronized(this.musicCacheLock) {
+			this.musicCache = musicList;
+		}
+		log.info("music data update complete");
 	}
-	
 	
 }
 
@@ -340,6 +355,17 @@ class GenerateDataUpdateFromDump extends TimerTask {
 	@Override
 	public void run() {
 		log.debug("updating data from dump");
+
+		this.updateBalanceData();
+		this.updateExpData();
+		this.updateLastActiveData();
+
+		this.updateMusicData();
+		
+		return;
+	}
+	
+	private void updateBalanceData() {
 		try {
 			Collection<BattleGroundEvent> balanceEvents = this.dumpServiceRef.getBalanceUpdatesFromDumpService();
 			balanceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
@@ -348,7 +374,9 @@ class GenerateDataUpdateFromDump extends TimerTask {
 			log.error("error getting balance data from dump", e);
 			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting balance data from dump");
 		}
-		
+	}
+	
+	private void updateExpData() {
 		try {
 			Collection<BattleGroundEvent> expEvents = this.dumpServiceRef.getExpUpdatesFromDumpService();
 			expEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
@@ -357,7 +385,9 @@ class GenerateDataUpdateFromDump extends TimerTask {
 			log.error("error getting exp data from dump", e);
 			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting exp data from dump");
 		}
-		
+	}
+	
+	private void updateLastActiveData() {
 		try {
 			Collection<BattleGroundEvent> lastActiveEvents = this.dumpServiceRef.getLastActiveUpdatesFromDumpService();
 			//lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
@@ -367,8 +397,10 @@ class GenerateDataUpdateFromDump extends TimerTask {
 			log.error("error getting last active data from dump", e);
 			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting last active data from dump");
 		}
-		
-		return;
+	}
+	
+	private void updateMusicData() {
+		this.dumpServiceRef.setPlaylist();
 	}
 	
 }

@@ -196,10 +196,10 @@ public class EventParser extends Thread {
 					this.eventRouter.sendDataToQueues(event);
 					break;
 				case BETTING_ENDS:
-					this.handleBettingBeginsEvent(event);
+					this.handleBettingEndsEvent(event);
 					break;
 				case BETTING_BEGINS:
-					this.handleBettingEndsEvent(event);
+					this.handleBettingBeginsEvent(event);
 					break;
 				default:
 					if(event != null) {
@@ -234,6 +234,8 @@ public class EventParser extends Thread {
 	
 	protected void handleBettingBeginsEvent(BattleGroundEvent event) throws DumpException {
 		this.eventRouter.sendDataToQueues(event);
+		
+		BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
 		if(this.currentTournament != null) {
 			List<BattleGroundEvent> finalBets = this.tournamentService.getRealBetInfoFromLatestPotFile(this.currentTournament.getID());
 			log.info("Sending final bet data with {} entries", finalBets.size());
