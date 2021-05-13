@@ -34,7 +34,9 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.SkillWinEvent;
+import fft_battleground.event.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
+import fft_battleground.event.model.fake.SkillBonusEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -110,6 +112,10 @@ public class RepoManager extends Thread {
 					this.handleFightEntryEvent((FightEntryEvent)newResults);
 				} else if(newResults instanceof BuySkillRandomEvent) {
 					this.handleBuySkillRandomEvent((BuySkillRandomEvent) newResults);
+				} else if(newResults instanceof ClassBonusEvent) {
+					this.handleClassBonusEvent((ClassBonusEvent) newResults);
+				} else if(newResults instanceof SkillBonusEvent) {
+					this.handleClassBonusEvent((SkillBonusEvent) newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
@@ -265,6 +271,15 @@ public class RepoManager extends Thread {
 			this.repoTransactionManager.updatePlayerSkills(newResults.getGiftSkills().get(i).getPlayerSkillEvent());
 			this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGiftSkills().get(i).getGivingPlayer(), newResults.getCost(), BalanceUpdateSource.GIFTSKILL);
 		}
+	}
+	
+	private void handleClassBonusEvent(ClassBonusEvent newResults) {
+		this.repoTransactionManager.updateClassBonus(newResults);
+	}
+	
+	private void handleClassBonusEvent(SkillBonusEvent newResults) {
+		
+		this.repoTransactionManager.updateSkillBonus(newResults);
 	}
 	
 	protected void updatePlayerData(BetResults newResults) {

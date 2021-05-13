@@ -30,11 +30,14 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
+import fft_battleground.event.model.fake.ClassBonusEvent;
+import fft_battleground.event.model.fake.SkillBonusEvent;
 import fft_battleground.exception.AscensionException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.BatchDataEntryType;
 import fft_battleground.repo.model.BatchDataEntry;
+import fft_battleground.repo.model.ClassBonus;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.util.BattlegroundRetryState;
 import fft_battleground.util.Router;
@@ -99,14 +102,16 @@ public class DumpScheduledTasks {
 				new AllegianceTask(this), 
 				new BotListTask(this), 
 				new PortraitsTask(this),
-				new UserSkillsTask(this)
+				new UserSkillsTask(this),
+				//new ClassBonusTask(this),
+				//new SkillBonusTask(this)
 			};
 		for(DumpScheduledTask task : dumpScheduledTasks) {
 			this.batchTimer.schedule(task, 0);
 		}
 	}
 	
-	public Map<String, String> updatePortraits() {
+	public void updatePortraits() {
 		log.info("updating portrait cache");
 		Date startDate = new Date();
 		BatchDataEntry portraitPreviousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.PORTRAIT);
@@ -164,17 +169,17 @@ public class DumpScheduledTasks {
 			BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.PORTRAIT, playersAnalyzed, playersUpdated, startDate, endDate, e.getClass().toString(), e.getStackTrace()[0].getLineNumber());
 			this.writeToBatchDataEntryRepo(newBatchDataEntry);
 			this.errorWebhookManager.sendException(e, "Error in updatePortraits batch job");
-			return null;
+			return;
 		}
 		Date endDate = new Date();
 		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.PORTRAIT, playersAnalyzed, playersUpdated, startDate, endDate);
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 		log.info("portrait cache update complete");
-		
-		return portraitsFromDump;
+
+		return;
 	}
 	
-	public Map<String, BattleGroundTeam> updateAllegiances() {
+	public void updateAllegiances() {
 		log.info("updating allegiances cache");
 		Date startDate = new Date();
 		BatchDataEntry allegiancePreviousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.ALLEGIANCE);
@@ -231,14 +236,14 @@ public class DumpScheduledTasks {
 			BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.ALLEGIANCE, numberOfPlayersAnalyzed, numberOfPlayersUpdated, startDate, endDate, e.getClass().toString(), e.getStackTrace()[0].getLineNumber());
 			this.writeToBatchDataEntryRepo(newBatchDataEntry);
 			this.errorWebhookManager.sendException(e, "error in Allegiances batch job");
-			return null;
+			return;
 		}
 		Date endDate = new Date();
 		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.ALLEGIANCE, numberOfPlayersAnalyzed, numberOfPlayersUpdated, startDate, endDate);
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 		log.info("allegiances cache update complete.");
 		
-		return allegiancesFromDump;
+		return;
 	}
 	
 	public void updateAllSkills() {
@@ -279,45 +284,83 @@ public class DumpScheduledTasks {
 		log.info("user and prestige skill cache updates complete");
 	}
 	
-	public void handlePlayerSkillUpdateFromRepo(String player) throws DumpException {
+	public void updateAllClassBonuses() {
+		Date startDate = new Date();
+		BatchDataEntry previousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.CLASS_BONUS);
+		int playersAnalyzed = 0;
+		int playersUpdated = 0;
 		try {
-			final BattlegroundRetryState state = new BattlegroundRetryState();
-			List<String> prestigeSkillsBefore = this.dumpService.getPrestigeSkillsCache().get(player);
-			int prestigeSkillsCount = prestigeSkillsBefore != null ? prestigeSkillsBefore.size() : 0;
+			log.info("updating class bonuses caches");
+			Set<String> classBonusPlayers = this.dumpDataProvider.getPlayersForClassBonusDump();
+
+			classBonusPlayers = this.filterPlayerListToActiveUsers(classBonusPlayers, previousBatchDataEntry);
+			playersAnalyzed = classBonusPlayers.size();
 			
-			this.ascensionWebhookManager.sendAscensionMessage(player, prestigeSkillsCount, prestigeSkillsCount + 1);
-			
-			PlayerSkillRefresh refresh = this.ascensionRefreshRetry.forcePlayerSkillRefreshForAscension(player, prestigeSkillsCount, state);
-			if(refresh != null) {
-				log.warn("No refresh found for player {}", player);
-				this.betResultsRouter.sendDataToQueues(refresh);
+			int count = 0;
+			for(String player: classBonusPlayers) {
+				Set<String> currentClassBonuses = this.dumpDataProvider.getClassBonus(player);
+				currentClassBonuses = ClassBonus.convertToBotOutput(currentClassBonuses); //convert to bot output
+				this.dumpService.getClassBonusCache().put(player, currentClassBonuses);
+				ClassBonusEvent eventToSendToRepo = new ClassBonusEvent(player, currentClassBonuses);
+				this.eventRouter.sendDataToQueues(eventToSendToRepo);
+				
+				playersUpdated++; count++;
+				if(count % 20 == 0) {
+					log.info("Read class bonus data for {} users out of {}", count, playersAnalyzed);
+				}
 			}
-		} catch(AscensionException e) {
-			log.error("Error updating player skills for player", player);
-			this.errorWebhookManager.sendException(e, "Error with processing ascension for player" + player);
+		} catch(DumpException e) {
+			log.error("Error updating class bonus", e);
+			this.errorWebhookManager.sendException(e, "Error updating class bonus");
+			return;
+		} catch(Exception e) {
+			log.error("Error updating class bonus", e);
+			this.errorWebhookManager.sendException(e, "Error updating class bonus");
+			return;
 		}
+		log.info("updating class bonuses caches successful");
+		Date endDate = new Date();
+		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.CLASS_BONUS, playersAnalyzed, playersUpdated, startDate, endDate);
+		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 	}
 	
-	public void handlePlayerUserSkillUpdateFromRepo(String player) { 
+	public void updateAllSkillBonuses() {
+		Date startDate = new Date();
+		BatchDataEntry previousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.SKILL_BONUS);
+		int playersAnalyzed = 0;
+		int playersUpdated = 0;
 		try {
-		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
-		//delete all skills from cache
-		this.dumpService.getUserSkillsCache().remove(player);
-		
-		//get user skills
-		List<String> userSkills = this.dumpDataProvider.getSkillsForPlayer(player);
-		
-		//store user skills
-		this.dumpService.getUserSkillsCache().put(player, userSkills);
-		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
-		refresh.setPlayerSkillEvent(userSkillsEvent);
-		
-		this.betResultsRouter.sendDataToQueues(refresh);
-		log.info("refreshed skills for player: {}", player);
+			log.info("updating skill bonuses caches");
+			Set<String> skillBonusPlayers = this.dumpDataProvider.getPlayersForSkillBonusDump();
+			
+			skillBonusPlayers = this.filterPlayerListToActiveUsers(skillBonusPlayers, previousBatchDataEntry);
+			playersAnalyzed = skillBonusPlayers.size();
+			
+			int count = 0;
+			for(String player: skillBonusPlayers) {
+				Set<String> currentSkillBonuses = this.dumpDataProvider.getSkillBonus(player);
+				this.dumpService.getSkillBonusCache().put(player, currentSkillBonuses);
+				SkillBonusEvent eventToSendToRepo = new SkillBonusEvent(player, currentSkillBonuses);
+				this.eventRouter.sendDataToQueues(eventToSendToRepo);
+				
+				playersUpdated++; count++;
+				if(count % 20 == 0) {
+					log.info("Read skill bonus data for {} users out of {}", count, playersAnalyzed);
+				}
+			}
 		} catch(DumpException e) {
-			log.error("Error updating user skills on ascension for player {}", player);
-			this.errorWebhookManager.sendException(e, "error updating user skills on ascension for player " + player);
+			log.error("Error updating skill bonus", e);
+			this.errorWebhookManager.sendException(e, "Error updating skill bonus");
+			return;
+		} catch(Exception e) {
+			log.error("Error updating class bonus", e);
+			this.errorWebhookManager.sendException(e, "Error updating class bonus");
+			return;
 		}
+		log.info("updating skill bonuses cache successful");
+		Date endDate = new Date();
+		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.SKILL_BONUS, playersAnalyzed, playersUpdated, startDate, endDate);
+		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 	}
 	
 	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException {
@@ -377,6 +420,34 @@ public class DumpScheduledTasks {
 		log.info("bot list update complete");
 		Set<String> result = this.dumpService.getBotCache();
 		return result;
+	}
+	
+	public void forceScheduleAllegianceBatch() {
+		this.forceSchedule(new AllegianceTask(this));
+	}
+	
+	public void forceScheduleBotListTask() {
+		this.forceSchedule(new BotListTask(this));
+	}
+	
+	public void forceSchedulePortraitsBatch() {
+		this.forceSchedule(new PortraitsTask(this));
+	}
+	
+	public void forceScheduleUserSkillsTask() {
+		this.forceSchedule(new UserSkillsTask(this));
+	}
+	
+	public void forceScheduleClassBonusTask() {
+		this.forceSchedule(new ClassBonusTask(this));
+	}
+	
+	public void forceScheduleSkillBonusTask() {
+		this.forceSchedule(new SkillBonusTask(this));
+	}
+	
+	protected void forceSchedule(DumpScheduledTask task) {
+		this.batchTimer.schedule(task, 0);
 	}
 	
 	@Transactional
@@ -442,6 +513,7 @@ public class DumpScheduledTasks {
 			.collect(Collectors.toSet());
 		return result;
 	}
+
 }
 
 abstract class DumpScheduledTask extends TimerTask {
@@ -476,6 +548,16 @@ class BotListTask extends DumpScheduledTask {
 class PortraitsTask extends DumpScheduledTask {
 	public PortraitsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
 	protected void task() {this.dumpScheduledTasksRef.updatePortraits();}
+}
+
+class ClassBonusTask extends DumpScheduledTask {
+	public ClassBonusTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
+	protected void task() {this.dumpScheduledTasksRef.updateAllClassBonuses();}
+}
+
+class SkillBonusTask extends DumpScheduledTask {
+	public SkillBonusTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
+	protected void task() {this.dumpScheduledTasksRef.updateAllSkillBonuses();}
 }
 
 class CacheScheduledTask<T> extends DumpScheduledTask {

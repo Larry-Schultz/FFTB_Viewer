@@ -4,15 +4,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.dump.cache.AllegianceCacheTask;
 import fft_battleground.dump.cache.BalanceCacheTask;
+import fft_battleground.dump.cache.CacheTask;
 import fft_battleground.dump.cache.ExpCacheTask;
 import fft_battleground.dump.cache.LastActiveCacheTask;
 import fft_battleground.dump.cache.LastFightActiveCacheTask;
@@ -27,8 +31,11 @@ import fft_battleground.event.model.ExpEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.BattleGroundCacheEntryKey;
+import fft_battleground.repo.model.ClassBonus;
 import fft_battleground.repo.model.PlayerRecord;
-
+import fft_battleground.repo.model.SkillBonus;
+import fft_battleground.repo.repository.ClassBonusRepo;
+import fft_battleground.repo.repository.SkillBonusRepo;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +64,8 @@ public class DumpCacheBuilder {
 		Future<Map<String, BattleGroundTeam>> allegianceCacheTaskFuture = this.threadPool.submit(new AllegianceCacheTask(playerRecords));
 		Future<Map<String, List<String>>> userSkillsCacheTaskFuture = this.threadPool.submit(new UserSkillsCacheTask(playerRecords));
 		Future<Map<String, List<String>>> prestigeSkillsCacheTaskFuture = this.threadPool.submit(new PrestigeSkillsCacheTask(playerRecords));
+		Future<Map<String, Set<String>>> classBonusCacheTaskFuture = this.threadPool.submit(new ClassBonusCacheTask(playerRecords, dumpService.getClassBonusRepo()));
+		Future<Map<String, Set<String>>> skillBonusCacheTaskFuture = this.threadPool.submit(new SkillBonusCacheTask(playerRecords, dumpService.getSkillBonusRepo()));
 
 		this.dumpService.setBalanceCache(balanceCacheTaskFuture.get());
 		this.dumpService.setExpCache(expCacheTaskFuture.get());
@@ -66,6 +75,8 @@ public class DumpCacheBuilder {
 		this.dumpService.setAllegianceCache(allegianceCacheTaskFuture.get());
 		this.dumpService.setUserSkillsCache(userSkillsCacheTaskFuture.get());
 		this.dumpService.setPrestigeSkillsCache(prestigeSkillsCacheTaskFuture.get());
+		this.dumpService.setClassBonusCache(classBonusCacheTaskFuture.get());
+		this.dumpService.setSkillBonusCache(skillBonusCacheTaskFuture.get());
 		log.info("finished loading player cache");
 
 	}
@@ -73,6 +84,87 @@ public class DumpCacheBuilder {
 	@SneakyThrows
 	public void buildLeaderboard() {
 		this.threadPool.submit(new LeaderboardBuilder(this.dumpService));
+	}
+	
+	@SneakyThrows
+	public void buildPlaylist() {
+		this.threadPool.submit(new MusicBuilder(this.dumpService));
+	}
+	
+}
+
+@Slf4j
+class MusicBuilder
+implements Runnable {
+	private DumpService dumpServiceRef;
+	
+	public MusicBuilder(DumpService dumpServiceRef) {
+		this.dumpServiceRef = dumpServiceRef;
+	}
+	
+	@Override
+	public void run() {
+		this.dumpServiceRef.setPlaylist();
+	}
+	
+}
+
+@Slf4j
+class ClassBonusCacheTask
+extends CacheTask
+implements Callable<Map<String, Set<String>>> {
+
+	private ClassBonusRepo classBonusRepoRef;
+	
+	public ClassBonusCacheTask(List<PlayerRecord> playerRecords, ClassBonusRepo classBonusRepoRef) {
+		super(playerRecords);
+		this.classBonusRepoRef = classBonusRepoRef;
+	}
+	
+	@Override
+	public Map<String, Set<String>> call() throws Exception {
+		log.info("calling class bonus cache task");
+		Map<String, Set<String>> map = new HashMap<>();
+		
+		for(PlayerRecord playerRecord: this.playerRecords) {
+			String player = playerRecord.getPlayer();
+			List<ClassBonus> skillBonuses = this.classBonusRepoRef.getClassBonusForPlayer(player);
+			Set<String> playerClassBonusSet = skillBonuses.stream().map(classBonus -> classBonus.getClassName()).collect(Collectors.toSet());
+			map.put(player, playerClassBonusSet);
+		}
+		log.info("class bonus cache task complete");
+		
+		return map;
+	}
+	
+}
+
+@Slf4j
+class SkillBonusCacheTask
+extends CacheTask
+implements Callable<Map<String, Set<String>>> {
+
+	private SkillBonusRepo skillBonusRepoRef;
+	
+	public SkillBonusCacheTask(List<PlayerRecord> playerRecords, SkillBonusRepo skillBonusRepoRef) {
+		super(playerRecords);
+		this.skillBonusRepoRef = skillBonusRepoRef;
+	}
+
+	@Override
+	public Map<String, Set<String>> call() throws Exception {
+		log.info("calling skill bonus cache task");
+		Map<String, Set<String>> map = new HashMap<>();
+		
+		for(PlayerRecord playerRecord: this.playerRecords) {
+			String player = playerRecord.getPlayer();
+			List<SkillBonus> skillBonuses = this.skillBonusRepoRef.getSkillBonusForPlayer(player);
+			Set<String> playerSkillSet = skillBonuses.stream().map(skillBonus -> skillBonus.getSkill()).collect(Collectors.toSet());
+			map.put(player, playerSkillSet);
+		}
+		log.info("skill bonus cache task complete");
+		
+		return map;
 	}
 	
 }

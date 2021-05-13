@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -85,19 +86,10 @@ public class HomeController {
 	private Images images;
 	
 	@Autowired
-	private TournamentService tournamentService;
-	
-	@Autowired
-	private PlayerRecordRepo playerRecordRepo;
-	
-	@Autowired
 	private BotsRepo botsRepo;
 	
 	@Autowired
 	private BotsHourlyDataRepo botsHourlyDataRepo;
-	
-	@Autowired
-	private MatchRepo matchRepo;
 	
 	@Autowired
 	private DumpService dumpService;
@@ -153,84 +145,7 @@ public class HomeController {
 			this.logAccess(playerName + " search page ", userAgent, request);
 		}
 		
-		PlayerData playerData = new PlayerData();
-		if(playerName != null) {
-			String id = StringUtils.trim(StringUtils.lowerCase(playerName));
-			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
-			if(maybePlayer.isPresent()) {
-				
-				PlayerRecord record = maybePlayer.get();
-				for(PlayerSkills playerSkill : record.getPlayerSkills()) {
-					playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", ""));
-				}
-				playerData.setPlayerRecord(record);
-				
-				boolean isBot = this.dumpService.getBotCache().contains(record.getPlayer());
-				playerData.setBot(isBot);
-				
-				if(StringUtils.isNotBlank(record.getPortrait())) {
-					String portrait = record.getPortrait();
-					String portraitUrl = this.images.getPortraitByName(portrait, record.getAllegiance());
-					playerData.setPortraitUrl(portraitUrl);
-				}
-				if(StringUtils.isBlank(record.getPortrait()) || playerData.getPortraitUrl() == null) {
-					List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(record.getPlayer(), PageRequest.of(0,1));
-					if(playerTeamInfo != null && playerTeamInfo.size() > 0) {
-						playerData.setPortraitUrl(this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0), record.getAllegiance()));
-					} else {
-						if(playerData.isBot()) {
-							playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
-						} else {
-							playerData.setPortraitUrl(this.images.getPortraitByName("Ramza"));
-						}
-					}
-				}
-				
-				DecimalFormat df = new DecimalFormat("0.00");
-				Double betRatio = ((double) 1 + record.getWins())/((double)1+ record.getWins() + record.getLosses());
-				Double fightRatio = ((double)1 + record.getFightWins())/((double) record.getFightWins() + record.getFightLosses());
-				String betRatioString = df.format(betRatio);
-				String fightRatioString = df.format(fightRatio);
-				playerData.setBetRatio(betRatioString);
-				playerData.setFightRatio(fightRatioString);
-				Integer betPercentile = this.dumpReportsService.getBetPercentile(betRatio);
-				Integer fightPercentile = this.dumpReportsService.getFightPercentile(fightRatio);
-				playerData.setBetPercentile(betPercentile);
-				playerData.setFightPercentile(fightPercentile);
-				
-				
-				boolean containsPrestige = false;
-				int prestigeLevel = 0;
-				for(PlayerSkills skill: record.getPlayerSkills()) {
-					if(skill.getSkillType() == SkillType.PRESTIGE) {
-						containsPrestige = true;
-						prestigeLevel++;
-					}
-				}
-				playerData.setContainsPrestige(containsPrestige);
-				playerData.setPrestigeLevel(prestigeLevel);
-				playerData.setExpRank(this.dumpService.getExpRankLeaderboardByPlayer().get(record.getPlayer()));
-				
-				DecimalFormat format = new DecimalFormat("##.#########");
-				String percentageOfTotalGil = format.format(this.dumpReportsService.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
-				playerData.setPercentageOfGlobalGil(percentageOfTotalGil);
-				
-				if(record.getLastActive() != null) {
-					playerData.setTimezoneFormattedDateString(this.createDateStringWithTimezone(timezone, record.getLastActive()));
-				}
-				
-				Integer leaderboardRank = this.dumpReportsService.getLeaderboardPosition(playerName);
-				playerData.setLeaderboardPosition(leaderboardRank);
-				
-				//model.addAttribute("playerData", playerData);
-			} else {
-				playerData = new PlayerData();
-				playerData.setNotFound(true);
-				playerData.setPlayerRecord(new PlayerRecord());
-				playerData.getPlayerRecord().setPlayer(GambleUtil.cleanString(playerName));
-				model.addAttribute("playerData", playerData);
-			}
-		}
+		PlayerData playerData = this.dumpService.getDataForPlayerPage(playerName, timezone);
 		return GenericResponse.createGenericResponseEntity(playerData);
 	}
 	
@@ -358,26 +273,13 @@ public class HomeController {
 		
 		//hardcoded pages
 		String allowPrefix = "Allow: ";
-		String[] sites = new String[] {"/", "/botland", "/gilCount", "/expLeaderboard", "/playerLeaderboard", "/leaderboard", "/botleaderboard", "/music", "/player", "/apidocs"};
+		String[] sites = new String[] {"/", "/botland", "/gilCount", "/expLeaderboard", "/playerLeaderboard", "/leaderboard", "/botleaderboard", "/music", "/player", "/apidocs", "/allegianceLeaderboard", "/ascension"};
 		Arrays.asList(sites).stream().forEach(site -> robotsBuilder.append(allowPrefix + site + " \n"));
 		
 		this.dumpService.getBalanceCache().keySet().stream().forEach(player -> robotsBuilder.append(allowPrefix + "/player/" + player + " \n"));
 		
 		response = robotsBuilder.toString();
 		return new ResponseEntity<String>(response, HttpStatus.OK);
-	}
-	
-	protected String createDateStringWithTimezone(TimeZone zone, Date date) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
-
-		//Here you say to java the initial timezone. This is the secret
-		sdf.setTimeZone(zone);
-		//Will print in UTC
-		String result = sdf.format(calendar.getTime());    
-
-		return result;
 	}
 	
 	@SneakyThrows

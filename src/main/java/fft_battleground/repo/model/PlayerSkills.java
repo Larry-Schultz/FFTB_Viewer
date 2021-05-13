@@ -16,6 +16,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.ColumnDefault;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -46,6 +47,10 @@ public class PlayerSkills {
     @Enumerated(EnumType.STRING)
     private SkillType skillType;
     
+    @Column(name="cooldown", nullable=true)
+    @ColumnDefault("0")
+    private Integer cooldown;
+    
     @JsonIgnore
 	@ManyToOne
     @JoinColumn
@@ -60,4 +65,20 @@ public class PlayerSkills {
 		this.skillType = type;
 		this.player_record = player_record;
 	}
+    
+    public PlayerSkills(String skill, Integer cooldown, SkillType skillType) {
+    	this.skill = skill;
+    	this.skillType = skillType;
+    	this.cooldown = cooldown;
+    }
+    
+	public PlayerSkills(String skill, int cooldown) {
+		this.skill = skill;
+		this.cooldown = cooldown;
+	}
+
+	public PlayerSkills(String skill) {
+		this.skill = skill;
+	}
+
 }

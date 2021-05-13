@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,13 +13,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -29,9 +30,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 
+import fft_battleground.botland.model.SkillType;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.repo.model.PlayerSkills;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,12 +47,15 @@ public class DumpDataProvider {
 	private static final String DUMP_HIGH_EXP_URL = "http://www.fftbattleground.com/fftbg/highexp.txt";
 	private static final String DUMP_HIGH_LAST_ACTIVE_URL = "http://www.fftbattleground.com/fftbg/highdate.txt";
 	private static final String DUMP_BOT_URL = "http://www.fftbattleground.com/fftbg/bots.txt";
+	private static final String DUMP_PLAYLIST_URL = "http://www.fftbattleground.com/fftbg/playlist.xml";
 	
 	private static final String DUMP_PORTAIL_URL_FORMAT = "http://www.fftbattleground.com/fftbg/portrait/%s";
 	private static final String DUMP_ALLEGIANCE_URL_FORMAT = "http://www.fftbattleground.com/fftbg/allegiance/%s";
 	private static final String DUMP_USERSKILLS_URL_FORMAT = "http://www.fftbattleground.com/fftbg/userskills/%s";
 	private static final String DUMP_PRESTIGE_URL_FORMAT = "http://www.fftbattleground.com/fftbg/prestige/%s";
-
+	private static final String DUMP_CLASSBONUS_URL_FORMAT ="http://www.fftbattleground.com/fftbg/classbonus/%s";
+	private static final String DUMP_SKILLBONUS_URL_FORMAT = "http://www.fftbattleground.com/fftbg/skillbonus/%s";
+	
 	@Autowired
 	private DumpResourceManager dumpResourceManager;
 	
@@ -59,13 +65,7 @@ public class DumpDataProvider {
 	public Map<String, Integer> getHighScoreDump() throws DumpException {
 		Map<String, Integer> data = new HashMap<>();
 		
-		Resource resource;
-		try {
-			resource = new UrlResource(DUMP_HIGH_SCORE_URL);
-		} catch (MalformedURLException e) {
-			log.error("Error getting high score dump");
-			throw new DumpException(e);
-		}
+		Resource resource = this.getUrlResource(DUMP_HIGH_SCORE_URL);
 		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
@@ -92,13 +92,7 @@ public class DumpDataProvider {
 		long globalGil = 0L;
 		int totalPlayers = 0;
 		
-		Resource resource = null;
-		try {
-			resource = new UrlResource(DUMP_HIGH_SCORE_URL);
-		} catch (MalformedURLException e) {
-			log.error("Error getting high score total", e);
-			throw new DumpException(e);
-		}
+		Resource resource = this.getUrlResource(DUMP_HIGH_SCORE_URL);
 		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
@@ -122,13 +116,7 @@ public class DumpDataProvider {
 	
 	public Map<String, ExpEvent> getHighExpDump() throws DumpException {
 		Map<String, ExpEvent> data = new HashMap<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(DUMP_HIGH_EXP_URL);
-		} catch (MalformedURLException e) {
-			log.error("Error reading high exp dump", e);
-			throw new DumpException(e);
-		}
+		Resource resource = this.getUrlResource(DUMP_HIGH_EXP_URL);
 		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			highScoreReader.readLine(); //ignore the header
@@ -155,13 +143,7 @@ public class DumpDataProvider {
 	
 	public Map<String, Date> getLastActiveDump() throws DumpException {
 		Map<String, Date> data = new HashMap<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(DUMP_HIGH_LAST_ACTIVE_URL);
-		} catch (MalformedURLException e) {
-			log.error("Error with url for dump high last active page");
-			throw new DumpException(e);
-		}
+		Resource resource = this.getUrlResource(DUMP_HIGH_LAST_ACTIVE_URL);
 		SimpleDateFormat dateFormatter = new SimpleDateFormat(DumpService.dateActiveFormatString);
 		try(BufferedReader highDateReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
@@ -203,70 +185,61 @@ public class DumpDataProvider {
 		return players;
 	}
 	
+	public Set<String> getPlayersForClassBonusDump() {
+		Set<String> players = this.getPlayerList(DUMP_CLASSBONUS_URL_FORMAT);
+		return players;
+	}
+	
+	public Set<String> getPlayersForSkillBonusDump() {
+		Set<String> players = this.getPlayerList(DUMP_SKILLBONUS_URL_FORMAT);
+		return players;
+	}
+	
 	public String getPortraitForPlayer(String player) throws DumpException {
-		String playerName = StringUtils.lowerCase(player);
-		String portrait = null;
-		Resource resource = null;
-		try {
-			resource = new UrlResource(this.getPlayerResourcePath(DUMP_PORTAIL_URL_FORMAT, playerName));
-		} catch (MalformedURLException e) {
-			log.error("malformed url for getting portrait data for player {}", e, player);
-			throw new DumpException(e);
-		}
-		try(BufferedReader portraitReader = this.dumpResourceManager.openDumpResource(resource)) {
-			portrait = portraitReader.readLine();
-			if(StringUtils.contains(portrait, "<!DOCTYPE")) {
-				portrait = "";
-			}
-		} catch (DumpException e) {
-			log.error("Error getting portrait data for player {}", e, player);
-			throw e;
-		} catch (IOException e) {
-			log.error("Error getting portrait data for player {}", e, player);
-			throw new DumpException(e);
-		}
+		String portrait;
+		Function<String, String> parseFunction = this::returnNullIfEmpty;
+		portrait = this.readLineDataFromFile(player, DUMP_PORTAIL_URL_FORMAT, "portrait", parseFunction);
 		
 		return portrait;
 	}
 	
 	public BattleGroundTeam getAllegianceForPlayer(String player) throws DumpException {
-		String playerName = StringUtils.lowerCase(player);
-		BattleGroundTeam allegiance = null;
-		Resource resource;
-		try {
-			resource = new UrlResource(this.getPlayerResourcePath(DUMP_ALLEGIANCE_URL_FORMAT, playerName));
-		} catch (MalformedURLException e) {
-			log.error("Error with allegiance url for player {}", playerName);
-			throw new DumpException(e);
-		}
-		try(BufferedReader portraitReader = this.dumpResourceManager.openDumpResource(resource)) {
-			String allegianceStr = portraitReader.readLine();
-			if(NumberUtils.isCreatable(allegianceStr)) {
+		Function<String, BattleGroundTeam> allegianceParseFunction = allegianceStr -> {
+			BattleGroundTeam allegiance = null;
+			if(StringUtils.isNotBlank(allegianceStr) && NumberUtils.isCreatable(allegianceStr)) {
 				allegiance = BattleGroundTeam.parse(Integer.valueOf(allegianceStr)); 
 			} else {
 				log.debug("non numeric allegiance found, for player {} with data {}", player, allegianceStr);
 				allegiance = BattleGroundTeam.NONE;
 			}
-		} catch(IOException e) {
-			log.error("error getting allegiance data for player {}", playerName);
-			throw new DumpException(e);
-		} catch(DumpException e) {
-			log.error("error getting allegiance data for player {}", playerName);
-			throw e;
-		}
+			return allegiance;
+		};
+		BattleGroundTeam allegiance = this.readLineDataFromFile(player, DUMP_ALLEGIANCE_URL_FORMAT, "allegiance", allegianceParseFunction);
 		
 		return allegiance;
 	}
 	
-	public Set<String> getBots() throws DumpException {
-		Set<String> bots = new HashSet<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(DUMP_BOT_URL);
-		} catch (MalformedURLException e) {
-			log.error("Error with bots url {}", DUMP_BOT_URL);
+	public <T> T readLineDataFromFile(String player, String url, String dataType, Function<String, T> dataParseFunction) throws DumpException {
+		T result;
+		String playerName = StringUtils.lowerCase(player);
+		Resource resource = this.getUrlResource(this.getPlayerResourcePath(DUMP_ALLEGIANCE_URL_FORMAT, playerName));
+		try(BufferedReader reader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line = reader.readLine();
+			if(StringUtils.contains(line, "<!DOCTYPE")) {
+				line = "";
+			}
+			result = dataParseFunction.apply(line);
+		} catch (IOException e) {
+			log.error("error getting {} for player {}", dataType, player, e);
 			throw new DumpException(e);
 		}
+		return result;
+		
+	}
+	
+	public Set<String> getBots() throws DumpException {
+		Set<String> bots = new HashSet<>();
+		Resource resource = this.getUrlResource(DUMP_BOT_URL);
 		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
@@ -284,40 +257,91 @@ public class DumpDataProvider {
 		return bots;
 	}
 	
+	public Set<String> getClassBonus(String player) throws DumpException {
+		Set<String> classBonuses = new HashSet<>();
+		Function<String, String> parseFunction = this::returnNullIfEmpty;
+		this.getDataFromMultilineFile(player, DUMP_CLASSBONUS_URL_FORMAT, classBonuses, parseFunction);
+		
+		return classBonuses;
+	}
+	
+	public Set<String> getSkillBonus(String player) throws DumpException {
+		Set<String> skillBonuses = new HashSet<>();
+		Function<String, String> parseFunction = this::returnNullIfEmpty;
+		this.getDataFromMultilineFile(player, DUMP_SKILLBONUS_URL_FORMAT, skillBonuses, parseFunction);
+		
+		return skillBonuses;
+	}
+	
 	public List<String> getSkillsForPlayer(String player) throws DumpException {
-		List<String> skills = this.getSkills(player, DUMP_USERSKILLS_URL_FORMAT);
-		return skills;
+		List<PlayerSkills> skills = this.getSkills(player, DUMP_USERSKILLS_URL_FORMAT, SkillType.USER);
+		List<String> skillStrings = skills.parallelStream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+		return skillStrings;
 	}
 	
 	public List<String> getPrestigeSkillsForPlayer(String player) throws DumpException {
-		List<String> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT);
+		List<PlayerSkills> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT, SkillType.PRESTIGE);
+		List<String> skillStrings = skills.parallelStream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+		return skillStrings;
+	}
+	
+	protected List<PlayerSkills> getSkills(String player, String urlFormat, SkillType type) throws DumpException {
+		List<PlayerSkills> skills = new LinkedList<>();
+		Function<String, PlayerSkills> parseFunction = line -> {
+			PlayerSkills playerSkill = null;
+			String skill = null;
+			int cooldown = 0;
+			if(line.length() < 50 && !StringUtils.contains(line, "<")) {
+				//remove the '~' characters
+				skill = StringUtils.replace(line, "~", "");
+				cooldown = StringUtils.countMatches(line, "~");
+			}
+			playerSkill = new PlayerSkills(skill, cooldown, type);
+			return playerSkill;
+		};
+		this.getDataFromMultilineFile(player, urlFormat, skills, parseFunction);
+		
 		return skills;
 	}
 	
-	protected List<String> getSkills(String player, String urlFormat) throws DumpException {
-		List<String> skills = new LinkedList<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(this.getPlayerResourcePath(urlFormat, player));
-		} catch (MalformedURLException e) {
-			log.error("malformed url", e);
-			throw new DumpException(e);
-		}
+	/**
+	 * resuable function for reading data from a multi-line file
+	 * @param player
+	 * @param urlFormat
+	 * @param collection
+	 * @param parseFunction
+	 * @throws DumpException
+	 */
+	public <T> void getDataFromMultilineFile(String player, String urlFormat, Collection<T> collection, Function<String, T> parseFunction) throws DumpException {
+		Resource resource = this.getUrlResource(this.getPlayerResourcePath(urlFormat, player));
 		try(BufferedReader skillReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			while((line = skillReader.readLine()) != null) {
-				if(line.length() < 50 && !StringUtils.contains(line, "<")) {
-					//remove the '~' characters
-					line = StringUtils.replace(line, "~", "");
-					skills.add(line);
+				T result = parseFunction.apply(line);
+				if(result != null) {
+					collection.add(result);
 				}
 			}
 		} catch (IOException e) {
 			log.debug("no user skills data for player {}", player);
 			throw new DumpException(e);
 		}
+	}
+	
+	public String getMusicXmlString() throws DumpException {
+		Resource resource = this.getUrlResource(DUMP_PLAYLIST_URL);
+		StringBuilder xmlData = new StringBuilder();
+		String line;
+		try(BufferedReader musicReader = this.dumpResourceManager.openDumpResource(resource)) {
+			while((line = musicReader.readLine()) != null) {
+				xmlData.append(line);
+			}
+		} catch (IOException e) {
+			log.debug("could not access music data");
+			throw new DumpException(e);
+		}
 		
-		return skills;
+		return xmlData.toString();
 	}
 	
 	public Set<String> getPlayerList(String url) {
@@ -344,14 +368,51 @@ public class DumpDataProvider {
 		return players;
 	}
 	
+	/**
+	 * gets the full folder from a given format
+	 * @param url
+	 * @return
+	 */
 	protected String getPlayerListPath(String url) {
 		String playerListPath = String.format(url, "");
 		return playerListPath;
 	}
 	
+	/**
+	 * performs the format function on a given url format and player name
+	 * @param url
+	 * @param player
+	 * @return
+	 */
 	protected String getPlayerResourcePath(String url, String player) {
 		String playerResourcePath = String.format(url, player) + ".txt";
 		return playerResourcePath;
+	}
+
+	/**
+	 * generates a UrlResource from given path
+	 * @param path
+	 * @return
+	 * @throws DumpException
+	 */
+	protected Resource getUrlResource(String path) throws DumpException {
+		Resource resource;
+		try {
+			resource = new UrlResource(path);
+		} catch (MalformedURLException e) {
+			log.error("malformed url", e);
+			throw new DumpException(e);
+		}
+		
+		return resource;
+	}
+	
+	protected String returnNullIfEmpty(String line) {
+		String result = null;
+		if(StringUtils.isNotBlank(line)) {
+			result = line;
+		}
+		return result;
 	}
 	
 }

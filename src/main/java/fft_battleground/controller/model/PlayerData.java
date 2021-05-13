@@ -1,6 +1,9 @@
 package fft_battleground.controller.model;
 
+import java.util.Set;
+
 import fft_battleground.repo.model.PlayerRecord;
+
 import lombok.Data;
 
 @Data
@@ -19,6 +22,8 @@ public class PlayerData {
 	private boolean notFound = false;
 	private Integer betPercentile;
 	private Integer fightPercentile;
+	private Set<String> classBonuses;
+	private Set<String> skillBonuses;
 	
 	public PlayerData() {}
 }

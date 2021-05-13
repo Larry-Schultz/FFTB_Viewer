@@ -4,5 +4,7 @@ public enum BatchDataEntryType {
 	PORTRAIT,
 	ALLEGIANCE,
 	USERSKILL,
-	BOT;
+	BOT,
+	CLASS_BONUS,
+	SKILL_BONUS;
 }

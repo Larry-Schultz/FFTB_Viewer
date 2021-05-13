@@ -200,6 +200,7 @@ public class EventParser extends Thread {
 					break;
 				case BETTING_BEGINS:
 					this.handleBettingBeginsEvent(event);
+					
 					break;
 				default:
 					if(event != null) {
@@ -211,8 +212,6 @@ public class EventParser extends Thread {
 		} catch(DumpException e) {
 			log.error("Error found in Event Parser", e);
 			this.errorWebhookManager.sendShutdownNotice(e, "Critical error in Event Parser thread");
-		} catch(TournamentApiException e) {
-			log.warn("TournamentApiException found in Event Parser", e);
 		} catch(MissingEventTypeException e) {
 			throw e;
 		} catch(Exception e) {
@@ -232,10 +231,9 @@ public class EventParser extends Thread {
 		}
 	}
 	
-	protected void handleBettingBeginsEvent(BattleGroundEvent event) throws DumpException {
+	protected void handleBettingEndsEvent(BattleGroundEvent event) throws DumpException {
 		this.eventRouter.sendDataToQueues(event);
 		
-		BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
 		if(this.currentTournament != null) {
 			List<BattleGroundEvent> finalBets = this.tournamentService.getRealBetInfoFromLatestPotFile(this.currentTournament.getID());
 			log.info("Sending final bet data with {} entries", finalBets.size());
@@ -245,7 +243,7 @@ public class EventParser extends Thread {
 		}
 	}
 	
-	protected void handleBettingEndsEvent(BattleGroundEvent event) throws DumpException, TournamentApiException {
+	protected void handleBettingBeginsEvent(BattleGroundEvent event) throws DumpException, TournamentApiException {
 		BettingBeginsEvent bettingBeginsEvent = (BettingBeginsEvent) event;
 		this.eventRouter.sendDataToQueues(bettingBeginsEvent);
 		if( (bettingBeginsEvent.getTeam1() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam2() == BattleGroundTeam.BLUE)
@@ -304,7 +302,7 @@ public class EventParser extends Thread {
 					
 				}
 				
-				this.battleGroundEventBackPropagation.sendUnitThroughTimer(battleGroundEvent, i+1);
+				this.eventRouter.sendDataToQueues(battleGroundEvent);
 			}
 		}
 		

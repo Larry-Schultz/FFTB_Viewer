@@ -1,11 +1,12 @@
 package fft_battleground.dump;
 
-import java.io.BufferedReader;
 import java.io.StringReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -13,7 +14,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -27,8 +30,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
@@ -43,23 +45,35 @@ import com.google.common.collect.Maps;
 import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BattleGroundEventType;
+import fft_battleground.botland.model.SkillType;
+import fft_battleground.controller.model.PlayerData;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.model.Music;
+import fft_battleground.dump.scheduled.GenerateDataUpdateFromDump;
+import fft_battleground.dump.scheduled.UpdateGlobalGilCount;
 import fft_battleground.event.model.BalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
-import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.exception.CacheBuildException;
+import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.model.Images;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
+import fft_battleground.repo.repository.ClassBonusRepo;
+import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.repository.SkillBonusRepo;
+import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
 
@@ -72,9 +86,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @CacheConfig(cacheNames = {"music"})
 public class DumpService {
-	
-	private static final String DUMP_PLAYLIST_URL = "http://www.fftbattleground.com/fftbg/playlist.xml";
-	
 	// Wed Jan 01 00:00:00 EDT 2020
 	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
 	
@@ -88,13 +99,19 @@ public class DumpService {
 	@Getter private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
-	private DumpResourceManager dumpResourceManager;
-	
-	@Autowired
 	@Getter private DumpScheduledTasks dumpScheduledTasks;
 	
 	@Autowired
 	@Getter private DumpReportsService dumpReportsService;
+	
+	@Autowired
+	@Getter private TournamentService tournamentService;
+	
+	@Autowired
+	@Getter private Images images;
+	
+	@Autowired
+	@Getter private MatchRepo matchRepo;
 	
 	@Autowired
 	@Getter private PlayerRecordRepo playerRecordRepo;
@@ -106,7 +123,13 @@ public class DumpService {
 	@Getter private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
 	
 	@Autowired
-	private Router<BattleGroundEvent> eventRouter;
+	@Getter private ClassBonusRepo classBonusRepo;
+	
+	@Autowired
+	@Getter private SkillBonusRepo skillBonusRepo;
+	
+	@Autowired
+	@Getter private Router<BattleGroundEvent> eventRouter;
 	
 	@Autowired
 	@Getter private WebhookManager errorWebhookManager;
@@ -120,6 +143,8 @@ public class DumpService {
 	@Getter @Setter private Map<String, List<String>> userSkillsCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, List<String>> prestigeSkillsCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Set<String> botCache;
+	@Getter @Setter private Map<String, Set<String>> classBonusCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, Set<String>> skillBonusCache = new ConcurrentHashMap<>();
 	
 	@Getter private Map<String, Integer> leaderboard = new ConcurrentHashMap<>();
 	@Getter private Map<Integer, String> expRankLeaderboardByRank = new ConcurrentHashMap<>();
@@ -162,11 +187,26 @@ public class DumpService {
 		if(this.runBatch != null && this.runBatch) {
 			//this.dumpScheduledTasks.runAllUpdates();
 		}
-		builder.buildLeaderboard();
 		
-		this.setPlaylist();
+		builder.buildPlaylist();
+		builder.buildLeaderboard();
 
 		log.info("player data cache load complete");
+		
+		log.info("forcing scheduling of skill and class bonus batch tasks");
+		//this.dumpScheduledTasks.forceScheduleClassBonusTask();
+		//this.dumpScheduledTasks.forceScheduleSkillBonusTask();
+		
+		Date latestDate = this.getLatestActiveDate();
+	}
+	
+	protected Date getLatestActiveDate() {
+		List<Date> date = new ArrayList<Date>();
+		date.addAll(this.lastActiveCache.values());
+		date.addAll(this.lastFightActiveCache.values());
+		Collections.sort(date, Collections.reverseOrder());
+		Date latestDate = date.get(0);
+		return latestDate;
 	}
 	
 	public Collection<BattleGroundEvent> getBalanceUpdatesFromDumpService() throws DumpException {
@@ -304,19 +344,11 @@ public class DumpService {
 	public void setPlaylist() {
 		log.info("Updating music data");
 		Set<Music> musicSet = new HashSet<>();
-		
-		Resource resource = new UrlResource(DUMP_PLAYLIST_URL);
-		StringBuilder xmlData = new StringBuilder();
-		String line;
-		try(BufferedReader musicReader = this.dumpResourceManager.openDumpResource(resource)) {
-			while((line = musicReader.readLine()) != null) {
-				xmlData.append(line);
-			}
-		}
+		String xmlData = this.dumpDataProvider.getMusicXmlString();
 		
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.parse(new InputSource(new StringReader(xmlData.toString())));
+		Document doc = dBuilder.parse(new InputSource(new StringReader(xmlData)));
 		doc.getDocumentElement().normalize();
 		
 		NodeList leafs = doc.getElementsByTagName("leaf");
@@ -339,95 +371,101 @@ public class DumpService {
 		log.info("music data update complete");
 	}
 	
-}
-
-@Slf4j
-class GenerateDataUpdateFromDump extends TimerTask {
-
-	private Router<BattleGroundEvent> routerRef;
-	private DumpService dumpServiceRef;
-	
-	public GenerateDataUpdateFromDump(Router<BattleGroundEvent> routerRef, DumpService dumpServiceRef) {
-		this.routerRef = routerRef;
-		this.dumpServiceRef = dumpServiceRef;
-	}
-	
-	@Override
-	public void run() {
-		log.debug("updating data from dump");
-
-		this.updateBalanceData();
-		this.updateExpData();
-		this.updateLastActiveData();
-
-		this.updateMusicData();
-		
-		return;
-	}
-	
-	private void updateBalanceData() {
-		try {
-			Collection<BattleGroundEvent> balanceEvents = this.dumpServiceRef.getBalanceUpdatesFromDumpService();
-			balanceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-			this.routerRef.sendAllDataToQueues(balanceEvents);
-		} catch(DumpException e) {
-			log.error("error getting balance data from dump", e);
-			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting balance data from dump");
+	public PlayerData getDataForPlayerPage(String playerName, TimeZone timezone) throws CacheMissException, TournamentApiException {
+		PlayerData playerData = new PlayerData();
+		String id = StringUtils.trim(StringUtils.lowerCase(playerName));
+		Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
+		if(maybePlayer.isPresent()) {
+			
+			PlayerRecord record = maybePlayer.get();
+			for(PlayerSkills playerSkill : record.getPlayerSkills()) {
+				playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", ""));
+			}
+			playerData.setPlayerRecord(record);
+			
+			boolean isBot = this.getBotCache().contains(record.getPlayer());
+			playerData.setBot(isBot);
+			
+			if(StringUtils.isNotBlank(record.getPortrait())) {
+				String portrait = record.getPortrait();
+				String portraitUrl = this.images.getPortraitByName(portrait, record.getAllegiance());
+				playerData.setPortraitUrl(portraitUrl);
+			}
+			if(StringUtils.isBlank(record.getPortrait()) || playerData.getPortraitUrl() == null) {
+				List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(record.getPlayer(), PageRequest.of(0,1));
+				if(playerTeamInfo != null && playerTeamInfo.size() > 0) {
+					playerData.setPortraitUrl(this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0), record.getAllegiance()));
+				} else {
+					if(playerData.isBot()) {
+						playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
+					} else {
+						playerData.setPortraitUrl(this.images.getPortraitByName("Ramza"));
+					}
+				}
+			}
+			
+			DecimalFormat df = new DecimalFormat("0.00");
+			Double betRatio = ((double) 1 + record.getWins())/((double)1+ record.getWins() + record.getLosses());
+			Double fightRatio = ((double)1 + record.getFightWins())/((double) record.getFightWins() + record.getFightLosses());
+			String betRatioString = df.format(betRatio);
+			String fightRatioString = df.format(fightRatio);
+			playerData.setBetRatio(betRatioString);
+			playerData.setFightRatio(fightRatioString);
+			Integer betPercentile = this.dumpReportsService.getBetPercentile(betRatio);
+			Integer fightPercentile = this.dumpReportsService.getFightPercentile(fightRatio);
+			playerData.setBetPercentile(betPercentile);
+			playerData.setFightPercentile(fightPercentile);
+			
+			
+			boolean containsPrestige = false;
+			int prestigeLevel = 0;
+			for(PlayerSkills skill: record.getPlayerSkills()) {
+				if(skill.getSkillType() == SkillType.PRESTIGE) {
+					containsPrestige = true;
+					prestigeLevel++;
+				}
+			}
+			playerData.setContainsPrestige(containsPrestige);
+			playerData.setPrestigeLevel(prestigeLevel);
+			playerData.setExpRank(this.getExpRankLeaderboardByPlayer().get(record.getPlayer()));
+			
+			DecimalFormat format = new DecimalFormat("##.#########");
+			String percentageOfTotalGil = format.format(this.dumpReportsService.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
+			playerData.setPercentageOfGlobalGil(percentageOfTotalGil);
+			
+			if(record.getLastActive() != null) {
+				playerData.setTimezoneFormattedDateString(this.createDateStringWithTimezone(timezone, record.getLastActive()));
+			}
+			
+			Integer leaderboardRank = this.dumpReportsService.getLeaderboardPosition(playerName);
+			playerData.setLeaderboardPosition(leaderboardRank);
+			
+			Set<String> classBonuses = this.getClassBonusCache().get(playerName);
+			playerData.setClassBonuses(classBonuses);
+			
+			Set<String> skillBonuses = this.getSkillBonusCache().get(playerName);
+			playerData.setSkillBonuses(skillBonuses);
+		} else {
+			playerData = new PlayerData();
+			playerData.setNotFound(true);
+			playerData.setPlayerRecord(new PlayerRecord());
+			playerData.getPlayerRecord().setPlayer(GambleUtil.cleanString(playerName));
 		}
+			
+		return playerData;
 	}
 	
-	private void updateExpData() {
-		try {
-			Collection<BattleGroundEvent> expEvents = this.dumpServiceRef.getExpUpdatesFromDumpService();
-			expEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-			this.routerRef.sendAllDataToQueues(expEvents);
-		} catch(DumpException e) {
-			log.error("error getting exp data from dump", e);
-			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting exp data from dump");
-		}
-	}
-	
-	private void updateLastActiveData() {
-		try {
-			Collection<BattleGroundEvent> lastActiveEvents = this.dumpServiceRef.getLastActiveUpdatesFromDumpService();
-			//lastActiveEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-			log.info("Updated {} lastActiveEvents", lastActiveEvents.size());
-			this.routerRef.sendAllDataToQueues(lastActiveEvents);
-		} catch(DumpException e) {
-			log.error("error getting last active data from dump", e);
-			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting last active data from dump");
-		}
-	}
-	
-	private void updateMusicData() {
-		this.dumpServiceRef.setPlaylist();
-	}
-	
-}
+	protected String createDateStringWithTimezone(TimeZone zone, Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
 
-@Slf4j
-class UpdateGlobalGilCount extends TimerTask {
-	private Router<BattleGroundEvent> routerRef;
-	private DumpService dumpServiceRef;
-	
-	public UpdateGlobalGilCount(Router<BattleGroundEvent> routerRef, DumpService dumpServiceRef) {
-		this.routerRef = routerRef;
-		this.dumpServiceRef = dumpServiceRef;
+		//Here you say to java the initial timezone. This is the secret
+		sdf.setTimeZone(zone);
+		//Will print in UTC
+		String result = sdf.format(calendar.getTime());    
+
+		return result;
 	}
 	
-	@Override
-	public void run() {
-		log.debug("updating global gil count");
-		GlobalGilHistory globalGilCount = null;
-		try {
-			globalGilCount = this.dumpServiceRef.recalculateGlobalGil();
-		} catch (DumpException e) {
-			log.error("error updating global gil count", e);
-			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error updating global gil count");
-			return;
-		}
-		BattleGroundEvent globalGilCountEvent = new GlobalGilHistoryUpdateEvent(globalGilCount);
-		log.info("Found event from Dump: {} with data: {}", globalGilCountEvent.getEventType().getEventStringName(), globalGilCount.toString());
-		this.routerRef.sendDataToQueues(globalGilCountEvent);
-	}
 }

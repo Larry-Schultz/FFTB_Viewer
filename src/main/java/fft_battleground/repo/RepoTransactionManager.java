@@ -32,6 +32,8 @@ import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.TeamInfoEvent;
+import fft_battleground.event.model.fake.ClassBonusEvent;
+import fft_battleground.event.model.fake.SkillBonusEvent;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
@@ -410,6 +412,18 @@ public class RepoTransactionManager {
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_FIGHT_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(record);
 		}
+	}
+	
+	@Transactional
+	public void updateClassBonus(ClassBonusEvent classBonusEvent) {
+		this.dumpService.getClassBonusRepo().deleteClassBonusForPlayer(classBonusEvent.getPlayer());
+		this.dumpService.getClassBonusRepo().addClassBonusesForPlayer(classBonusEvent.getPlayer(), classBonusEvent.getClassBonuses());
+	}
+	
+	@Transactional
+	public void updateSkillBonus(SkillBonusEvent skillBonusEvent) {
+		this.dumpService.getSkillBonusRepo().deleteSkillForPlayer(skillBonusEvent.getPlayer());
+		this.dumpService.getSkillBonusRepo().addSkillBonusesForPlayer(skillBonusEvent.getPlayer(), skillBonusEvent.getSkillBonuses());
 	}
 	
 	@Transactional(propagation=Propagation.REQUIRED)

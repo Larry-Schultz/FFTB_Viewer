@@ -20,6 +20,7 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -55,30 +56,39 @@ public class PlayerRecord {
     private String player;
     
     @Column(name = "wins", nullable = false)
+    @ColumnDefault("0")
     private Integer wins;
     
     @Column(name = "losses", nullable = false)
+    @ColumnDefault("0")
     private Integer losses;
     
     @Column(name = "fight_wins", nullable = false)
+    @ColumnDefault("0")
     private Integer fightWins;
     
     @Column(name = "fight_losses", nullable = false)
+    @ColumnDefault("0")
     private Integer fightLosses;
     
     @Column(name="last_known_amount", nullable = true)
+    @ColumnDefault("0")
     private Integer lastKnownAmount;
     
     @Column(name="highest_known_amount", nullable=true)
+    @ColumnDefault("0")
     private Integer highestKnownAmount;
     
     @Column(name="last_known_level", nullable = true)
+    @ColumnDefault("0")
     private Short lastKnownLevel;
     
     @Column(name="last_known_remaining_exp", nullable=true)
+    @ColumnDefault("0")
     private Short lastKnownRemainingExp;
     
     @Column(name="prestige", nullable=true)
+    @ColumnDefault("0")
     private Short lastKnownPrestige;
     
     @Convert(converter = BattleGroundTeamConverter.class)
