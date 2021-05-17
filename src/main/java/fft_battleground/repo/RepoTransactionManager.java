@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +32,11 @@ import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
+import fft_battleground.event.model.SnubEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.fake.SkillBonusEvent;
+import fft_battleground.exception.IncorrectTypeException;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
@@ -48,6 +51,7 @@ import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.util.UpdateSource;
 import fft_battleground.util.GambleUtil;
 
 import lombok.SneakyThrows;
@@ -248,7 +252,10 @@ public class RepoTransactionManager {
 	}
 	
 	@Transactional
-	public void updatePlayerPortrait(PortraitEvent event) {
+	public void updatePlayerPortrait(PortraitEvent event) throws IncorrectTypeException {
+		if(StringUtils.isNumeric(event.getPortrait())) {
+			throw new IncorrectTypeException("The portrait " + event.getPortrait() + " for player " + event.getPlayer() + " is actually a number");
+		}
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(event.getPlayer()));
 		if(maybeRecord.isPresent()) {
 			PlayerRecord record = maybeRecord.get();
@@ -337,16 +344,29 @@ public class RepoTransactionManager {
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
 		if(maybeRecord.isPresent()) {
 			Hibernate.initialize(maybeRecord.get().getPlayerSkills());
-			List<String> currentSkills = maybeRecord.get().getPlayerSkills().stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+			List<PlayerSkills> currentSkills = maybeRecord.get().getPlayerSkills();
+			List<String> currentSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
 			//add skills to player
-			for(String possibleNewSkill: event.getSkills()) {
-				if(!currentSkills.contains(possibleNewSkill)) {
+			for(PlayerSkills possibleNewSkill: event.getPlayerSkills()) {
+				if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
 					if(event instanceof PrestigeSkillsEvent) {
-						maybeRecord.get().addPlayerSkill(possibleNewSkill, SkillType.PRESTIGE);
+						maybeRecord.get().addPlayerSkill(possibleNewSkill.getSkill(), SkillType.PRESTIGE);
 						this.playerRecordRepo.save(maybeRecord.get());
 					} else {
-						maybeRecord.get().addPlayerSkill(possibleNewSkill, SkillType.USER);
+						maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
 						this.playerRecordRepo.save(maybeRecord.get());
+					}
+				} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
+					if(!(event instanceof PrestigeSkillsEvent)) {
+						List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
+						if(matchingSkills.size() > 0) {
+							PlayerSkills currentSkill = matchingSkills.get(0);
+							if(currentSkill != null && !currentSkill.getCooldown().equals(possibleNewSkill.getCooldown()) && possibleNewSkill.getCooldown() != null) {
+								currentSkill.setCooldown(possibleNewSkill.getCooldown());
+								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
+								this.playerSkillRepo.save(currentSkill);
+							}
+						}
 					}
 				} else {
 					if(event instanceof PrestigeSkillsEvent) {
@@ -426,6 +446,21 @@ public class RepoTransactionManager {
 		this.dumpService.getSkillBonusRepo().addSkillBonusesForPlayer(skillBonusEvent.getPlayer(), skillBonusEvent.getSkillBonuses());
 	}
 	
+	@Transactional
+	public void updateSnub(SnubEvent event) {
+		String id = this.cleanString(event.getPlayer());
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
+		if(maybeRecord.isPresent()) {
+			maybeRecord.get().setSnubStreak(event.getSnub());
+			maybeRecord.get().setUpdateSource(UpdateSource.SNUB);
+			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+		} else {
+			event.setPlayer(this.cleanString(event.getPlayer()));
+			PlayerRecord record = new PlayerRecord(event, UpdateSource.SNUB);
+			this.playerRecordRepo.saveAndFlush(record);
+		}
+	}
+	
 	@Transactional(propagation=Propagation.REQUIRED)
 	public BattleGroundEvent generateSimulatedBalanceEvent(String player, int balanceUpdate, BalanceUpdateSource balanceUpdateSource) {
 		OtherPlayerBalanceEvent event = null;
@@ -465,4 +500,5 @@ public class RepoTransactionManager {
 		String result = GambleUtil.cleanString(str);
 		return result;
 	}
+	
 }

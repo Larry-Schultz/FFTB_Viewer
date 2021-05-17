@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
+import fft_battleground.event.annotate.TeamInfoEventAnnotator;
+import fft_battleground.event.annotate.UnitInfoEventAnnotator;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
@@ -28,12 +30,14 @@ import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.model.fake.TournamentStatusUpdateEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.MissingEventTypeException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.tournament.TournamentService;
+import fft_battleground.tournament.TournamentTracker;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.util.Router;
 
@@ -62,6 +66,9 @@ public class EventParser extends Thread {
 	private TournamentService tournamentService;
 	
 	@Autowired
+	private TournamentTracker tournamentTracker;
+	
+	@Autowired
 	private DumpService dumpService;
 	
 	@Autowired
@@ -83,10 +90,10 @@ public class EventParser extends Thread {
 	private BattleGroundEventAnnotator<SkillDropEvent> skillDropEventAnnotator;
 	
 	@Autowired
-	private BattleGroundEventAnnotator<TeamInfoEvent> teamInfoEventAnnotator;
+	private TeamInfoEventAnnotator teamInfoEventAnnotator;
 	
 	@Autowired
-	private BattleGroundEventAnnotator<UnitInfoEvent> unitInfoEventAnnotator;
+	private UnitInfoEventAnnotator unitInfoEventAnnotator;
 	
 	@Autowired
 	private BattleGroundEventAnnotator<FightEntryEvent> fightEntryEventAnnotator;
@@ -200,7 +207,16 @@ public class EventParser extends Thread {
 					break;
 				case BETTING_BEGINS:
 					this.handleBettingBeginsEvent(event);
-					
+					break;
+				case TEAM_INFO:
+					TeamInfoEvent teamInfoEvent = (TeamInfoEvent) event;
+					this.teamInfoEventAnnotator.setCurrentTournament(currentTournament);
+					this.teamInfoEventAnnotator.annotateEvent(teamInfoEvent);
+					break;
+				case UNIT_INFO:
+					UnitInfoEvent unitEvent = (UnitInfoEvent) event;
+					this.unitInfoEventAnnotator.setCurrentTournament(currentTournament);
+					this.unitInfoEventAnnotator.annotateEvent(unitEvent);
 					break;
 				default:
 					if(event != null) {
@@ -266,6 +282,9 @@ public class EventParser extends Thread {
 		} else {
 			log.error("Contacting the tournament Service has failed!");
 		}
+		
+		TournamentStatusUpdateEvent tournamentStatusEvent = this.tournamentTracker.generateTournamentStatus(bettingBeginsEvent, this.currentTournament);
+		this.eventRouter.sendDataToQueues(tournamentStatusEvent);
 	}
 	
 	@SneakyThrows
@@ -277,6 +296,7 @@ public class EventParser extends Thread {
 				switch(battleGroundEvent.getEventType()) {
 				case TEAM_INFO:
 					TeamInfoEvent teamInfoEvent = (TeamInfoEvent) battleGroundEvent;
+					this.teamInfoEventAnnotator.setCurrentTournament(currentTournament);
 					this.teamInfoEventAnnotator.annotateEvent(teamInfoEvent);
 					break;
 				case MATCH_INFO:
@@ -295,6 +315,7 @@ public class EventParser extends Thread {
 					break;
 				case UNIT_INFO:
 					UnitInfoEvent unitEvent = (UnitInfoEvent) battleGroundEvent;
+					this.unitInfoEventAnnotator.setCurrentTournament(currentTournament);
 					this.unitInfoEventAnnotator.annotateEvent(unitEvent);
 					break;
 				default:

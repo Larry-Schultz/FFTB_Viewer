@@ -21,7 +21,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.repo.BatchDataEntryType;
+import fft_battleground.repo.util.BatchDataEntryType;
 import fft_battleground.util.BooleanConverter;
 
 import lombok.AllArgsConstructor;

@@ -21,6 +21,7 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Gender;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.tournament.MonsterUtils;
 import fft_battleground.tournament.Tips;
 import fft_battleground.tournament.TournamentService;
 
@@ -29,10 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class FightEntryEventAnnotator implements BattleGroundEventAnnotator<FightEntryEvent> {
-
-	private static final List<String> ELITE_MONSTERS = Arrays.asList(new String[]{"UltimaDemon", "SteelGiant", "Byblos", "Serpentarius", "Tiamat", "DarkBehemoth", "HolyDragon"});
-	private static final List<String> STRONG_MONSTERS = Arrays.asList(new String[]{"Apanda", "ArchaicDemon", "KingBehemoth", "Hydra", "RedDragon", "Sehkret"});
-	
 	private static final int defaultOptionCost = 100;
 	private static final int defaultMonsterCost = 200;
 	private static final int strongMonsterCost = 500;
@@ -40,15 +37,11 @@ public class FightEntryEventAnnotator implements BattleGroundEventAnnotator<Figh
 	
 	private static final int prestigeSortingCost = 10000;
 	
-	private static final String monsterSetCacheKey = "MONSTERSET";
-	private Cache<String, Set<String>> monsterSetCache = Caffeine.newBuilder()
-			  .expireAfterWrite(24, TimeUnit.HOURS)
-			  .maximumSize(1)
-			  .build();
-	private Object monsterSetCacheLock = new Object();
-	
 	@Autowired
 	private TournamentService tournamentService;
+	
+	@Autowired
+	private MonsterUtils monsterUtils;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
@@ -107,7 +100,7 @@ public class FightEntryEventAnnotator implements BattleGroundEventAnnotator<Figh
 	
 	private void annotateMonsterGender(FightEntryEvent event) {
 		try {
-			if(event.getGender() == null && event.getClassName() != null && this.monsterSet().contains(event.getClassName())) {
+			if(event.getGender() == null && event.getClassName() != null && this.monsterUtils.monsterSet().contains(event.getClassName())) {
 				event.setGender(Gender.MONSTER);
 			}
 		} catch (TournamentApiException e) {
@@ -128,10 +121,10 @@ public class FightEntryEventAnnotator implements BattleGroundEventAnnotator<Figh
 		if(event.getExclusionSkill() != null) {
 			gilCost+= defaultOptionCost;
 		}
-		if(STRONG_MONSTERS.contains(event.getClassName()) || ELITE_MONSTERS.contains(event.getClassName()) || event.getGender() == Gender.MONSTER) {
-			if(STRONG_MONSTERS.contains(event.getClassName())) {
+		if(this.monsterUtils.getStrongMonsters().contains(event.getClassName()) || this.monsterUtils.getEliteMonsters().contains(event.getClassName()) || event.getGender() == Gender.MONSTER) {
+			if(this.monsterUtils.getStrongMonsters().contains(event.getClassName())) {
 				gilCost+= strongMonsterCost;
-			} else if(ELITE_MONSTERS.contains(event.getClassName())) {
+			} else if(this.monsterUtils.getEliteMonsters().contains(event.getClassName())) {
 				gilCost+= eliteMonsterCost;
 			} else {
 				gilCost+= defaultMonsterCost;
@@ -183,30 +176,11 @@ public class FightEntryEventAnnotator implements BattleGroundEventAnnotator<Figh
 		if(event.isExclusionSkillPrestige()) {
 			event.setExclusionSkillColor("orange");
 		}
-		if(ELITE_MONSTERS.contains(event.getClassName()) || STRONG_MONSTERS.contains(event.getClassName())) {
+		if(this.monsterUtils.getEliteMonsters().contains(event.getClassName())) {
 			event.setClassColor("red");
+		} else if(this.monsterUtils.getStrongMonsters().contains(event.getClassName())) {
+			event.setClassColor("blue");
 		}
-	}
-	
-	private Set<String> monsterSet() throws TournamentApiException {
-		synchronized(this.monsterSetCacheLock) {
-			Set<String> monsterSet = this.monsterSetCache.getIfPresent(monsterSetCacheKey);
-			if(monsterSet == null) {
-				monsterSet = this.generateMonsterSet();
-				this.monsterSetCache.put(monsterSetCacheKey, monsterSet);
-			}
-			
-			return monsterSet;
-		}
-	}
-	
-	private Set<String> generateMonsterSet() throws TournamentApiException {
-		Tips tips = this.tournamentService.getCurrentTips();
-		Set<String> monsterList = tips.getClassMap().keySet().parallelStream()
-				.filter(className -> !StringUtils.contains(className, Gender.MALE.toString()))
-				.filter(className -> !StringUtils.contains(className, Gender.FEMALE.toString()))
-				.collect(Collectors.toSet());
-		return monsterList;
 	}
 	
 	private Set<String> prestigeSkillSet() throws DumpException { 

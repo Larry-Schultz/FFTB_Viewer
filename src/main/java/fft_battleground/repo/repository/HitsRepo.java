@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import fft_battleground.repo.HitsType;
 import fft_battleground.repo.model.Hits;
+import fft_battleground.repo.util.HitsType;
 
 public interface HitsRepo extends JpaRepository<Hits, String> {
 	

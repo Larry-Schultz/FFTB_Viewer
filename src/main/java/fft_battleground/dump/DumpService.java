@@ -57,6 +57,7 @@ import fft_battleground.event.model.ExpEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
+import fft_battleground.event.model.SnubEvent;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
@@ -73,6 +74,7 @@ import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.repository.SkillBonusRepo;
+import fft_battleground.tournament.MonsterUtils;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
@@ -111,6 +113,9 @@ public class DumpService {
 	@Getter private Images images;
 	
 	@Autowired
+	@Getter private MonsterUtils monsterUtils;
+	
+	@Autowired
 	@Getter private MatchRepo matchRepo;
 	
 	@Autowired
@@ -137,6 +142,7 @@ public class DumpService {
 	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, Date> lastActiveCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Map<String, Integer> snubCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, Date> lastFightActiveCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, String> portraitCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, BattleGroundTeam> allegianceCache = new ConcurrentHashMap<>();
@@ -193,9 +199,9 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
-		log.info("forcing scheduling of skill and class bonus batch tasks");
-		//this.dumpScheduledTasks.forceScheduleClassBonusTask();
-		//this.dumpScheduledTasks.forceScheduleSkillBonusTask();
+		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
+		//this.dumpScheduledTasks.forceScheduleUserSkillsTask();
+		log.info("forcing scheduling of skill batch tasks");
 		
 		Date latestDate = this.getLatestActiveDate();
 	}
@@ -288,6 +294,31 @@ public class DumpService {
 			}
 		}
 		log.info("last active cache update complete");
+		
+		return data;
+	}
+	
+	public Collection<BattleGroundEvent> getSnubUpdatesFromDumpService() throws DumpException {
+		Collection<BattleGroundEvent> data = new LinkedList<BattleGroundEvent>();
+		
+		log.info("updating snub cache");
+		Map<String, Integer> newSnubDataFromDump = this.dumpDataProvider.getSnubData();
+		Map<String, ValueDifference<Integer>> snubDelta = Maps.difference(this.snubCache, newSnubDataFromDump).entriesDiffering();
+		//find difference in snub
+		for(String key: snubDelta.keySet()) {
+			SnubEvent newEvent = new SnubEvent(key, snubDelta.get(key).rightValue());
+			data.add(newEvent);
+		}
+		
+		//find missing players
+		for(String key: newSnubDataFromDump.keySet()) {
+			if(!this.snubCache.containsKey(key)) {
+				SnubEvent newEvent = new SnubEvent(key, newSnubDataFromDump.get(key));
+				data.add(newEvent);
+				this.snubCache.put(key, newSnubDataFromDump.get(key));
+			}
+		}
+		log.info("snub data update complete");
 		
 		return data;
 	}
@@ -435,6 +466,9 @@ public class DumpService {
 			
 			if(record.getLastActive() != null) {
 				playerData.setTimezoneFormattedDateString(this.createDateStringWithTimezone(timezone, record.getLastActive()));
+			}
+			if(record.getLastFightActive() != null) {
+				playerData.setTimezoneFormattedLastFightActiveDateString(this.createDateStringWithTimezone(timezone, record.getLastFightActive()));
 			}
 			
 			Integer leaderboardRank = this.dumpReportsService.getLeaderboardPosition(playerName);

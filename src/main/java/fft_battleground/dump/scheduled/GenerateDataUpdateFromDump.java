@@ -14,10 +14,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.fake.SkillBonusEvent;
 import fft_battleground.exception.DumpException;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.repo.model.ClassBonus;
+import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.Router;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +43,7 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 		this.updateBalanceData();
 		this.updateExpData();
 		this.updateLastActiveData();
+		this.updateSnubData();
 
 		this.updateMusicData();
 		
@@ -47,6 +51,8 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 		
 		this.updateClassBonusCache(activePlayers);
 		this.updateSkillBonusCache(activePlayers);
+		this.updateUserSkills(activePlayers);
+		this.updatePrestigeSkills(activePlayers);
 		
 		return;
 	}
@@ -85,10 +91,21 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 		}
 	}
 	
-	private void updateClassBonusCache(Collection<String> activeFightingPlayers) {
+	private void updateSnubData() {
+		try {
+			Collection<BattleGroundEvent> snubEvents = this.dumpServiceRef.getSnubUpdatesFromDumpService();
+			log.info("Updated {} snub events", snubEvents.size());
+			this.routerRef.sendAllDataToQueues(snubEvents);
+		} catch(DumpException e) {
+			log.error("error getting snub data from dump", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting snub data from dump");
+		}
+	}
+	
+	private void updateClassBonusCache(Collection<String> activePlayers) {
 		Set<String> playersWithClassBonus = this.dumpServiceRef.getDumpDataProvider().getPlayersForClassBonusDump()
 				.parallelStream().map(playerName -> StringUtils.lowerCase(playerName)).collect(Collectors.toSet()); //lowercase output
-		Set<String> activePlayersWithClassBonus = activeFightingPlayers.parallelStream().filter(player -> playersWithClassBonus.contains(player)).collect(Collectors.toSet());
+		Set<String> activePlayersWithClassBonus = activePlayers.parallelStream().filter(player -> playersWithClassBonus.contains(player)).collect(Collectors.toSet());
 		int count = 0;
 		try {
 			for(String player: activePlayersWithClassBonus) {
@@ -106,10 +123,10 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 		log.info("updated class bonus for {} players", count);
 	}
 	
-	private void updateSkillBonusCache(Collection<String> activeFightingPlayers) {
+	private void updateSkillBonusCache(Collection<String> activePlayers) {
 		Set<String> playersWithSkillBonus = this.dumpServiceRef.getDumpDataProvider().getPlayersForSkillBonusDump()
 				.parallelStream().map(playerName -> StringUtils.lowerCase(playerName)).collect(Collectors.toSet()); //lowercase output;
-		Set<String> activePlayersWithSkillBonus = activeFightingPlayers.parallelStream().filter(player -> playersWithSkillBonus.contains(player)).collect(Collectors.toSet());
+		Set<String> activePlayersWithSkillBonus = activePlayers.parallelStream().filter(player -> playersWithSkillBonus.contains(player)).collect(Collectors.toSet());
 		int count = 0;
 		try {
 			for(String player: activePlayersWithSkillBonus) {
@@ -124,6 +141,37 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting skill bonus data from dump");
 		}
 		log.info("updated skill bonus for {} players", count);
+	}
+	
+	private void updateUserSkills(Collection<String> activePlayers) {
+		Set<String> playersWithUserSkills = this.dumpServiceRef.getDumpDataProvider().getPlayersForUserSkillsDump()
+				.parallelStream().map(playerName -> StringUtils.lowerCase(playerName)).collect(Collectors.toSet()); //lowercase output;
+		Set<String> activePlayersWithUserSkills = activePlayers.parallelStream().filter(player -> playersWithUserSkills.contains(player)).collect(Collectors.toSet());
+		int count = 0;
+		try {
+			for(String player: activePlayersWithUserSkills) {
+				List<PlayerSkills> currentUserSkills = this.dumpServiceRef.getDumpDataProvider().getSkillsForPlayer(player);
+				this.dumpServiceRef.getMonsterUtils().categorizeSkillsList(currentUserSkills);
+				this.dumpServiceRef.getMonsterUtils().regulateMonsterSkillCooldowns(currentUserSkills);
+				List<String> skills = PlayerSkills.convertToListOfSkillStrings(currentUserSkills);
+				this.dumpServiceRef.getUserSkillsCache().put(player, skills);
+				PlayerSkillEvent playerSkillEvent = new PlayerSkillEvent(currentUserSkills, player);
+				this.routerRef.sendDataToQueues(playerSkillEvent);
+				count++;
+			}
+		} catch(DumpException e) {
+			log.error("error getting user skill data from dump", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting user skill data from dump");
+		} catch (TournamentApiException e) {
+			log.error("error getting user skill data from dump", e);
+			this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting user skill data from dump");
+		}
+		String playerNames = StringUtils.join(activePlayersWithUserSkills.toArray(new String[] {}) );
+		log.info("updated users skills for {} players.  The players: {}", count, playerNames) ;
+	}
+	
+	private void updatePrestigeSkills(Collection<String> activePlayers) {
+		
 	}
 	
 	private void updateMusicData() {

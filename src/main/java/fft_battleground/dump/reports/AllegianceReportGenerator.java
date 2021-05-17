@@ -38,13 +38,13 @@ import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.Images;
-import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import fft_battleground.tournament.ChampionService;
 
 import lombok.extern.slf4j.Slf4j;

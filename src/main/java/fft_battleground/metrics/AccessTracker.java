@@ -22,10 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.repo.HitsType;
 import fft_battleground.repo.model.Hits;
 import fft_battleground.repo.repository.HitsRepo;
-
+import fft_battleground.repo.util.HitsType;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

@@ -132,9 +132,9 @@ public class EventManager extends Thread {
 						}
 						break;
 					case OTHER_PLAYER_BALANCE: case LEVEL_UP: case OTHER_PLAYER_EXP: case ALLEGIANCE:
-					case PLAYER_SKILL: case BUY_SKILL: case SKILL_WIN: case PORTRAIT:  case PRESTIGE_SKILLS:
+					case BUY_SKILL: case SKILL_WIN: case PORTRAIT:  case PRESTIGE_SKILLS:
 					case LAST_ACTIVE: case GIFT_SKILL: case GLOBAL_GIL_COUNT_UPDATE: case PRESTIGE_ASCENSION:
-					case BUY_SKILL_RANDOM: case CLASS_BONUS: case SKILL_BONUS:
+					case BUY_SKILL_RANDOM: case CLASS_BONUS: case SKILL_BONUS: case SNUB: case OTHER_PLAYER_SNUB:
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
 						break;
 					case MATCH_INFO:
@@ -153,7 +153,7 @@ public class EventManager extends Thread {
 							this.botLand.addUnitInfo((UnitInfoEvent) event);
 						}
 						break;
-					case SKILL_DROP: default:
+					case SKILL_DROP: case PLAYER_SKILL: default:
 						break;
 				}
 				assert(currentAmount != 0);

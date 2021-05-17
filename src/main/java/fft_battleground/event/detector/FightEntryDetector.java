@@ -23,7 +23,7 @@ public class FightEntryDetector implements EventDetector<FightEntryEvent> {
 	public FightEntryEvent detect(ChatMessage message) {
 		FightEntryEvent event = null;
 		String stringCommand = message.getMessage();
-		if(StringUtils.contains(stringCommand, SEARCH_STRING)) {
+		if(StringUtils.contains(stringCommand, SEARCH_STRING) && StringUtils.startsWith(stringCommand, SEARCH_STRING)) {
 			String player = StringUtils.lowerCase(message.getUsername());
 			event = this.parseEvent(stringCommand, player);
 		}

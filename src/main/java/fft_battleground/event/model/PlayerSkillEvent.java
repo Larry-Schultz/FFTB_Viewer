@@ -58,7 +58,7 @@ implements DatabaseResultsData {
 		this.player = player;
 		this.playerSkills = playerSkills;
 	}
-	
+
 	public List<String> getSkills() {
 		List<String> skills = this.playerSkills.parallelStream().map(playerSkills -> playerSkills.getSkill()).collect(Collectors.toList());
 		return skills;

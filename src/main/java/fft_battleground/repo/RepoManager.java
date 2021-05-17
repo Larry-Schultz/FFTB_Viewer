@@ -29,14 +29,17 @@ import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.OtherPlayerExpEvent;
+import fft_battleground.event.model.OtherPlayerSnubEvent;
 import fft_battleground.event.model.PlayerSkillEvent;
 import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.SkillWinEvent;
+import fft_battleground.event.model.SnubEvent;
 import fft_battleground.event.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.event.model.fake.SkillBonusEvent;
+import fft_battleground.exception.IncorrectTypeException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -116,12 +119,19 @@ public class RepoManager extends Thread {
 					this.handleClassBonusEvent((ClassBonusEvent) newResults);
 				} else if(newResults instanceof SkillBonusEvent) {
 					this.handleClassBonusEvent((SkillBonusEvent) newResults);
+				} else if(newResults instanceof SnubEvent) {
+					this.handleSnubEvent((SnubEvent) newResults);
+				} else if(newResults instanceof OtherPlayerSnubEvent) {
+					this.handleOtherPlayerSnubEvent((OtherPlayerSnubEvent) newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
+			} catch(IncorrectTypeException e) {
+				log.error("A value in the repo was incorrectly typed with error: {}", e.getMessage(), e);
+				errorWebhookManager.sendException(e);
 			} catch(Exception e) {
 				log.error("error in RepoManager", e);
-			}
+			} 
 		}
 	}
 
@@ -147,7 +157,7 @@ public class RepoManager extends Thread {
 		}
 	}
 	
-	protected void handlePortraitEvent(PortraitEvent event) {
+	protected void handlePortraitEvent(PortraitEvent event) throws IncorrectTypeException {
 		this.repoTransactionManager.updatePlayerPortrait(event);
 	}
 	
@@ -281,6 +291,17 @@ public class RepoManager extends Thread {
 		
 		this.repoTransactionManager.updateSkillBonus(newResults);
 	}
+	
+	private void handleSnubEvent(SnubEvent newResults) {
+		this.repoTransactionManager.updateSnub(newResults);
+	}
+	
+	private void handleOtherPlayerSnubEvent(OtherPlayerSnubEvent newResults) {
+		for(SnubEvent event: newResults.getSnubEvents()) {
+			this.repoTransactionManager.updateSnub(event);
+		}
+	}
+
 	
 	protected void updatePlayerData(BetResults newResults) {
 		

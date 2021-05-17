@@ -49,7 +49,9 @@ public enum BattleGroundEventType {
 	DONT_FIGHT("Don't Fight"), 
 	BUY_SKILL_RANDOM("Buy Skill Random"), 
 	CLASS_BONUS("Class bonus"), 
-	SKILL_BONUS("Skill bonus");
+	SKILL_BONUS("Skill bonus"), 
+	SNUB("Failed attempts to join !fight"), 
+	OTHER_PLAYER_SNUB("snub event list");
 	
 	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;

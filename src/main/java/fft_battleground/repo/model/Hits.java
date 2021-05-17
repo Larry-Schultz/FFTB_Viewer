@@ -17,8 +17,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import fft_battleground.repo.HitsType;
-
+import fft_battleground.repo.util.HitsType;
 import lombok.Data;
 
 @Entity

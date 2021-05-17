@@ -13,10 +13,9 @@ import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
-import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
-
+import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

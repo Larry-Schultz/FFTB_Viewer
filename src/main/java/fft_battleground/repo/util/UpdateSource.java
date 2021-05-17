@@ -1,4 +1,4 @@
-package fft_battleground.repo;
+package fft_battleground.repo.util;
 
 public enum UpdateSource {
 
@@ -13,6 +13,7 @@ public enum UpdateSource {
 	ALLEGIANCE,
 	PLAYER_SKILLS,
 	LAST_ACTIVE, 
-	LAST_FIGHT_ACTIVE,
+	LAST_FIGHT_ACTIVE, 
+	SNUB,
 
 }

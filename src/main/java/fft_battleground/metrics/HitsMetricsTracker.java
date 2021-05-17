@@ -1,8 +1,8 @@
 package fft_battleground.metrics;
 
 import com.google.common.cache.Cache;
-import fft_battleground.repo.HitsType;
 
+import fft_battleground.repo.util.HitsType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

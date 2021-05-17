@@ -1,7 +1,12 @@
 package fft_battleground.repo.model;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -21,7 +26,10 @@ import org.hibernate.annotations.ColumnDefault;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.botland.model.SkillType;
+import fft_battleground.repo.util.SkillCategory;
+import fft_battleground.util.BooleanConverter;
 import lombok.AllArgsConstructor;
+
 import lombok.Data;
 
 @Entity
@@ -47,9 +55,17 @@ public class PlayerSkills {
     @Enumerated(EnumType.STRING)
     private SkillType skillType;
     
+    @Column(name="skill_category", nullable=true)
+    @Enumerated(EnumType.STRING)
+    private SkillCategory skillCategory;
+    
     @Column(name="cooldown", nullable=true)
     @ColumnDefault("0")
     private Integer cooldown;
+    
+    @Column(name="is_active", nullable=true)
+    @Convert(converter = BooleanConverter.class)
+    private Boolean isActive;
     
     @JsonIgnore
 	@ManyToOne
@@ -63,22 +79,48 @@ public class PlayerSkills {
     public PlayerSkills( String skill, SkillType type, PlayerRecord player_record) {
 		this.skill = skill;
 		this.skillType = type;
+		this.cooldown = null;
 		this.player_record = player_record;
+		this.skillCategory = SkillCategory.NORMAL;
 	}
     
     public PlayerSkills(String skill, Integer cooldown, SkillType skillType) {
     	this.skill = skill;
     	this.skillType = skillType;
     	this.cooldown = cooldown;
+    	this.skillCategory = SkillCategory.NORMAL;
     }
     
 	public PlayerSkills(String skill, int cooldown) {
 		this.skill = skill;
 		this.cooldown = cooldown;
+		this.skillCategory = SkillCategory.NORMAL;
 	}
 
 	public PlayerSkills(String skill) {
 		this.skill = skill;
+		this.cooldown = null;
+		this.skillCategory = SkillCategory.NORMAL;
+	}
+
+	public PlayerSkills(String skill, Integer cooldown, SkillType type, PlayerRecord playerRecord) {
+		this.skill = skill;
+		this.cooldown = cooldown;
+		this.skillType = type;
+		this.player_record = playerRecord;
+	}
+	
+	public PlayerSkills(String skill, Integer cooldown, SkillType type, SkillCategory skillCategory, PlayerRecord playerRecord) {
+		this.skill = skill;
+		this.cooldown = cooldown;
+		this.skillType = type;
+		this.skillCategory = skillCategory;
+		this.player_record = playerRecord;
+	}
+	
+	public static List<String> convertToListOfSkillStrings(Collection<PlayerSkills> playerSkills) {
+		List<String> skillStrings = playerSkills.parallelStream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+		return skillStrings;
 	}
 
 }

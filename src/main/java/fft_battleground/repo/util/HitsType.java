@@ -1,4 +1,4 @@
-package fft_battleground.repo;
+package fft_battleground.repo.util;
 
 import org.apache.commons.lang3.StringUtils;
 

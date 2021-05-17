@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 
-import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.model.BattleGroundCacheEntry;
+import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

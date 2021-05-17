@@ -2,6 +2,7 @@ package fft_battleground.tournament.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -17,6 +18,7 @@ import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +47,7 @@ public class Tournament {
 	
 	private Integer winnersCount;
 	private List<String> raidbosses;
+	private Set<String> allPlayers;
 	
 	public Tournament() {}
 	

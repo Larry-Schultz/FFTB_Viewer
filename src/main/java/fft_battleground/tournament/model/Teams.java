@@ -1,6 +1,5 @@
 package fft_battleground.tournament.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
+
 import lombok.Data;
 
 @Data

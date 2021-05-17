@@ -34,8 +34,10 @@ import fft_battleground.event.model.FightEntryEvent;
 import fft_battleground.event.model.LastActiveEvent;
 import fft_battleground.event.model.LevelUpEvent;
 import fft_battleground.event.model.PortraitEvent;
+import fft_battleground.event.model.SnubEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.UpdateSource;
+import fft_battleground.repo.util.SkillCategory;
+import fft_battleground.repo.util.UpdateSource;
 import fft_battleground.util.BattleGroundTeamConverter;
 import fft_battleground.util.BooleanConverter;
 import fft_battleground.util.GambleUtil;
@@ -112,6 +114,10 @@ public class PlayerRecord {
     @Column(name="is_subscriber", nullable=true)
     @Convert(converter = BooleanConverter.class)
     private Boolean isSubscriber;
+    
+    @Column(name="current_snub_streak", nullable=true)
+    @ColumnDefault("0")
+    private Integer snubStreak;
     
     @CreationTimestamp
     @JsonIgnore
@@ -211,16 +217,34 @@ public class PlayerRecord {
 		
 		this.setDefaults();
 	}
+	
+	public PlayerRecord(SnubEvent event, UpdateSource updateSource) {
+		this.player = GambleUtil.cleanString(event.getPlayer());
+		this.snubStreak = event.getSnub();
+		this.updateSource = updateSource;
+		
+		this.setDefaults();
+	}
     
     public void addPlayerSkill(String skill, SkillType type) {
     	this.playerSkills.add(new PlayerSkills(skill, type, this));
     }
+    
+	public void addPlayerSkill(PlayerSkills playerSkills) {
+		this.playerSkills.add(playerSkills);
+		
+	}
+    
+	public void addPlayerSkill(String skill, Integer cooldown, SkillType type) {
+		this.playerSkills.add(new PlayerSkills(skill, cooldown, type, this));
+	}
     
     protected void setDefaults() {
     	this.fightLosses = 0;
     	this.fightWins = 0;
     	this.losses = 0;
     	this.wins = 0;
+    	this.snubStreak = 0;
     	this.isSubscriber = false;
     	
     	if(this.lastKnownAmount == null) {

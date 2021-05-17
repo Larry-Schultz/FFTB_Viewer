@@ -53,6 +53,7 @@ public class TournamentService {
 	private static final String raidBossUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/raidboss.txt";
 	private static final String tournamentPotUrlTemplate = "http://www.fftbattleground.com/fftbg/tournament_%1$s/pot%2$s.txt";
 	private static final String entrantUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/entrants.txt";
+	private static final String winnersTxtUrlFormat = "http://www.fftbattleground.com/fftbg/tournament_%s/winner.txt";
 	
 	@Autowired
 	private DumpResourceManager dumpResourceManager;
@@ -81,6 +82,10 @@ public class TournamentService {
 		currentTournament = this.getTournamentById(latestTournament.getID());
 		List<String> raidbosses = this.getRaidBossesFromTournament(currentTournament.getID());
 		currentTournament.setRaidbosses(raidbosses);
+		currentTournament.setEntrants(new ArrayList<>(this.parseEntrantFile(latestTournament.getID()))); //override what comes from the tournament API since I don't trust it
+		
+		Set<String> allPlayers = this.dumpDataProvider.getHighScoreDump().keySet();
+		currentTournament.setAllPlayers(allPlayers);
 		
 		return currentTournament;
 	}
@@ -130,6 +135,29 @@ public class TournamentService {
 		
 	}
 	
+	public List<BattleGroundTeam> getWinnersFromTournament(final Long id) throws DumpException {
+		List<BattleGroundTeam> winners = new LinkedList<>();
+		Resource resource;
+		try {
+			resource = new UrlResource(String.format(winnersTxtUrlFormat, id.toString()));
+		} catch (MalformedURLException e) {
+			log.error("malformed url", e);
+			return new ArrayList<>();
+		}
+		try(BufferedReader raidBossReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			while((line = raidBossReader.readLine()) != null) {
+				if(StringUtils.isNotBlank(line)) {
+					winners.add(BattleGroundTeam.parse(line));
+				}
+			}
+		} catch (IOException e) {
+			log.debug("reading winner data for tournament {} has failed", id);
+			return new ArrayList<>();
+		}
+		
+		return winners;
+	}
 	
 
 	protected TournamentInfo getLatestTournamentInfo() throws TournamentApiException {
@@ -253,14 +281,16 @@ public class TournamentService {
 		Set<String> entrants = new HashSet<>();
 		Resource resource;
 		try {
-			resource = new UrlResource(entrantUrlTemplateForTournament);
+			resource = new UrlResource(String.format(entrantUrlTemplateForTournament, tournamentId.toString()));
 		} catch (MalformedURLException e1) {
 			throw new DumpException(e1);
 		}
 		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
-				String cleanedString = GambleUtil.cleanString(line);
+				String cleanedString = line;
+				cleanedString = StringUtils.replace(cleanedString, ",", "");
+				cleanedString = StringUtils.trim(cleanedString);
 				entrants.add(cleanedString);
 			}
 		} catch (IOException e) {

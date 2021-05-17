@@ -2,7 +2,7 @@ package fft_battleground.exception;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.repo.BattleGroundCacheEntryKey;
+import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 
 public class CacheMissException extends BattleGroundException {
 

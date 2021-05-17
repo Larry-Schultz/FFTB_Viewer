@@ -1,31 +1,37 @@
 package fft_battleground.event.annotate;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.event.model.UnitInfoEvent;
-import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.tournament.model.Tournament;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class UnitInfoEventAnnotator implements BattleGroundEventAnnotator<UnitInfoEvent> {
-
+	
 	@Autowired
-	private PlayerRecordRepo playerRecordRepo;
+	private TeamInfoEventAnnotator teamInfoEventAnnotator;
+	
+	@Getter @Setter private Tournament currentTournament;
 	
 	@Override
 	public void annotateEvent(UnitInfoEvent event) {
 		String playerName = event.getPlayer();
-		playerName = StringUtils.lowerCase(playerName);
-		String likePlayerNameString = StringUtils.replace(playerName, " ", "%"); 
-		List<String> possiblePlayerNames = this.playerRecordRepo.findPlayerNameByLike(likePlayerNameString);
-		if(possiblePlayerNames != null && possiblePlayerNames.size() > 0) {
-			event.setPlayer(possiblePlayerNames.get(0));
+		String matchingName;
+		if(event.getTeam() == BattleGroundTeam.CHAMPION) {
+			matchingName = this.teamInfoEventAnnotator.findClosestMatchingName(playerName, this.currentTournament.getAllPlayers());
+		} else {
+			matchingName = this.teamInfoEventAnnotator.findClosestMatchingName(playerName, this.currentTournament.getEntrants());
+		}
+		if(matchingName != null) {
+			event.setPlayer(matchingName);
 		} else {
 			event.setPlayer(playerName);
 		}

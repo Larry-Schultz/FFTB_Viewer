@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import fft_battleground.repo.BatchDataEntryType;
 import fft_battleground.repo.model.BatchDataEntry;
+import fft_battleground.repo.util.BatchDataEntryType;
 
 public interface BatchDataEntryRepo extends JpaRepository<BatchDataEntry, Long> {
 

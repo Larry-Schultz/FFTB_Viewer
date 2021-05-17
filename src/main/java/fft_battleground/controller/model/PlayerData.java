@@ -17,6 +17,7 @@ public class PlayerData {
 	private int prestigeLevel = 0;
 	private Integer leaderboardPosition;
 	private String timezoneFormattedDateString;
+	private String timezoneFormattedLastFightActiveDateString;
 	private Integer expRank;
 	private String percentageOfGlobalGil;
 	private boolean notFound = false;

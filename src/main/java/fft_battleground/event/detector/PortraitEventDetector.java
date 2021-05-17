@@ -9,7 +9,7 @@ import fft_battleground.model.ChatMessage;
 
 public class PortraitEventDetector implements EventDetector<PortraitEvent> {
 
-	private static final String SEARCH_STRING = ", your Cheer Portrait was successfully set to ";
+	private static final String SEARCH_STRING = ", your Cheer Portrait is set to ";
 	
 	@Override
 	public PortraitEvent detect(ChatMessage message) {

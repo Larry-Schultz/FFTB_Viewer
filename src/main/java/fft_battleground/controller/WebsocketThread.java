@@ -65,7 +65,7 @@ public class WebsocketThread extends Thread {
 					case LEVEL_UP: case BALANCE: case EXP: case OTHER_PLAYER_BALANCE: case OTHER_PLAYER_EXP:
 					case ALLEGIANCE: case PLAYER_SKILL: case BUY_SKILL: case PORTRAIT: case SKILL_WIN: case PRESTIGE_SKILLS:
 					case LAST_ACTIVE: case GIFT_SKILL: case PRESTIGE_ASCENSION: case RISER_SKILL_WIN: case BUY_SKILL_RANDOM:
-					case CLASS_BONUS: case SKILL_BONUS:
+					case CLASS_BONUS: case SKILL_BONUS: case SNUB: case OTHER_PLAYER_SNUB:
 						//do nothing
 						break;
 					case MUSIC:

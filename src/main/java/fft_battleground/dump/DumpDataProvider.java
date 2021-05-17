@@ -46,6 +46,7 @@ public class DumpDataProvider {
 	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
 	private static final String DUMP_HIGH_EXP_URL = "http://www.fftbattleground.com/fftbg/highexp.txt";
 	private static final String DUMP_HIGH_LAST_ACTIVE_URL = "http://www.fftbattleground.com/fftbg/highdate.txt";
+	private static final String DUMP_SNUB_URL = "http://www.fftbattleground.com/fftbg/highsnub.txt";
 	private static final String DUMP_BOT_URL = "http://www.fftbattleground.com/fftbg/bots.txt";
 	private static final String DUMP_PLAYLIST_URL = "http://www.fftbattleground.com/fftbg/playlist.xml";
 	
@@ -165,6 +166,31 @@ public class DumpDataProvider {
 		return data;
 	}
 	
+	public Map<String, Integer> getSnubData() throws DumpException {
+		Map<String, Integer> data = new HashMap<>();
+		
+		Resource resource = this.getUrlResource(DUMP_SNUB_URL);
+		try(BufferedReader highScoreReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			highScoreReader.readLine(); //ignore the header
+			
+			while((line = highScoreReader.readLine()) != null) {
+				Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
+				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
+				Integer tries = Integer.valueOf(StringUtils.trim(StringUtils.substringBetween(line, ": ", " tries")));
+				data.put(username, tries);
+			}
+		} catch (DumpException e) {
+			log.error("Error getting high snub dump");
+			throw e;
+		} catch (IOException e) {
+			log.error("Error getting high snub dump");
+			throw new DumpException(e);
+		}
+		
+		return data;
+	}
+	
 	public Set<String> getPlayersForPortraitDump() {
 		Set<String> players = this.getPlayerList(DUMP_PORTAIL_URL_FORMAT);
 		return players;
@@ -273,15 +299,14 @@ public class DumpDataProvider {
 		return skillBonuses;
 	}
 	
-	public List<String> getSkillsForPlayer(String player) throws DumpException {
+	public List<PlayerSkills> getSkillsForPlayer(String player) throws DumpException {
 		List<PlayerSkills> skills = this.getSkills(player, DUMP_USERSKILLS_URL_FORMAT, SkillType.USER);
-		List<String> skillStrings = skills.parallelStream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
-		return skillStrings;
+		return skills;
 	}
 	
 	public List<String> getPrestigeSkillsForPlayer(String player) throws DumpException {
 		List<PlayerSkills> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT, SkillType.PRESTIGE);
-		List<String> skillStrings = skills.parallelStream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+		List<String> skillStrings = PlayerSkills.convertToListOfSkillStrings(skills); 
 		return skillStrings;
 	}
 	

@@ -44,6 +44,7 @@ import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
+import fft_battleground.event.detector.OtherPlayerSnubEventDetector;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Images;
@@ -94,7 +95,7 @@ public class Config {
 			new BettingBeginsDetector(), new AllegianceDetector(), new BetInfoEventDetector(), new SkillDropDetector(), new DontFightDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(), new OtherPlayerSkillOnCooldownDetector(),
 			new FightEntryDetector(), new FightBeginsDetector(), new OtherPlayerInvalidFightCombinationDetector(), new OtherPlayerInvalidFightEntryClassDetector(),
-			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector()
+			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector(), new OtherPlayerSnubEventDetector()
 		});
 	}
 	

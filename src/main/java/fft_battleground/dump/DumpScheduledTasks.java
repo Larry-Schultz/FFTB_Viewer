@@ -1,5 +1,11 @@
 package fft_battleground.dump;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,14 +38,15 @@ import fft_battleground.event.model.PortraitEvent;
 import fft_battleground.event.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.fake.SkillBonusEvent;
-import fft_battleground.exception.AscensionException;
 import fft_battleground.exception.DumpException;
+import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.BatchDataEntryType;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.model.ClassBonus;
+import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
-import fft_battleground.util.BattlegroundRetryState;
+import fft_battleground.repo.util.BatchDataEntryType;
+import fft_battleground.tournament.MonsterUtils;
 import fft_battleground.util.Router;
 
 import lombok.Getter;
@@ -58,6 +65,9 @@ public class DumpScheduledTasks {
 	
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
+	
+	@Autowired
+	@Getter private MonsterUtils monsterUtils;
 	
 	@Autowired
 	private AscensionRefreshRetry ascensionRefreshRetry;
@@ -99,16 +109,39 @@ public class DumpScheduledTasks {
 	@Scheduled(cron = "0 0 1 * * ?")
 	public void runAllUpdates() {
 		DumpScheduledTask[] dumpScheduledTasks = new DumpScheduledTask[] {
+				//new BadAccountsTask(this),
 				new AllegianceTask(this), 
 				new BotListTask(this), 
 				new PortraitsTask(this),
 				new UserSkillsTask(this),
-				//new ClassBonusTask(this),
-				//new SkillBonusTask(this)
+				new ClassBonusTask(this),
+				new SkillBonusTask(this)
 			};
 		for(DumpScheduledTask task : dumpScheduledTasks) {
 			this.batchTimer.schedule(task, 0);
 		}
+	}
+	
+	public void generateOutOfSyncPlayerRecordsFile() {
+		log.info("starting out of sync player record file batch");
+		try {
+			Map<String, Integer> balanceMap = this.dumpDataProvider.getHighScoreDump();
+			List<String> realPlayers = balanceMap.keySet().parallelStream().map(key -> StringUtils.lowerCase(key)).collect(Collectors.toList());
+			List<String> currentAccounts = this.dumpService.getPlayerRecordRepo().findPlayerNames();
+			
+			List<String> badAccounts = currentAccounts.parallelStream().filter(account -> !realPlayers.contains(account)).collect(Collectors.toList());
+			
+			try(BufferedWriter writer = new BufferedWriter(new FileWriter("badAccounts.txt"))) {
+				for(String badAccountName : badAccounts) {
+					writer.write(badAccountName);
+					writer.newLine();
+				}
+			}
+		} catch(IOException | DumpException e) {
+			log.error("Error writing bad accounts file");
+		}
+		
+		log.info("finished writing bad accounts file");
 	}
 	
 	public void updatePortraits() {
@@ -120,7 +153,7 @@ public class DumpScheduledTasks {
 		Map<String, String> portraitsFromDump = new HashMap<>();
 		try {
 			Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPortraitDump();
-			playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, portraitPreviousBatchDataEntry);
+			//playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, portraitPreviousBatchDataEntry);
 			playersAnalyzed = playerNamesSet.size();
 			
 			int count = 0;
@@ -136,30 +169,7 @@ public class DumpScheduledTasks {
 				count++;
 			}
 			
-			Map<String, ValueDifference<String>> balanceDelta = Maps.difference(this.dumpService.getPortraitCache(), portraitsFromDump).entriesDiffering();
-			List<BattleGroundEvent> portraitEvents = new LinkedList<>();
-			//find differences
-			for(String key: balanceDelta.keySet()) {
-				PortraitEvent event = new PortraitEvent(key, balanceDelta.get(key).rightValue());
-				portraitEvents.add(event);
-				//update cache with new data
-				this.dumpService.getPortraitCache().put(key, balanceDelta.get(key).rightValue());
-				//increment updated players
-				playersUpdated++;
-			}
-			
-			//add missing players
-			for(String key: portraitsFromDump.keySet()) {
-				if(!this.dumpService.getPortraitCache().containsKey(key)) {
-					PortraitEvent event = new PortraitEvent(key, portraitsFromDump.get(key));
-					portraitEvents.add(event);
-					this.dumpService.getPortraitCache().put(key, portraitsFromDump.get(key));
-					//increment updated players
-					playersUpdated++;
-					//increment playersAnalyzed since they weren't initially considered
-					playersAnalyzed++;
-				}
-			}
+			List<BattleGroundEvent> portraitEvents = portraitsFromDump.keySet().parallelStream().map(player -> new PortraitEvent(player, portraitsFromDump.get(player))).collect(Collectors.toList());
 			
 			portraitEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
 			this.eventRouter.sendAllDataToQueues(portraitEvents);
@@ -257,7 +267,7 @@ public class DumpScheduledTasks {
 			Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
 			
 			//filter userSkillPlayers by lastActiveDate
-			userSkillPlayers = this.filterPlayerListToActiveUsers(userSkillPlayers, previousBatchDataEntry);
+			//userSkillPlayers = this.filterPlayerListToActiveUsers(userSkillPlayers, previousBatchDataEntry);
 			playersAnalyzed = userSkillPlayers.size();
 			
 			int count = 0;
@@ -333,7 +343,7 @@ public class DumpScheduledTasks {
 			log.info("updating skill bonuses caches");
 			Set<String> skillBonusPlayers = this.dumpDataProvider.getPlayersForSkillBonusDump();
 			
-			skillBonusPlayers = this.filterPlayerListToActiveUsers(skillBonusPlayers, previousBatchDataEntry);
+			//skillBonusPlayers = this.filterPlayerListToActiveUsers(skillBonusPlayers, previousBatchDataEntry);
 			playersAnalyzed = skillBonusPlayers.size();
 			
 			int count = 0;
@@ -363,17 +373,20 @@ public class DumpScheduledTasks {
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 	}
 	
-	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException {
+	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException, TournamentApiException {
 		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
 		//delete all skills from cache
 		this.dumpService.getUserSkillsCache().remove(player);
 		
 		//get user skills
-		List<String> userSkills = this.dumpDataProvider.getSkillsForPlayer(player);
+		List<PlayerSkills> userPlayerSkills = this.dumpDataProvider.getSkillsForPlayer(player);
+		this.monsterUtils.categorizeSkillsList(userPlayerSkills);
+		this.monsterUtils.regulateMonsterSkillCooldowns(userPlayerSkills);
+		List<String> userSkills = PlayerSkills.convertToListOfSkillStrings(userPlayerSkills);
 		
 		//store user skills
 		this.dumpService.getUserSkillsCache().put(player, userSkills);
-		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(player, userSkills);
+		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(userPlayerSkills, player);
 		refresh.setPlayerSkillEvent(userSkillsEvent);
 	
 		List<String> prestigeSkills = null;
@@ -444,6 +457,10 @@ public class DumpScheduledTasks {
 	
 	public void forceScheduleSkillBonusTask() {
 		this.forceSchedule(new SkillBonusTask(this));
+	}
+	
+	public void forceScheduledBadAccountsTask() {
+		this.forceSchedule(new BadAccountsTask(this));
 	}
 	
 	protected void forceSchedule(DumpScheduledTask task) {
@@ -528,6 +545,11 @@ abstract class DumpScheduledTask extends TimerTask {
 	}
 	
 	protected abstract void task();
+}
+
+class BadAccountsTask extends DumpScheduledTask {
+	public BadAccountsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks); }
+	protected void task() {this.dumpScheduledTasksRef.generateOutOfSyncPlayerRecordsFile();}
 }
 
 class AllegianceTask extends DumpScheduledTask {

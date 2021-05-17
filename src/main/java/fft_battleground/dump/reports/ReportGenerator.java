@@ -5,8 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
-import fft_battleground.repo.BattleGroundCacheEntryKey;
-
+import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import lombok.Getter;
 
 public abstract class ReportGenerator<T> {

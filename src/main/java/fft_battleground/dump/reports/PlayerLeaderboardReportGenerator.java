@@ -20,9 +20,8 @@ import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.BattleGroundCacheEntryKey;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
-
+import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
