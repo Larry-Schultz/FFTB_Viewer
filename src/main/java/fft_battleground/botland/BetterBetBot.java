@@ -14,9 +14,10 @@ import fft_battleground.botland.model.TeamData;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GambleUtil;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +37,7 @@ implements Callable<Bet> {
 	protected PlayerRecordRepo playerRecordRepoRef;
 	
 	protected Pair<List<BetEvent>, List<BetEvent>> betsBySide;
+	protected Pair<List<Unit>, List<Unit>> unitsBySide;
 	protected Bet result;
 	
 	protected Date startTime;

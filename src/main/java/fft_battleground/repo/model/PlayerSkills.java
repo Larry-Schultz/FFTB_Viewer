@@ -1,6 +1,7 @@
 package fft_battleground.repo.model;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,14 +23,16 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.botland.model.SkillType;
 import fft_battleground.repo.util.SkillCategory;
 import fft_battleground.util.BooleanConverter;
-import lombok.AllArgsConstructor;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Entity
@@ -67,6 +70,14 @@ public class PlayerSkills {
     @Convert(converter = BooleanConverter.class)
     private Boolean isActive;
     
+    @CreationTimestamp
+    @JsonIgnore
+    private Date createDateTime;
+ 
+    @UpdateTimestamp
+    @JsonIgnore
+    private Date updateDateTime;
+     
     @JsonIgnore
 	@ManyToOne
     @JoinColumn

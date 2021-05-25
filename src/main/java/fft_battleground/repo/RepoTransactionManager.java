@@ -361,7 +361,7 @@ public class RepoTransactionManager {
 						List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
 						if(matchingSkills.size() > 0) {
 							PlayerSkills currentSkill = matchingSkills.get(0);
-							if(currentSkill != null && !currentSkill.getCooldown().equals(possibleNewSkill.getCooldown()) && possibleNewSkill.getCooldown() != null) {
+							if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
 								currentSkill.setCooldown(possibleNewSkill.getCooldown());
 								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
 								this.playerSkillRepo.save(currentSkill);

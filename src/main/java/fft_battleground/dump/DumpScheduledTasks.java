@@ -1,11 +1,8 @@
 package fft_battleground.dump;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,6 +13,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.botland.model.DatabaseResultsData;
@@ -86,6 +85,7 @@ public class DumpScheduledTasks {
 	
 	private Timer batchTimer = new Timer();
 	private Timer cacheTimer = new Timer();
+	private Timer forceTimer = new Timer();
 	
 	//every 3 hours, with an initial delay of 5 minutes
 	@Scheduled(fixedDelay = 10800000, initialDelay=300000)
@@ -109,17 +109,17 @@ public class DumpScheduledTasks {
 	@Scheduled(cron = "0 0 1 * * ?")
 	public void runAllUpdates() {
 		DumpScheduledTask[] dumpScheduledTasks = new DumpScheduledTask[] {
-				//new BadAccountsTask(this),
+				new BadAccountsTask(this),
 				new AllegianceTask(this), 
 				new BotListTask(this), 
 				new PortraitsTask(this),
-				new UserSkillsTask(this),
+				//new UserSkillsTask(this),
 				new ClassBonusTask(this),
-				new SkillBonusTask(this)
 			};
 		for(DumpScheduledTask task : dumpScheduledTasks) {
 			this.batchTimer.schedule(task, 0);
 		}
+		
 	}
 	
 	public void generateOutOfSyncPlayerRecordsFile() {
@@ -148,41 +148,39 @@ public class DumpScheduledTasks {
 		log.info("updating portrait cache");
 		Date startDate = new Date();
 		BatchDataEntry portraitPreviousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.PORTRAIT);
-		Integer playersAnalyzed = 0;
+		final AtomicInteger playersAnalyzed = new AtomicInteger(0);
 		int playersUpdated = 0;
 		Map<String, String> portraitsFromDump = new HashMap<>();
-		try {
-			Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPortraitDump();
-			//playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, portraitPreviousBatchDataEntry);
-			playersAnalyzed = playerNamesSet.size();
-			
-			int count = 0;
-			for(String player: playerNamesSet) {
-				String portrait = this.dumpDataProvider.getPortraitForPlayer(player);
+		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPortraitDump();
+		//playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, portraitPreviousBatchDataEntry);
+		playersAnalyzed.set(playerNamesSet.size());
+		
+		final AtomicInteger count = new AtomicInteger(0);
+		playerNamesSet.parallelStream().forEach(player -> {
+			String portrait;
+			PortraitEvent event = null;
+			try {
+				portrait = this.dumpDataProvider.getPortraitForPlayer(player);
+				
 				if(!StringUtils.isBlank(portrait)) {
-					portraitsFromDump.put(player, portrait);
+					event = new PortraitEvent(player, portrait);
+					log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString());
+					this.eventRouter.sendDataToQueues(event);
 				}
 				
-				if(count % 20 == 0) {
+				if(count.incrementAndGet() % 20 == 0) {
 					log.info("Read portrait data for {} users out of {}", count, playersAnalyzed);
 				}
-				count++;
+			} catch (Exception e) {
+				log.error("Error updating portrait for player {}", player, e);
+				this.errorWebhookManager.sendException(e, "Error updating portrait for player " + player);
 			}
-			
-			List<BattleGroundEvent> portraitEvents = portraitsFromDump.keySet().parallelStream().map(player -> new PortraitEvent(player, portraitsFromDump.get(player))).collect(Collectors.toList());
-			
-			portraitEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-			this.eventRouter.sendAllDataToQueues(portraitEvents);
-			//generate new BatchDataEntry for this batch run
-		} catch(Exception e) {
-			Date endDate = new Date();
-			BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.PORTRAIT, playersAnalyzed, playersUpdated, startDate, endDate, e.getClass().toString(), e.getStackTrace()[0].getLineNumber());
-			this.writeToBatchDataEntryRepo(newBatchDataEntry);
-			this.errorWebhookManager.sendException(e, "Error in updatePortraits batch job");
-			return;
-		}
+		});
+		
+		
+		//generate new BatchDataEntry for this batch run
 		Date endDate = new Date();
-		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.PORTRAIT, playersAnalyzed, playersUpdated, startDate, endDate);
+		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.PORTRAIT, playersAnalyzed.get(), playersUpdated, startDate, endDate);
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 		log.info("portrait cache update complete");
 
@@ -194,62 +192,61 @@ public class DumpScheduledTasks {
 		Date startDate = new Date();
 		BatchDataEntry allegiancePreviousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.ALLEGIANCE);
 		int numberOfPlayersUpdated = 0;
-		int numberOfPlayersAnalyzed = 0;
+		final AtomicInteger numberOfPlayersAnalyzed = new AtomicInteger(0);
 		Map<String, BattleGroundTeam> allegiancesFromDump = new HashMap<>();
-		try {
-			Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForAllegianceDump();
-			playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, allegiancePreviousBatchDataEntry);
-			numberOfPlayersAnalyzed = playerNamesSet.size();
-			
-			int count = 0;
-			for(String player : playerNamesSet) {
-				BattleGroundTeam team = this.dumpDataProvider.getAllegianceForPlayer(player);
-				if(team != null) {
-					allegiancesFromDump.put(player, team);
-				}
-				
-				if(count % 20 == 0) {
-					log.info("Read allegiance data for {} users out of {}", count, numberOfPlayersAnalyzed);
-				}
-				count++;
+		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForAllegianceDump();
+		playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, allegiancePreviousBatchDataEntry);
+		numberOfPlayersAnalyzed.set(playerNamesSet.size());
+		
+		final AtomicInteger count = new AtomicInteger(0);
+		playerNamesSet.parallelStream().forEach(player -> {
+			BattleGroundTeam team = null;
+			try {
+				team = this.dumpDataProvider.getAllegianceForPlayer(player);
+			} catch (Exception e) {
+				log.error("Error getting allegiance for player {}", player, e);
+				this.errorWebhookManager.sendException(e, "\"Error getting allegiance for player " + player);
+			}
+			if(team != null) {
+				allegiancesFromDump.put(player, team);
 			}
 			
-			Map<String, ValueDifference<BattleGroundTeam>> balanceDelta = Maps.difference(this.dumpService.getAllegianceCache(), allegiancesFromDump).entriesDiffering();
-			List<BattleGroundEvent> allegianceEvents = new LinkedList<>();
-			//find differences
-			for(String key: balanceDelta.keySet()) {
-				AllegianceEvent event = new AllegianceEvent(key, balanceDelta.get(key).rightValue());
+			if(count.incrementAndGet() % 20 == 0) {
+				log.info("Read allegiance data for {} users out of {}", count, numberOfPlayersAnalyzed.get());
+			}
+
+		});
+		
+		Map<String, ValueDifference<BattleGroundTeam>> balanceDelta = Maps.difference(this.dumpService.getAllegianceCache(), allegiancesFromDump).entriesDiffering();
+		List<BattleGroundEvent> allegianceEvents = new LinkedList<>();
+		//find differences
+		for(String key: balanceDelta.keySet()) {
+			AllegianceEvent event = new AllegianceEvent(key, balanceDelta.get(key).rightValue());
+			allegianceEvents.add(event);
+			//update cache with new data
+			this.dumpService.getAllegianceCache().put(key, balanceDelta.get(key).rightValue());
+			//increment players updated
+			numberOfPlayersUpdated++;
+		}
+		
+		//add missing players
+		for(String key: allegiancesFromDump.keySet()) {
+			if(!this.dumpService.getAllegianceCache().containsKey(key)) {
+				AllegianceEvent event = new AllegianceEvent(key, allegiancesFromDump.get(key));
 				allegianceEvents.add(event);
-				//update cache with new data
-				this.dumpService.getAllegianceCache().put(key, balanceDelta.get(key).rightValue());
+				this.dumpService.getAllegianceCache().put(key, allegiancesFromDump.get(key));
 				//increment players updated
 				numberOfPlayersUpdated++;
+				//increment players analyzed
+				numberOfPlayersAnalyzed.getAndIncrement();
 			}
-			
-			//add missing players
-			for(String key: allegiancesFromDump.keySet()) {
-				if(!this.dumpService.getAllegianceCache().containsKey(key)) {
-					AllegianceEvent event = new AllegianceEvent(key, allegiancesFromDump.get(key));
-					allegianceEvents.add(event);
-					this.dumpService.getAllegianceCache().put(key, allegiancesFromDump.get(key));
-					//increment players updated
-					numberOfPlayersUpdated++;
-					//increment players analyzed
-					numberOfPlayersAnalyzed++;
-				}
-			}
-			
-			allegianceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
-			this.eventRouter.sendAllDataToQueues(allegianceEvents);
-		} catch(Exception e) {
-			Date endDate = new Date();
-			BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.ALLEGIANCE, numberOfPlayersAnalyzed, numberOfPlayersUpdated, startDate, endDate, e.getClass().toString(), e.getStackTrace()[0].getLineNumber());
-			this.writeToBatchDataEntryRepo(newBatchDataEntry);
-			this.errorWebhookManager.sendException(e, "error in Allegiances batch job");
-			return;
 		}
+		
+		allegianceEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
+		this.eventRouter.sendAllDataToQueues(allegianceEvents);
+		
 		Date endDate = new Date();
-		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.ALLEGIANCE, numberOfPlayersAnalyzed, numberOfPlayersUpdated, startDate, endDate);
+		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.ALLEGIANCE, numberOfPlayersAnalyzed.get(), numberOfPlayersUpdated, startDate, endDate);
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 		log.info("allegiances cache update complete.");
 		
@@ -259,37 +256,42 @@ public class DumpScheduledTasks {
 	public void updateAllSkills() {
 		Date startDate = new Date();
 		BatchDataEntry previousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.USERSKILL);
-		int playersAnalyzed = 0;
-		int playersUpdated = 0;
+		final AtomicInteger playersAnalyzed = new AtomicInteger();
+		final AtomicInteger playersUpdated = new AtomicInteger(0);
 		try {
 			log.info("updating user and prestige skills caches");
-			Set<String> userSkillPlayers = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
-			Set<String> prestigeSkillPlayers = this.dumpDataProvider.getPlayersForPrestigeSkillsDump(); //use the larger set of names from the leaderboard
+			Set<String> userSkillPlayers = Sets.newConcurrentHashSet(this.dumpDataProvider.getPlayersForUserSkillsDump()); //use the larger set of names from the leaderboard
+			Set<String> prestigeSkillPlayers = Sets.newConcurrentHashSet(this.dumpDataProvider.getPlayersForPrestigeSkillsDump()); //use the larger set of names from the leaderboard
 			
 			//filter userSkillPlayers by lastActiveDate
 			//userSkillPlayers = this.filterPlayerListToActiveUsers(userSkillPlayers, previousBatchDataEntry);
-			playersAnalyzed = userSkillPlayers.size();
+			playersAnalyzed.set(userSkillPlayers.size());
 			
-			int count = 0;
+			AtomicInteger count = new AtomicInteger(0);
 			//assume all players with prestige skills have user skills
-			for(String player: userSkillPlayers) {
-				this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
-				playersUpdated++;
-				
-				if(count % 20 == 0) {
-					log.info("Read user skill data for {} users out of {}", count, playersAnalyzed);
+			userSkillPlayers.parallelStream().forEach(player -> {
+				try {
+					this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
+				} catch (DumpException | TournamentApiException e) {
+					log.error("error handling player skill data for player {}", player, e);
+					this.errorWebhookManager.sendException(e, "error in Update Skills batch job for player: " + player);
 				}
-				count++;
-			}
+				playersUpdated.incrementAndGet();
+				
+				if(count.incrementAndGet() % 20 == 0) {
+					log.info("Read user skill data for {} users out of {}", count, playersAnalyzed.get());
+				}
+				
+			});
 		} catch(Exception e) {
 			Date endDate = new Date();
-			BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.USERSKILL, playersAnalyzed, playersUpdated, startDate, endDate, e.getClass().toString(), e.getStackTrace()[0].getLineNumber());
+			BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.USERSKILL, playersAnalyzed.get(), playersUpdated.get(), startDate, endDate, e.getClass().toString(), e.getStackTrace()[0].getLineNumber());
 			this.writeToBatchDataEntryRepo(newBatchDataEntry);
 			this.errorWebhookManager.sendException(e, "error in Update Skills batch job");
 			return;
 		}
 		Date endDate = new Date();
-		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.USERSKILL, playersAnalyzed, playersUpdated, startDate, endDate);
+		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.USERSKILL, playersAnalyzed.get(), playersUpdated.get(), startDate, endDate);
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 		log.info("user and prestige skill cache updates complete");
 	}
@@ -373,7 +375,7 @@ public class DumpScheduledTasks {
 		this.writeToBatchDataEntryRepo(newBatchDataEntry);
 	}
 	
-	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers,Set<String> prestigeSkillPlayers) throws DumpException, TournamentApiException {
+	public void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers, Set<String> prestigeSkillPlayers) throws DumpException, TournamentApiException {
 		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
 		//delete all skills from cache
 		this.dumpService.getUserSkillsCache().remove(player);
@@ -390,11 +392,13 @@ public class DumpScheduledTasks {
 		refresh.setPlayerSkillEvent(userSkillsEvent);
 	
 		List<String> prestigeSkills = null;
-		try {
-			//attempt to get prestige skills, this is allowed to fail meaning this player has no prestige
-			prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
-		} catch(Exception e) {
-			log.warn("Player {} does not have prestige", player);
+		if(prestigeSkillPlayers.contains(player)) {
+			try {
+				//attempt to get prestige skills, this is allowed to fail meaning this player has no prestige
+				prestigeSkills = this.dumpDataProvider.getPrestigeSkillsForPlayer(player);
+			} catch(Exception e) {
+				log.warn("Player {} does not have prestige", player);
+			}
 		}
 		if(prestigeSkills != null && prestigeSkills.size() > 0) {
 			//store prestige skills
@@ -464,7 +468,7 @@ public class DumpScheduledTasks {
 	}
 	
 	protected void forceSchedule(DumpScheduledTask task) {
-		this.batchTimer.schedule(task, 0);
+		this.forceTimer.schedule(task, 0);
 	}
 	
 	@Transactional

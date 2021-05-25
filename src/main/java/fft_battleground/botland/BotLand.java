@@ -2,6 +2,7 @@ package fft_battleground.botland;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.Vector;
 
@@ -46,9 +47,9 @@ public class BotLand extends TimerTask {
 	private BetterBetBot primaryBot;
 	private List<BetterBetBot> subordinateBots;
 	
-	public BotLand(Integer currentAmountToBetWith, BettingBeginsEvent beginEvent, List<BetEvent> otherPlayerBets) {
+	public BotLand(Integer currentAmountToBetWith, BettingBeginsEvent beginEvent, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> unitInfoEvents) {
 		List<BetEvent> bets = new Vector<BetEvent>(otherPlayerBets);
-		this.helper = new BotlandHelper(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), bets);
+		this.helper = new BotlandHelper(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), bets, unitInfoEvents);
 	}
 
 	@Override

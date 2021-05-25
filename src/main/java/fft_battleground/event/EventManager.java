@@ -1,12 +1,15 @@
 package fft_battleground.event;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.Sets;
 
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
@@ -29,6 +32,7 @@ import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.util.Router;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -63,6 +67,7 @@ public class EventManager extends Thread {
 	public void run() {
 		int currentAmount = 1;
 		List<BetEvent> currentBets = new Vector<>();
+		Set<UnitInfoEvent> currentUnits = Sets.newConcurrentHashSet();
 		boolean bettingCurrently = false;
 		//BetBot previousBetBot = null;
 		//BetBot currentBetBot = null;
@@ -83,10 +88,10 @@ public class EventManager extends Thread {
 						sendBalanceRequest(); //start the WIN/LOSS chain of events
 						bettingCurrently = true;
 						currentBets = new Vector<>();
+						currentUnits = Sets.newConcurrentHashSet();
 						if(event instanceof BettingBeginsEvent) {
 							BettingBeginsEvent beginEvent = (BettingBeginsEvent) event;
-							//currentBetBot = this.betBotFactory.create(DataBetBot.class, currentAmount, currentBets, beginEvent);
-							this.botLand = this.betBotFactory.createBotLand(currentAmount, currentBets, beginEvent);
+							this.botLand = this.betBotFactory.createBotLand(currentAmount, currentBets, currentUnits, beginEvent);
 							this.bettingTimer.schedule(this.botLand, this.bettingDelay);
 						}
 						break;

@@ -2,6 +2,7 @@ package fft_battleground.botland;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -16,6 +17,7 @@ import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.tournament.model.Unit;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,9 +36,10 @@ public class BotlandHelper {
 	protected BettingEndsEvent bettingEndsEvent;
 	
 	protected Pair<List<BetEvent>, List<BetEvent>> betsBySide;
+	protected Pair<List<Unit>, List<Unit>> unitsBySide;
 	protected Bet result;
 	
-	public BotlandHelper(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, List<BetEvent> bets) {
+	public BotlandHelper(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, List<BetEvent> bets, Set<UnitInfoEvent> unitInfoEvents) {
 		this.otherPlayerBets = bets;
 		this.currentAmountToBetWith = currentAmountToBetWith;
 		this.left = left;
@@ -83,6 +86,11 @@ public class BotlandHelper {
 	
 	public void addUnitInfo(UnitInfoEvent event) {
 		this.getTeamData().addUnitInfo(event);
+		
+		
+		if(event.getTeam() == this.left) {
+			
+		}
 	}
 
 }

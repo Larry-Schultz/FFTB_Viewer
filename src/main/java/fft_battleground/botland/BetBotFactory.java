@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import fft_battleground.botland.model.BotData;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
+import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.repository.BotsRepo;
@@ -73,8 +75,8 @@ public class BetBotFactory {
 			  .build();
 
 	
-	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent) {
-		BotLand land = new BotLand(currentAmountToBetWith, beginEvent, otherPlayerBets);
+	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> currentUnits, BettingBeginsEvent beginEvent) {
+		BotLand land = new BotLand(currentAmountToBetWith, beginEvent, otherPlayerBets, currentUnits);
 		
 		land.setChatMessageRouterRef(this.getMessageSenderRouter());
 		land.setPlayerRecordRepo(this.playerRecordRepo);

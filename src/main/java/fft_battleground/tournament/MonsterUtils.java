@@ -22,6 +22,7 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Gender;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.util.SkillCategory;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -29,6 +30,29 @@ import lombok.extern.slf4j.Slf4j;
 public class MonsterUtils {
 	private static final List<String> ELITE_MONSTERS = Arrays.asList(new String[]{"UltimaDemon", "SteelGiant", "Byblos", "Serpentarius", "Tiamat", "DarkBehemoth", "HolyDragon"});
 	private static final List<String> STRONG_MONSTERS = Arrays.asList(new String[]{"Apanda", "ArchaicDemon", "KingBehemoth", "Hydra", "RedDragon", "Sehkret"});
+	
+	private static final List<String> JOB_SKILLS = Arrays.asList(new String[] {"BasicSkill","BattleSkill","Item","Charge","PunchArt","Elemental","Jump","DrawOut","Throw","Steal",
+			"TalkSkill","Dance","Sing","WhiteMagic","BlackMagic","TimeMagic","SummonMagic","YinYangMagic","BlueMagic",});
+	
+	private static final List<String> REACTION_SKILLS = Arrays.asList(new String[] {"Caution","Parry","ArrowGuard","SunkenState","PASave","MASave","SpeedSave","BraveSave","FaithSave",
+			"AutoPotion","HPRestore","MPRestore","AbsorbUsedMP","Regenerator","DragonSpirit","CriticalQuick","MeatboneSlash","Counter","CounterTackle","CounterMagic","CounterFlood",
+			"Hamedo","DamageSplit","Catch","Earplug","Abandon","Distribute","ManaShield",});
+	
+	private static final List<String> MOVEMENT_SKILLS = Arrays.asList(new String[] {"Move+1","Move+2","Move+3","Jump+1","Jump+2","Jump+3","Swim","Waterbreathing","Waterwalking",
+			"LavaWalking","Levitate","Move-HPUp","Move-MPUp","Teleport","Fly","IgnoreHeight","IgnoreTerrain","Retreat",});
+	
+	private static final List<String> EQUIPMENT_SKILLS  = Arrays.asList(new String[] {"108Gems","AngelRing","CursedRing","DefenseRing","MagicRing","ReflectRing","Bracer","DefenseArmlet",
+			"DiamondArmlet","JadeArmlet","N-KaiArmlet","PowerWrist","MagicGauntlet","GenjiGauntlet","BattleBoots","FeatherBoots","GerminasBoots","RedShoes","RubberShoes","SpikeShoes",
+			"SprintShoes","LeatherMantle","FeatherMantle","WizardMantle","SmallMantle","ElfMantle","VanishMantle","DraculaMantle",});
+	
+	private static final List<String> SUPPORT_SKILLS  = Arrays.asList(new String[] {"Concentrate","MartialArts","Maintenance","Doublehand","DualWield","Defend","ShortCharge","HalveMP",
+			"Beastmaster","SecretHunt","Sicken","MonsterTalk","ThrowItem","LongStatus","ShortStatus","AttackUP","DefenseUP","MagicAttackUP","MagicDefenseUP","EquipArmor","EquipShield",
+			"EquipKnife","EquipBow","EquipSword","EquipGun","EquipAxe","EquipPolearm",});
+	
+	private static final List<String> ENTRY_SKILLS  = Arrays.asList(new String[] {"BraveBoost","FaithBoost","FashionSense","PreferredArms","NeutralZodiac","GearedUp","HighlySkilled",
+			"GilgameHeart","EXPBoost",});
+	
+	private static final List<String> LEGENDARY_SKILLS = Arrays.asList(new String[] {"BirbBrain", "ProgrammingUp"});
 	
 	@Autowired
 	private TournamentService tournamentService;
@@ -99,14 +123,29 @@ public class MonsterUtils {
 	}
 	
 	public SkillCategory categorizeSkill(final PlayerSkills playerSkill) throws TournamentApiException {
+		String skillName = playerSkill.getSkill();
 		SkillCategory category = SkillCategory.NORMAL;
-		if(this.monsterSet().contains(playerSkill.getSkill())) {
+		if(this.monsterSet().contains(skillName)) {
 			category = SkillCategory.MONSTER;
-			if(STRONG_MONSTERS.contains(playerSkill.getSkill())) {
+			if(STRONG_MONSTERS.contains(skillName)) {
 				category = SkillCategory.STRONG_MONSTER;
-			} else if(ELITE_MONSTERS.contains(playerSkill.getSkill())) {
+			} else if(ELITE_MONSTERS.contains(skillName)) {
 				category = SkillCategory.ELITE_MONSTER;
 			}
+		} else if(JOB_SKILLS.contains(skillName)) {
+			category = SkillCategory.JOB;
+		} else if(REACTION_SKILLS.contains(skillName)) {
+			category = SkillCategory.REACTION;
+		} else if(MOVEMENT_SKILLS.contains(skillName)) {
+			category = SkillCategory.MOVEMENT;
+		} else if(EQUIPMENT_SKILLS.contains(skillName)) {
+			category = SkillCategory.EQUIPMENT;
+		} else if(SUPPORT_SKILLS.contains(skillName)) {
+			category = SkillCategory.SUPPORT;
+		} else if(ENTRY_SKILLS.contains(skillName)) {
+			category = SkillCategory.ENTRY;
+		} else if(LEGENDARY_SKILLS.contains(skillName)) {
+			category = SkillCategory.LEGENDARY;
 		}
 		
 		return category;

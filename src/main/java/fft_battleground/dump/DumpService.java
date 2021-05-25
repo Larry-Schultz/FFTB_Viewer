@@ -199,9 +199,9 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
-		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
-		//this.dumpScheduledTasks.forceScheduleUserSkillsTask();
-		log.info("forcing scheduling of skill batch tasks");
+		this.dumpScheduledTasks.forceScheduleUserSkillsTask();
+		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
+		this.dumpScheduledTasks.forceSchedulePortraitsBatch();
 		
 		Date latestDate = this.getLatestActiveDate();
 	}
