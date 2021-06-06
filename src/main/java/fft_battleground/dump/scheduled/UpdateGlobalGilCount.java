@@ -2,16 +2,19 @@ package fft_battleground.dump.scheduled;
 
 import java.util.TimerTask;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.util.Router;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class UpdateGlobalGilCount extends TimerTask {
+	Logger log = LoggerFactory.getLogger("dataUpdate");
+	
 	private Router<BattleGroundEvent> routerRef;
 	private DumpService dumpServiceRef;
 	

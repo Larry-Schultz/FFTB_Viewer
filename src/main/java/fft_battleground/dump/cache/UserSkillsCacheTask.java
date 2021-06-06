@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 
 import fft_battleground.botland.model.SkillType;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.repo.util.SkillCategory;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,10 +25,12 @@ implements Callable<Map<String, List<String>>> {
 	public Map<String, List<String>> call() throws Exception {
 		log.info("started loading user skills cache");
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getPlayerSkills() == null).forEach(playerRecord -> playerRecord.setPlayerSkills(new ArrayList<>()));
-		Map<String, List<String>> userSkillsCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, 
-				playerRecord -> playerRecord.getPlayerSkills().stream().filter(playerSkill -> playerSkill.getSkillType() == SkillType.USER)
-				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
-				));
+		Map<String, List<String>> userSkillsCache = playerRecords.parallelStream().collect(
+				Collectors.toMap(PlayerRecord::getPlayer, playerRecord -> playerRecord.getPlayerSkills().stream()
+						.filter(playerSkill -> playerSkill.getSkillType() == SkillType.USER)
+						.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
+				)
+			);
 		log.info("finished loading user skills cache");
 		
 		return userSkillsCache;

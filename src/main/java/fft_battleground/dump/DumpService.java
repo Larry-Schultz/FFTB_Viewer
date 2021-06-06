@@ -200,8 +200,10 @@ public class DumpService {
 		log.info("player data cache load complete");
 		
 		this.dumpScheduledTasks.forceScheduleUserSkillsTask();
+		this.dumpScheduledTasks.forceScheduleClassBonusTask();
+		this.dumpScheduledTasks.forceScheduleSkillBonusTask();
+		
 		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
-		this.dumpScheduledTasks.forceSchedulePortraitsBatch();
 		
 		Date latestDate = this.getLatestActiveDate();
 	}
@@ -372,7 +374,7 @@ public class DumpService {
 	}
 	
 	@SneakyThrows
-	public void setPlaylist() {
+	public Collection<Music> setPlaylist() {
 		log.info("Updating music data");
 		Set<Music> musicSet = new HashSet<>();
 		String xmlData = this.dumpDataProvider.getMusicXmlString();
@@ -400,6 +402,8 @@ public class DumpService {
 			this.musicCache = musicList;
 		}
 		log.info("music data update complete");
+		
+		return musicList;
 	}
 	
 	public PlayerData getDataForPlayerPage(String playerName, TimeZone timezone) throws CacheMissException, TournamentApiException {

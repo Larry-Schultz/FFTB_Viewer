@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Date;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import club.minnced.discord.webhook.WebhookClient;
@@ -24,6 +25,7 @@ public class WebhookManager {
 	
 	private String hostname;
 	private WebhookClient client;
+	
 	private ErrorMessageEntryRepo errorMessageEntryRepo;
 	
 	public WebhookManager(String webhookUrl, String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {

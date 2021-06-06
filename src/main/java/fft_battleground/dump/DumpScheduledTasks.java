@@ -88,7 +88,7 @@ public class DumpScheduledTasks {
 	private Timer forceTimer = new Timer();
 	
 	//every 3 hours, with an initial delay of 5 minutes
-	@Scheduled(fixedDelay = 10800000, initialDelay=300000)
+	@Scheduled(fixedDelay = 10800000, initialDelay=500000)
 	public void runCacheUpdates() {
 		DumpScheduledTask task = new DumpScheduledTask(this) {
 			@Override
@@ -113,7 +113,7 @@ public class DumpScheduledTasks {
 				new AllegianceTask(this), 
 				new BotListTask(this), 
 				new PortraitsTask(this),
-				//new UserSkillsTask(this),
+				new UserSkillsTask(this),
 				new ClassBonusTask(this),
 			};
 		for(DumpScheduledTask task : dumpScheduledTasks) {
@@ -152,7 +152,7 @@ public class DumpScheduledTasks {
 		int playersUpdated = 0;
 		Map<String, String> portraitsFromDump = new HashMap<>();
 		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForPortraitDump();
-		//playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, portraitPreviousBatchDataEntry);
+		playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, portraitPreviousBatchDataEntry);
 		playersAnalyzed.set(playerNamesSet.size());
 		
 		final AtomicInteger count = new AtomicInteger(0);
@@ -260,18 +260,18 @@ public class DumpScheduledTasks {
 		final AtomicInteger playersUpdated = new AtomicInteger(0);
 		try {
 			log.info("updating user and prestige skills caches");
-			Set<String> userSkillPlayers = Sets.newConcurrentHashSet(this.dumpDataProvider.getPlayersForUserSkillsDump()); //use the larger set of names from the leaderboard
+			Set<String> userSkillPlayersFromDump = this.dumpDataProvider.getPlayersForUserSkillsDump(); //use the larger set of names from the leaderboard
 			Set<String> prestigeSkillPlayers = Sets.newConcurrentHashSet(this.dumpDataProvider.getPlayersForPrestigeSkillsDump()); //use the larger set of names from the leaderboard
 			
 			//filter userSkillPlayers by lastActiveDate
-			//userSkillPlayers = this.filterPlayerListToActiveUsers(userSkillPlayers, previousBatchDataEntry);
-			playersAnalyzed.set(userSkillPlayers.size());
+			final Set<String> activeUserSkillPlayers = Sets.newConcurrentHashSet(this.filterPlayerListToActiveUsers(userSkillPlayersFromDump, previousBatchDataEntry));
+			playersAnalyzed.set(userSkillPlayersFromDump.size());
 			
 			AtomicInteger count = new AtomicInteger(0);
 			//assume all players with prestige skills have user skills
-			userSkillPlayers.parallelStream().forEach(player -> {
+			activeUserSkillPlayers.parallelStream().forEach(player -> {
 				try {
-					this.handlePlayerSkillUpdate(player, userSkillPlayers, prestigeSkillPlayers);
+					this.handlePlayerSkillUpdate(player, activeUserSkillPlayers, prestigeSkillPlayers);
 				} catch (DumpException | TournamentApiException e) {
 					log.error("error handling player skill data for player {}", player, e);
 					this.errorWebhookManager.sendException(e, "error in Update Skills batch job for player: " + player);
@@ -345,7 +345,7 @@ public class DumpScheduledTasks {
 			log.info("updating skill bonuses caches");
 			Set<String> skillBonusPlayers = this.dumpDataProvider.getPlayersForSkillBonusDump();
 			
-			//skillBonusPlayers = this.filterPlayerListToActiveUsers(skillBonusPlayers, previousBatchDataEntry);
+			skillBonusPlayers = this.filterPlayerListToActiveUsers(skillBonusPlayers, previousBatchDataEntry);
 			playersAnalyzed = skillBonusPlayers.size();
 			
 			int count = 0;

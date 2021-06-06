@@ -3,6 +3,7 @@ package fft_battleground.config;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -100,19 +101,19 @@ public class Config {
 	}
 	
 	@Bean
-	public WebhookManager errorWebhookManager(@Value("${errorWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
+	public WebhookManager errorWebhookManager(@Value("${errorWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, @Autowired ErrorMessageEntryRepo errorMessageEntryRepo) {
 		WebhookManager errorWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
 		return errorWebhookManager;
 	}
 	
 	@Bean
-	public WebhookManager ascensionWebhookManager(@Value("${ascensionWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
+	public WebhookManager ascensionWebhookManager(@Value("${ascensionWebhookUrl}") String webhookUrl, @Value("${hostnameUrl}") String hostname, @Autowired ErrorMessageEntryRepo errorMessageEntryRepo) {
 		WebhookManager errorWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
 		return errorWebhookManager;
 	}
 	
 	@Bean
-	public WebhookManager noisyWebhookManager(@Value("${noisyWebhookUrl}")  String webhookUrl, @Value("${hostnameUrl}") String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
+	public WebhookManager noisyWebhookManager(@Value("${noisyWebhookUrl}")  String webhookUrl, @Value("${hostnameUrl}") String hostname, @Autowired ErrorMessageEntryRepo errorMessageEntryRepo) {
 		WebhookManager noisyWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
 		return noisyWebhookManager;
 	}

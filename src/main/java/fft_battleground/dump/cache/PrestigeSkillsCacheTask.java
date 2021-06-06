@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import fft_battleground.botland.model.SkillType;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.repo.util.SkillCategory;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,10 +23,12 @@ implements Callable<Map<String, List<String>>> {
 	@Override
 	public Map<String, List<String>> call() throws Exception {
 		log.info("started loading prestige skills cache");
-		Map<String, List<String>> prestigeSkillsCache = playerRecords.parallelStream().collect(Collectors.toMap(PlayerRecord::getPlayer, 
-				playerRecord -> playerRecord.getPlayerSkills().stream().filter(playerSkill -> playerSkill.getSkillType() == SkillType.PRESTIGE)
-				.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
-				));
+		Map<String, List<String>> prestigeSkillsCache = playerRecords.parallelStream().collect(
+				Collectors.toMap(PlayerRecord::getPlayer, playerRecord -> playerRecord.getPlayerSkills().stream()
+						.filter(playerSkill -> playerSkill.getSkillType() == SkillType.PRESTIGE)
+						.map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList())
+				)
+			);
 		log.info("finished loading prestige skills cache");
 		
 		return prestigeSkillsCache;

@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MonsterUtils {
 	private static final List<String> ELITE_MONSTERS = Arrays.asList(new String[]{"UltimaDemon", "SteelGiant", "Byblos", "Serpentarius", "Tiamat", "DarkBehemoth", "HolyDragon"});
 	private static final List<String> STRONG_MONSTERS = Arrays.asList(new String[]{"Apanda", "ArchaicDemon", "KingBehemoth", "Hydra", "RedDragon", "Sehkret"});
+	private static final List<String> ADDITIONAL_MONSTER_SKILLS = Arrays.asList(new String[] {"RandomMonster"});
 	
 	private static final List<String> JOB_SKILLS = Arrays.asList(new String[] {"BasicSkill","BattleSkill","Item","Charge","PunchArt","Elemental","Jump","DrawOut","Throw","Steal",
 			"TalkSkill","Dance","Sing","WhiteMagic","BlackMagic","TimeMagic","SummonMagic","YinYangMagic","BlueMagic",});
@@ -51,6 +52,8 @@ public class MonsterUtils {
 	
 	private static final List<String> ENTRY_SKILLS  = Arrays.asList(new String[] {"BraveBoost","FaithBoost","FashionSense","PreferredArms","NeutralZodiac","GearedUp","HighlySkilled",
 			"GilgameHeart","EXPBoost",});
+	
+	private static final List<String> PRESTIGE_SKILLS = Arrays.asList(new String[] {"RaidBoss","MathSkill","EquipPerfume","Teleport2","BladeGrasp","Doppelganger",});
 	
 	private static final List<String> LEGENDARY_SKILLS = Arrays.asList(new String[] {"BirbBrain", "ProgrammingUp"});
 	
@@ -125,7 +128,7 @@ public class MonsterUtils {
 	public SkillCategory categorizeSkill(final PlayerSkills playerSkill) throws TournamentApiException {
 		String skillName = playerSkill.getSkill();
 		SkillCategory category = SkillCategory.NORMAL;
-		if(this.monsterSet().contains(skillName)) {
+		if(this.monsterSet().contains(skillName) || ADDITIONAL_MONSTER_SKILLS.contains(skillName)) {
 			category = SkillCategory.MONSTER;
 			if(STRONG_MONSTERS.contains(skillName)) {
 				category = SkillCategory.STRONG_MONSTER;
@@ -146,6 +149,8 @@ public class MonsterUtils {
 			category = SkillCategory.ENTRY;
 		} else if(LEGENDARY_SKILLS.contains(skillName)) {
 			category = SkillCategory.LEGENDARY;
+		} else if(PRESTIGE_SKILLS.contains(skillName)) {
+			category = SkillCategory.PRESTIGE;
 		}
 		
 		return category;

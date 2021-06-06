@@ -19,8 +19,11 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BetEvent;
 import fft_battleground.event.model.BetInfoEvent;
 import fft_battleground.event.model.BettingBeginsEvent;
+import fft_battleground.event.model.BuySkillEvent;
+import fft_battleground.event.model.BuySkillRandomEvent;
 import fft_battleground.event.model.FightBeginsEvent;
 import fft_battleground.event.model.FightEntryEvent;
+import fft_battleground.event.model.GiftSkillEvent;
 import fft_battleground.event.model.MatchInfoEvent;
 import fft_battleground.event.model.OtherPlayerInvalidFightCombinationEvent;
 import fft_battleground.event.model.OtherPlayerInvalidFightEntryClassEvent;
@@ -28,6 +31,7 @@ import fft_battleground.event.model.OtherPlayerSkillOnCooldownEvent;
 import fft_battleground.event.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.model.PrestigeAscensionEvent;
 import fft_battleground.event.model.SkillDropEvent;
+import fft_battleground.event.model.SkillWinEvent;
 import fft_battleground.event.model.TeamInfoEvent;
 import fft_battleground.event.model.UnitInfoEvent;
 import fft_battleground.event.model.fake.TournamentStatusUpdateEvent;
@@ -88,6 +92,18 @@ public class EventParser extends Thread {
 	
 	@Autowired
 	private BattleGroundEventAnnotator<SkillDropEvent> skillDropEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<SkillWinEvent> skillWinEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<BuySkillEvent> buySkillEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<BuySkillRandomEvent> buySkillRandomEventAnnotator;
+	
+	@Autowired
+	private BattleGroundEventAnnotator<GiftSkillEvent> giftSkillEventAnnotator;
 	
 	@Autowired
 	private TeamInfoEventAnnotator teamInfoEventAnnotator;
@@ -197,6 +213,22 @@ public class EventParser extends Thread {
 				case PRESTIGE_ASCENSION:
 					this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);
 					this.eventRouter.sendDataToQueues(event);
+					break;
+				case SKILL_WIN: case RISER_SKILL_WIN:
+					SkillWinEvent skillWinEvent = (SkillWinEvent) event;
+					this.skillWinEventAnnotator.annotateEvent(skillWinEvent);
+					break;
+				case BUY_SKILL:
+					BuySkillEvent buySkillEvent = (BuySkillEvent) event;
+					this.buySkillEventAnnotator.annotateEvent(buySkillEvent);
+					break;
+				case BUY_SKILL_RANDOM:
+					BuySkillRandomEvent buySkillRandomevent = (BuySkillRandomEvent) event;
+					this.buySkillRandomEventAnnotator.annotateEvent(buySkillRandomevent);
+					break;
+				case GIFT_SKILL:
+					GiftSkillEvent giftSkillEvent = (GiftSkillEvent) event;
+					this.giftSkillEventAnnotator.annotateEvent(giftSkillEvent);
 					break;
 				case SKILL_DROP:
 					this.skillDropEventAnnotator.annotateEvent((SkillDropEvent) event);

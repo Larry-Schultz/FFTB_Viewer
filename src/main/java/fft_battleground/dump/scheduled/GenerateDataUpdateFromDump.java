@@ -1,8 +1,8 @@
 package fft_battleground.dump.scheduled;
 
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TimerTask;
@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -21,11 +23,9 @@ import fft_battleground.repo.model.ClassBonus;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.util.Router;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class GenerateDataUpdateFromDump extends TimerTask {
-
+	Logger log = LoggerFactory.getLogger("dataUpdate");
+	
 	private Router<BattleGroundEvent> routerRef;
 	private DumpService dumpServiceRef;
 	
@@ -115,7 +115,7 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 				this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting class bonus data from dump");
 			}
 		});
-		log.info("updated class bonus for {} players", count.get());
+		this.logPlayers("class bonuses", count.get(), playersWithUpdatedClassBonus);
 	}
 	
 	private void updateSkillBonusCache() {
@@ -134,7 +134,7 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 				this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting skill bonus data from dump");
 			}
 		});
-		log.info("updated skill bonus for {} players", count.get());
+		this.logPlayers("skill bonuses", count.get(), playersWithUpdatedSkillBonus);
 	}
 	
 	private void updateUserSkills() {
@@ -151,16 +151,12 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 				PlayerSkillEvent playerSkillEvent = new PlayerSkillEvent(currentUserSkills, player);
 				this.routerRef.sendDataToQueues(playerSkillEvent);
 				count.getAndIncrement();
-			} catch(DumpException e) {
-				log.error("error getting user skill data from dump", e);
-				this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting user skill data from dump");
 			} catch (Exception e) {
 				log.error("error getting user skill data from dump", e);
 				this.dumpServiceRef.getErrorWebhookManager().sendException(e, "error getting user skill data from dump");
 			}
 		});
-		String playerNames = StringUtils.join(playersWithUpdatedUserSkills.toArray(new String[] {}),", ");
-		log.info("updated users skills for {} players.  The players: {}", count, playerNames) ;
+		this.logPlayers("user skills", count.get(), playersWithUpdatedUserSkills);
 	}
 	
 	private void updatePrestigeSkills() {
@@ -171,17 +167,11 @@ public class GenerateDataUpdateFromDump extends TimerTask {
 		this.dumpServiceRef.setPlaylist();
 	}
 	
-	protected boolean isActiveInLastTenMinutes(Date lastFightActiveDate) {
-		if (lastFightActiveDate == null) {
-			return false;
-		}
-
-		Calendar oneHourAgo = Calendar.getInstance();
-		oneHourAgo.add(Calendar.HOUR, -1); // 2020-01-25
-
-		Date tenMinutesAgoDate = oneHourAgo.getTime();
-		boolean isActive = lastFightActiveDate.after(tenMinutesAgoDate);
-		return isActive;
+	protected void logPlayers(String logType, int count, Collection<String> players) {
+		List<String> playerNamesList = new ArrayList<>(players);
+		Collections.sort(playerNamesList);
+		String playerNames = StringUtils.join(playerNamesList.toArray(new String[] {}),", ");
+		log.info("updated {} for {} players.  The players: {}", logType, count, playerNames) ;
 	}
 	
 }

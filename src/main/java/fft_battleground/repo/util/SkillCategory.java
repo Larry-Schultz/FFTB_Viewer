@@ -10,6 +10,7 @@ public enum SkillCategory {
 	EQUIPMENT,
 	SUPPORT,
 	ENTRY,
+	PRESTIGE,
 	LEGENDARY,
 	NORMAL ;
 }

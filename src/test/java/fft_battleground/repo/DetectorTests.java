@@ -228,7 +228,7 @@ public class DetectorTests {
 
 	@Test
 	public void testPortraitDetector() {
-		String test1 = "otherbrand, your Cheer Portrait was successfully set to chocobo.";
+		String test1 = "OtherBrand, your Cheer Portrait was successfully set to black chocobo.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		PortraitEventDetector detector = new PortraitEventDetector();
 		BattleGroundEvent event = detector.detect(message);
@@ -371,6 +371,10 @@ public class DetectorTests {
 		assertTrue(StringUtils.equals(event.getExclusionSkill(), "PunchArt"));
 		
 		message = new ChatMessage("OtherBrand", "!fight Monk Female BraveSave -Parry");
+		event = detector.detect(message);
+		assertTrue(StringUtils.equals(event.getClassName(), "Monk"));
+		assertTrue(StringUtils.equals(event.getSkill(), "BraveSave"));
+		assertTrue(StringUtils.equals(event.getExclusionSkill(), "Parry"));
 	}
 	
 	@Test

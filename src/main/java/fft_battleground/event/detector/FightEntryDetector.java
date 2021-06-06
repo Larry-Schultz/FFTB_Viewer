@@ -123,7 +123,7 @@ public class FightEntryDetector implements EventDetector<FightEntryEvent> {
 		 */
 		String exclusion = null;
 		String lastToken = tokens.get(tokens.size() - 1);
-		if(StringUtils.startsWith("-", lastToken)) {
+		if(StringUtils.startsWith(lastToken, "-")) {
 			exclusion = StringUtils.remove(lastToken, "-");
 		}
 		if(tokens.size() < 5) {
