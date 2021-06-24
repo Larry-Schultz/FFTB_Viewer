@@ -11,8 +11,7 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbed.EmbedTitle;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
-
-import fft_battleground.event.model.PrestigeAscensionEvent;
+import fft_battleground.event.detector.model.PrestigeAscensionEvent;
 import fft_battleground.repo.model.ErrorMessageEntry;
 import fft_battleground.repo.repository.ErrorMessageEntryRepo;
 

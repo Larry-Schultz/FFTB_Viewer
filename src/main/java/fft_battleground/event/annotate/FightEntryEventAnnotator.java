@@ -15,7 +15,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.event.model.FightEntryEvent;
+import fft_battleground.event.detector.model.FightEntryEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Gender;

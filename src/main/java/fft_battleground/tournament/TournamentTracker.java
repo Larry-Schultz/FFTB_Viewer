@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 
 import fft_battleground.event.annotate.TeamInfoEventAnnotator;
 import fft_battleground.event.annotate.UnitInfoEventAnnotator;
-import fft_battleground.event.model.BattleGroundEvent;
-import fft_battleground.event.model.BettingBeginsEvent;
-import fft_battleground.event.model.TeamInfoEvent;
-import fft_battleground.event.model.UnitInfoEvent;
-import fft_battleground.event.model.fake.TournamentStatusUpdateEvent;
+import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.detector.model.BettingBeginsEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.fake.TournamentStatusUpdateEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Tournament;

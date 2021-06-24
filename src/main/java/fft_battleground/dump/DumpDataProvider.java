@@ -22,12 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.botland.model.SkillType;
-import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerSkills;
-
+import fft_battleground.repo.util.SkillType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

@@ -19,7 +19,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.CreationTimestamp;
 
-import fft_battleground.event.model.BettingEndsEvent;
+import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.BattleGroundTeamConverter;
 import lombok.AllArgsConstructor;

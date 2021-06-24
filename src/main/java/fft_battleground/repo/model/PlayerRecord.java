@@ -26,17 +26,17 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.botland.model.SkillType;
-import fft_battleground.event.model.AllegianceEvent;
-import fft_battleground.event.model.BalanceEvent;
-import fft_battleground.event.model.ExpEvent;
-import fft_battleground.event.model.FightEntryEvent;
-import fft_battleground.event.model.LastActiveEvent;
-import fft_battleground.event.model.LevelUpEvent;
-import fft_battleground.event.model.PortraitEvent;
-import fft_battleground.event.model.SnubEvent;
+import fft_battleground.event.detector.model.AllegianceEvent;
+import fft_battleground.event.detector.model.BalanceEvent;
+import fft_battleground.event.detector.model.ExpEvent;
+import fft_battleground.event.detector.model.FightEntryEvent;
+import fft_battleground.event.detector.model.LastActiveEvent;
+import fft_battleground.event.detector.model.LevelUpEvent;
+import fft_battleground.event.detector.model.PortraitEvent;
+import fft_battleground.event.detector.model.SnubEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.util.SkillCategory;
+import fft_battleground.repo.util.SkillType;
 import fft_battleground.repo.util.UpdateSource;
 import fft_battleground.util.BattleGroundTeamConverter;
 import fft_battleground.util.BooleanConverter;

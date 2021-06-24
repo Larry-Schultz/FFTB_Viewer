@@ -3,9 +3,9 @@ package fft_battleground.event.annotate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.event.model.PlayerSkillEvent;
-import fft_battleground.event.model.RiserSkillWinEvent;
-import fft_battleground.event.model.SkillWinEvent;
+import fft_battleground.event.detector.model.PlayerSkillEvent;
+import fft_battleground.event.detector.model.RiserSkillWinEvent;
+import fft_battleground.event.detector.model.SkillWinEvent;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.tournament.MonsterUtils;
 

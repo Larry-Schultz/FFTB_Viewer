@@ -8,8 +8,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fft_battleground.event.model.TeamInfoEvent;
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 
 import lombok.Data;

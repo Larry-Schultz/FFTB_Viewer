@@ -1,0 +1,3612 @@
+{
+  "abilityEnabled" : true,
+  "itemEnabled" : true,
+  "userSkillsEnabled" : true,
+  "classEnabled" : true,
+  "mapsEnabled" : true,
+  "braveFaithEnabled" : true,
+  "sideEnabled" : true,
+  "numberOfAnalyzedTournaments" : 1000,
+  "currentResultSuccessPercentage" : 60,
+  "threshold" : 0.65,
+  "population" : 20000,
+  "maxGene" : 100,
+  "minGene" : -100,
+  "maxBraveFaithGene" : 100,
+  "minBraveFaithGene" : 1,
+  "geneticAttributes" : [ {
+    "key" : "Cute Bag",
+    "value" : -100
+  }, {
+    "key" : "Magic Gauntlet",
+    "value" : 100
+  }, {
+    "key" : "Jade Armlet",
+    "value" : -100
+  }, {
+    "key" : "Battle Song",
+    "value" : -100
+  }, {
+    "key" : "Remedy",
+    "value" : -100
+  }, {
+    "key" : "Knife Hand",
+    "value" : -100
+  }, {
+    "key" : "Knife",
+    "value" : 100
+  }, {
+    "key" : "Foul Skill",
+    "value" : 100
+  }, {
+    "key" : "Wizard Male",
+    "value" : -100
+  }, {
+    "key" : "Maiden's Kiss-Item",
+    "value" : 99
+  }, {
+    "key" : "Iron Fan",
+    "value" : -99
+  }, {
+    "key" : "Silk Robe",
+    "value" : 99
+  }, {
+    "key" : "Spear-Item",
+    "value" : -99
+  }, {
+    "key" : "Koga Knife",
+    "value" : -99
+  }, {
+    "key" : "Asura",
+    "value" : 99
+  }, {
+    "key" : "Obsidian Blade",
+    "value" : 99
+  }, {
+    "key" : "Shuriken",
+    "value" : -99
+  }, {
+    "key" : "Antidote",
+    "value" : -99
+  }, {
+    "key" : "Cure 4",
+    "value" : -99
+  }, {
+    "key" : "Non-Charge",
+    "value" : 99
+  }, {
+    "key" : "Blizzard",
+    "value" : 99
+  }, {
+    "key" : "TalkSkill",
+    "value" : 99
+  }, {
+    "key" : "66-Right",
+    "value" : -99
+  }, {
+    "key" : "100-Left",
+    "value" : 99
+  }, {
+    "key" : "Bronze Helmet",
+    "value" : 98
+  }, {
+    "key" : "Torrent Bomb",
+    "value" : 98
+  }, {
+    "key" : "Meteor",
+    "value" : -98
+  }, {
+    "key" : "Raise 2",
+    "value" : 98
+  }, {
+    "key" : "Life Song",
+    "value" : -98
+  }, {
+    "key" : "Sunken State",
+    "value" : 98
+  }, {
+    "key" : "Nameless Song",
+    "value" : -98
+  }, {
+    "key" : "Retreat",
+    "value" : -98
+  }, {
+    "key" : "Move-HPUp",
+    "value" : -98
+  }, {
+    "key" : "Swim",
+    "value" : 98
+  }, {
+    "key" : "FeatherBoots",
+    "value" : -98
+  }, {
+    "key" : "HalveMP",
+    "value" : -98
+  }, {
+    "key" : "9-Right",
+    "value" : -98
+  }, {
+    "key" : "10-Right",
+    "value" : 98
+  }, {
+    "key" : "16-Left",
+    "value" : 98
+  }, {
+    "key" : "20-Left",
+    "value" : 98
+  }, {
+    "key" : "Genji Helmet",
+    "value" : 97
+  }, {
+    "key" : "Main Gauche",
+    "value" : 97
+  }, {
+    "key" : "Battle Boots",
+    "value" : 97
+  }, {
+    "key" : "Venetian Shield",
+    "value" : 97
+  }, {
+    "key" : "Triple Flame",
+    "value" : -97
+  }, {
+    "key" : "Insult",
+    "value" : 97
+  }, {
+    "key" : "Mutilate",
+    "value" : -97
+  }, {
+    "key" : "Cure",
+    "value" : -97
+  }, {
+    "key" : "Odd Soundwave",
+    "value" : -97
+  }, {
+    "key" : "Move+2",
+    "value" : 97
+  }, {
+    "key" : "Ochu",
+    "value" : 97
+  }, {
+    "key" : "RedPanther",
+    "value" : 97
+  }, {
+    "key" : "46-Left",
+    "value" : 97
+  }, {
+    "key" : "99-Left",
+    "value" : 97
+  }, {
+    "key" : "Circlet",
+    "value" : -96
+  }, {
+    "key" : "Hero Shield",
+    "value" : 96
+  }, {
+    "key" : "Secret Clothes",
+    "value" : 96
+  }, {
+    "key" : "Pray Faith",
+    "value" : 96
+  }, {
+    "key" : "Nether Skill",
+    "value" : 96
+  }, {
+    "key" : "Level Jump7",
+    "value" : 96
+  }, {
+    "key" : "Snort",
+    "value" : 96
+  }, {
+    "key" : "Climhazzard",
+    "value" : -96
+  }, {
+    "key" : "Concentrate",
+    "value" : -96
+  }, {
+    "key" : "Wizard Female",
+    "value" : 96
+  }, {
+    "key" : "114-Left",
+    "value" : 96
+  }, {
+    "key" : "Maximillian",
+    "value" : 95
+  }, {
+    "key" : "Yoichi Bow",
+    "value" : 95
+  }, {
+    "key" : "Hidden Knife",
+    "value" : 95
+  }, {
+    "key" : "Bronze Armor",
+    "value" : -95
+  }, {
+    "key" : "Buckler",
+    "value" : -95
+  }, {
+    "key" : "Mythril Bow",
+    "value" : -95
+  }, {
+    "key" : "Diamond Sword",
+    "value" : -95
+  }, {
+    "key" : "Shuriken-Item",
+    "value" : 95
+  }, {
+    "key" : "4",
+    "value" : 95
+  }, {
+    "key" : "Dragon Pit",
+    "value" : 95
+  }, {
+    "key" : "Bio",
+    "value" : -95
+  }, {
+    "key" : "Animal Skill",
+    "value" : -95
+  }, {
+    "key" : "Wand",
+    "value" : -95
+  }, {
+    "key" : "Float",
+    "value" : 95
+  }, {
+    "key" : "NeutralZodiac",
+    "value" : 95
+  }, {
+    "key" : "Distribute",
+    "value" : -95
+  }, {
+    "key" : "GearedUp",
+    "value" : 95
+  }, {
+    "key" : "Monk Female",
+    "value" : 95
+  }, {
+    "key" : "Chemist Male",
+    "value" : 95
+  }, {
+    "key" : "11-Left",
+    "value" : 95
+  }, {
+    "key" : "Coral Sword",
+    "value" : -94
+  }, {
+    "key" : "Defender",
+    "value" : 94
+  }, {
+    "key" : "Tackle",
+    "value" : -94
+  }, {
+    "key" : "Destroy",
+    "value" : -94
+  }, {
+    "key" : "Serpentarius",
+    "value" : 94
+  }, {
+    "key" : "Geomancer Female",
+    "value" : 94
+  }, {
+    "key" : "55-Right",
+    "value" : -94
+  }, {
+    "key" : "65-Right",
+    "value" : -94
+  }, {
+    "key" : "107-Right",
+    "value" : -94
+  }, {
+    "key" : "Night Killer",
+    "value" : 93
+  }, {
+    "key" : "Sasuke Knife",
+    "value" : 93
+  }, {
+    "key" : "Draw Out",
+    "value" : 93
+  }, {
+    "key" : "X-Potion",
+    "value" : -93
+  }, {
+    "key" : "Dictionary",
+    "value" : -93
+  }, {
+    "key" : "Choco Meteor",
+    "value" : -93
+  }, {
+    "key" : "Blastar Punch",
+    "value" : -93
+  }, {
+    "key" : "Fire Breath",
+    "value" : -93
+  }, {
+    "key" : "Holy Water",
+    "value" : 93
+  }, {
+    "key" : "Explosive",
+    "value" : -93
+  }, {
+    "key" : "7-Left",
+    "value" : -93
+  }, {
+    "key" : "26-Left",
+    "value" : 93
+  }, {
+    "key" : "77-Left",
+    "value" : -93
+  }, {
+    "key" : "83-Left",
+    "value" : 93
+  }, {
+    "key" : "Genji Shield",
+    "value" : -92
+  }, {
+    "key" : "Eye Drop-Item",
+    "value" : -92
+  }, {
+    "key" : "Silver Bow",
+    "value" : -92
+  }, {
+    "key" : "Ether-Item",
+    "value" : 92
+  }, {
+    "key" : "Shield Break",
+    "value" : 92
+  }, {
+    "key" : "Blaster",
+    "value" : -92
+  }, {
+    "key" : "Bolt",
+    "value" : -92
+  }, {
+    "key" : "Basic Skill",
+    "value" : -92
+  }, {
+    "key" : "Purification",
+    "value" : 92
+  }, {
+    "key" : "Dungeon Skill",
+    "value" : 92
+  }, {
+    "key" : "85-Left",
+    "value" : -92
+  }, {
+    "key" : "Slasher",
+    "value" : 91
+  }, {
+    "key" : "Battle Folio",
+    "value" : -91
+  }, {
+    "key" : "Muramasa-Item",
+    "value" : -91
+  }, {
+    "key" : "Scratch",
+    "value" : -91
+  }, {
+    "key" : "Zombie",
+    "value" : 91
+  }, {
+    "key" : "Mana Shield",
+    "value" : 91
+  }, {
+    "key" : "Space Storage",
+    "value" : -91
+  }, {
+    "key" : "Head Break",
+    "value" : -91
+  }, {
+    "key" : "Parasite",
+    "value" : 91
+  }, {
+    "key" : "IgnoreHeight",
+    "value" : 91
+  }, {
+    "key" : "Jump+2",
+    "value" : 91
+  }, {
+    "key" : "DefenseUP",
+    "value" : -91
+  }, {
+    "key" : "Reaper",
+    "value" : 91
+  }, {
+    "key" : "Blood Sword",
+    "value" : -90
+  }, {
+    "key" : "Carabini Mail",
+    "value" : 90
+  }, {
+    "key" : "Dark Whisper",
+    "value" : -90
+  }, {
+    "key" : "Fire 2",
+    "value" : 90
+  }, {
+    "key" : "Slow",
+    "value" : -90
+  }, {
+    "key" : "Drain Touch",
+    "value" : 90
+  }, {
+    "key" : "EquipShield",
+    "value" : -90
+  }, {
+    "key" : "Mage Masher",
+    "value" : 89
+  }, {
+    "key" : "Masamune-Item",
+    "value" : -89
+  }, {
+    "key" : "Musk Rod",
+    "value" : 89
+  }, {
+    "key" : "Nagrarock",
+    "value" : -89
+  }, {
+    "key" : "Ranch Skill",
+    "value" : 89
+  }, {
+    "key" : "Blade Grasp",
+    "value" : 89
+  }, {
+    "key" : "Item",
+    "value" : 89
+  }, {
+    "key" : "DualWield",
+    "value" : 89
+  }, {
+    "key" : "FloatingEye",
+    "value" : -89
+  }, {
+    "key" : "11-Right",
+    "value" : -89
+  }, {
+    "key" : "13-Right",
+    "value" : -89
+  }, {
+    "key" : "29-Left",
+    "value" : -89
+  }, {
+    "key" : "32-Left",
+    "value" : 89
+  }, {
+    "key" : "Knight Swords",
+    "value" : -88
+  }, {
+    "key" : "Giant Axe",
+    "value" : -88
+  }, {
+    "key" : "Linen Cuirass",
+    "value" : 88
+  }, {
+    "key" : "Orichalcum",
+    "value" : 88
+  }, {
+    "key" : "Short Status",
+    "value" : 88
+  }, {
+    "key" : "Life Drain",
+    "value" : -88
+  }, {
+    "key" : "Fire 3",
+    "value" : 88
+  }, {
+    "key" : "Bad Breath",
+    "value" : -88
+  }, {
+    "key" : "Level Blast",
+    "value" : -88
+  }, {
+    "key" : "Moogle",
+    "value" : -88
+  }, {
+    "key" : "Plague",
+    "value" : 88
+  }, {
+    "key" : "9-Left",
+    "value" : 88
+  }, {
+    "key" : "80-Right",
+    "value" : 88
+  }, {
+    "key" : "Crystal Helmet",
+    "value" : 87
+  }, {
+    "key" : "PA Save",
+    "value" : 87
+  }, {
+    "key" : "Speed Break",
+    "value" : 87
+  }, {
+    "key" : "MagicGauntlet",
+    "value" : 87
+  }, {
+    "key" : "Knight Female",
+    "value" : -87
+  }, {
+    "key" : "TimeMage Female",
+    "value" : 87
+  }, {
+    "key" : "63-Left",
+    "value" : -87
+  }, {
+    "key" : "105-Right",
+    "value" : 87
+  }, {
+    "key" : "107-Left",
+    "value" : 87
+  }, {
+    "key" : "Chain Mail",
+    "value" : 86
+  }, {
+    "key" : "Stasis Sword",
+    "value" : -86
+  }, {
+    "key" : "Flame Attack",
+    "value" : 86
+  }, {
+    "key" : "Hydra",
+    "value" : 86
+  }, {
+    "key" : "76-Right",
+    "value" : -86
+  }, {
+    "key" : "90-Right",
+    "value" : -86
+  }, {
+    "key" : "Ice Brand",
+    "value" : 85
+  }, {
+    "key" : "Meatbone Slash",
+    "value" : 85
+  }, {
+    "key" : "Bio Tenebris",
+    "value" : 85
+  }, {
+    "key" : "Wall",
+    "value" : 85
+  }, {
+    "key" : "Despair",
+    "value" : -85
+  }, {
+    "key" : "WildBoar",
+    "value" : 85
+  }, {
+    "key" : "101-Left",
+    "value" : -85
+  }, {
+    "key" : "Vanish Mantle",
+    "value" : -84
+  }, {
+    "key" : "Ice Bow",
+    "value" : 84
+  }, {
+    "key" : "Broad Sword",
+    "value" : -84
+  }, {
+    "key" : "Dragon Whisker",
+    "value" : -84
+  }, {
+    "key" : "Counter Flood",
+    "value" : -84
+  }, {
+    "key" : "Shiva",
+    "value" : 84
+  }, {
+    "key" : "Dispose",
+    "value" : -84
+  }, {
+    "key" : "Straight Dash",
+    "value" : -84
+  }, {
+    "key" : "Caution",
+    "value" : 84
+  }, {
+    "key" : "61-Right",
+    "value" : -84
+  }, {
+    "key" : "Helmets",
+    "value" : -83
+  }, {
+    "key" : "Lick",
+    "value" : 83
+  }, {
+    "key" : "67-Right",
+    "value" : -83
+  }, {
+    "key" : "90-Left",
+    "value" : 83
+  }, {
+    "key" : "Platinum Armor",
+    "value" : -82
+  }, {
+    "key" : "Rainbow Staff",
+    "value" : 82
+  }, {
+    "key" : "Rods",
+    "value" : 82
+  }, {
+    "key" : "Poison",
+    "value" : 82
+  }, {
+    "key" : "Lifebreak",
+    "value" : -82
+  }, {
+    "key" : "Imp Skill",
+    "value" : -82
+  }, {
+    "key" : "Poison Nail",
+    "value" : -82
+  }, {
+    "key" : "Oracle Male",
+    "value" : -82
+  }, {
+    "key" : "Revenant",
+    "value" : -82
+  }, {
+    "key" : "49-Right",
+    "value" : 82
+  }, {
+    "key" : "105-Left",
+    "value" : 82
+  }, {
+    "key" : "Diamond Helmet",
+    "value" : -81
+  }, {
+    "key" : "Battle Axe",
+    "value" : -81
+  }, {
+    "key" : "Midgar Swarm",
+    "value" : 81
+  }, {
+    "key" : "Soft",
+    "value" : -81
+  }, {
+    "key" : "Eye Drop",
+    "value" : 81
+  }, {
+    "key" : "Toot",
+    "value" : 81
+  }, {
+    "key" : "All-Ultima",
+    "value" : -81
+  }, {
+    "key" : "Monster Talk",
+    "value" : 81
+  }, {
+    "key" : "MA Save",
+    "value" : 81
+  }, {
+    "key" : "Dash",
+    "value" : -81
+  }, {
+    "key" : "Maintenance",
+    "value" : 81
+  }, {
+    "key" : "4-Right",
+    "value" : 81
+  }, {
+    "key" : "12-Right",
+    "value" : -81
+  }, {
+    "key" : "30-Right",
+    "value" : -81
+  }, {
+    "key" : "Flash Hat",
+    "value" : 80
+  }, {
+    "key" : "Faith Rod",
+    "value" : 80
+  }, {
+    "key" : "Steal Status",
+    "value" : -80
+  }, {
+    "key" : "Mimic",
+    "value" : 80
+  }, {
+    "key" : "Treant",
+    "value" : -80
+  }, {
+    "key" : "34-Right",
+    "value" : 80
+  }, {
+    "key" : "46-Right",
+    "value" : -80
+  }, {
+    "key" : "59-Left",
+    "value" : -80
+  }, {
+    "key" : "71-Right",
+    "value" : 80
+  }, {
+    "key" : "108-Right",
+    "value" : -80
+  }, {
+    "key" : "Cursed Ring",
+    "value" : 79
+  }, {
+    "key" : "Katanas",
+    "value" : 79
+  }, {
+    "key" : "Mythril Spear",
+    "value" : 79
+  }, {
+    "key" : "Magic Ring",
+    "value" : -79
+  }, {
+    "key" : "Nether Demon",
+    "value" : -79
+  }, {
+    "key" : "Equip Polearm",
+    "value" : 79
+  }, {
+    "key" : "Equip Shield",
+    "value" : -79
+  }, {
+    "key" : "Chirijiraden",
+    "value" : 79
+  }, {
+    "key" : "Frog",
+    "value" : 79
+  }, {
+    "key" : "Armor",
+    "value" : 78
+  }, {
+    "key" : "Judo Outfit",
+    "value" : 78
+  }, {
+    "key" : "Red Shoes",
+    "value" : -78
+  }, {
+    "key" : "Power Wrist",
+    "value" : 78
+  }, {
+    "key" : "Farm Skill",
+    "value" : 78
+  }, {
+    "key" : "Chicken",
+    "value" : 78
+  }, {
+    "key" : "Magic Song",
+    "value" : -78
+  }, {
+    "key" : "Spirit Skill",
+    "value" : 78
+  }, {
+    "key" : "Vertical Jump4",
+    "value" : 78
+  }, {
+    "key" : "Raise",
+    "value" : 78
+  }, {
+    "key" : "53-Left",
+    "value" : -78
+  }, {
+    "key" : "58-Left",
+    "value" : 78
+  }, {
+    "key" : "101-Right",
+    "value" : -78
+  }, {
+    "key" : "Flails",
+    "value" : 77
+  }, {
+    "key" : "Ryozan Silk",
+    "value" : -77
+  }, {
+    "key" : "Wizard Robe",
+    "value" : 77
+  }, {
+    "key" : "Battle Bamboo",
+    "value" : -77
+  }, {
+    "key" : "Shine Lover",
+    "value" : -77
+  }, {
+    "key" : "Beast Skill",
+    "value" : 77
+  }, {
+    "key" : "Toxic Frog",
+    "value" : -77
+  }, {
+    "key" : "Triple Thunder",
+    "value" : 77
+  }, {
+    "key" : "ElfMantle",
+    "value" : 77
+  }, {
+    "key" : "AttackUP",
+    "value" : 77
+  }, {
+    "key" : "64-Left",
+    "value" : 77
+  }, {
+    "key" : "Wizard Mantle",
+    "value" : -76
+  }, {
+    "key" : "Madlemgen",
+    "value" : 76
+  }, {
+    "key" : "Wizard Outfit",
+    "value" : 76
+  }, {
+    "key" : "Will-O-Wisp",
+    "value" : 76
+  }, {
+    "key" : "Gil Taking",
+    "value" : -76
+  }, {
+    "key" : "Black Ink",
+    "value" : 76
+  }, {
+    "key" : "Lich",
+    "value" : -76
+  }, {
+    "key" : "Mind Break",
+    "value" : -76
+  }, {
+    "key" : "ReflectRing",
+    "value" : 76
+  }, {
+    "key" : "Waterbreathing",
+    "value" : -76
+  }, {
+    "key" : "Gobbledeguck",
+    "value" : 76
+  }, {
+    "key" : "38-Left",
+    "value" : -76
+  }, {
+    "key" : "43-Left",
+    "value" : 76
+  }, {
+    "key" : "56-Right",
+    "value" : 76
+  }, {
+    "key" : "62-Left",
+    "value" : -76
+  }, {
+    "key" : "63-Right",
+    "value" : -76
+  }, {
+    "key" : "74-Right",
+    "value" : -76
+  }, {
+    "key" : "Star Bag",
+    "value" : -75
+  }, {
+    "key" : "Rubber Shoes",
+    "value" : -75
+  }, {
+    "key" : "Cultist Dagger",
+    "value" : 75
+  }, {
+    "key" : "Blow Fire",
+    "value" : -75
+  }, {
+    "key" : "Paralyze",
+    "value" : 75
+  }, {
+    "key" : "Giant Skill",
+    "value" : -75
+  }, {
+    "key" : "Manaburn",
+    "value" : 75
+  }, {
+    "key" : "Jump",
+    "value" : 75
+  }, {
+    "key" : "MPRestore",
+    "value" : 75
+  }, {
+    "key" : "IronHawk",
+    "value" : 75
+  }, {
+    "key" : "28-Left",
+    "value" : 75
+  }, {
+    "key" : "116-Left",
+    "value" : -75
+  }, {
+    "key" : "Remedy-Item",
+    "value" : -74
+  }, {
+    "key" : "Counter Magic",
+    "value" : -74
+  }, {
+    "key" : "Axe",
+    "value" : -74
+  }, {
+    "key" : "Spell Absorb",
+    "value" : 74
+  }, {
+    "key" : "Dragon Spirit",
+    "value" : 74
+  }, {
+    "key" : "DraculaMantle",
+    "value" : 74
+  }, {
+    "key" : "Lancer Male",
+    "value" : -74
+  }, {
+    "key" : "3-Left",
+    "value" : -74
+  }, {
+    "key" : "3-Right",
+    "value" : 74
+  }, {
+    "key" : "48-Left",
+    "value" : -74
+  }, {
+    "key" : "60-Left",
+    "value" : -74
+  }, {
+    "key" : "97-Right",
+    "value" : 74
+  }, {
+    "key" : "Air Knife",
+    "value" : 73
+  }, {
+    "key" : "Red Hood",
+    "value" : -73
+  }, {
+    "key" : "Sleep Sword",
+    "value" : -73
+  }, {
+    "key" : "Move-MP Up",
+    "value" : -73
+  }, {
+    "key" : "Armor Break",
+    "value" : -73
+  }, {
+    "key" : "Quick",
+    "value" : 73
+  }, {
+    "key" : "Bio Silentium",
+    "value" : -73
+  }, {
+    "key" : "Equip Knife",
+    "value" : 73
+  }, {
+    "key" : "Polka Polka",
+    "value" : -73
+  }, {
+    "key" : "Echo Grass",
+    "value" : 73
+  }, {
+    "key" : "ShortCharge",
+    "value" : -73
+  }, {
+    "key" : "EquipKnife",
+    "value" : -73
+  }, {
+    "key" : "2-Right",
+    "value" : 73
+  }, {
+    "key" : "13-Left",
+    "value" : -73
+  }, {
+    "key" : "49-Left",
+    "value" : -73
+  }, {
+    "key" : "55-Left",
+    "value" : 73
+  }, {
+    "key" : "112-Left",
+    "value" : 73
+  }, {
+    "key" : "Ninja Blades",
+    "value" : 72
+  }, {
+    "key" : "Perfumes",
+    "value" : -72
+  }, {
+    "key" : "Black Robe",
+    "value" : 72
+  }, {
+    "key" : "Mace of Zeus",
+    "value" : 72
+  }, {
+    "key" : "Bronze Shield",
+    "value" : 72
+  }, {
+    "key" : "Ragnarok",
+    "value" : 72
+  }, {
+    "key" : "Gold Helmet",
+    "value" : -72
+  }, {
+    "key" : "Genji Gauntlet",
+    "value" : -72
+  }, {
+    "key" : "White Magic",
+    "value" : -72
+  }, {
+    "key" : "Charge+1",
+    "value" : 72
+  }, {
+    "key" : "Dark Holy",
+    "value" : 72
+  }, {
+    "key" : "Bolt 2",
+    "value" : -72
+  }, {
+    "key" : "FashionSense",
+    "value" : 72
+  }, {
+    "key" : "1-Right",
+    "value" : 72
+  }, {
+    "key" : "61-Left",
+    "value" : -72
+  }, {
+    "key" : "110-Left",
+    "value" : -72
+  }, {
+    "key" : "113-Left",
+    "value" : 72
+  }, {
+    "key" : "Ice Shield",
+    "value" : -71
+  }, {
+    "key" : "Healing Staff",
+    "value" : -71
+  }, {
+    "key" : "Ancient Sword",
+    "value" : -71
+  }, {
+    "key" : "Wish",
+    "value" : -71
+  }, {
+    "key" : "Muramasa",
+    "value" : 71
+  }, {
+    "key" : "Repair",
+    "value" : -71
+  }, {
+    "key" : "Blood Suck",
+    "value" : -71
+  }, {
+    "key" : "Bird Skill",
+    "value" : -71
+  }, {
+    "key" : "Wiznaibus",
+    "value" : 71
+  }, {
+    "key" : "Sicken",
+    "value" : 71
+  }, {
+    "key" : "WizardMantle",
+    "value" : 71
+  }, {
+    "key" : "White Robe",
+    "value" : -70
+  }, {
+    "key" : "Gokuu Rod",
+    "value" : 70
+  }, {
+    "key" : "Salty Rage",
+    "value" : 70
+  }, {
+    "key" : "Regen",
+    "value" : 70
+  }, {
+    "key" : "Summon Magic",
+    "value" : 70
+  }, {
+    "key" : "Heal",
+    "value" : -70
+  }, {
+    "key" : "Throw Item",
+    "value" : 70
+  }, {
+    "key" : "Brave Save",
+    "value" : 70
+  }, {
+    "key" : "Vertical Jump2",
+    "value" : 70
+  }, {
+    "key" : "Kikuichimoji",
+    "value" : 70
+  }, {
+    "key" : "Ether",
+    "value" : 70
+  }, {
+    "key" : "JadeArmlet",
+    "value" : -70
+  }, {
+    "key" : "DiamondArmlet",
+    "value" : 70
+  }, {
+    "key" : "Steal",
+    "value" : -70
+  }, {
+    "key" : "91-Left",
+    "value" : -70
+  }, {
+    "key" : "96-Left",
+    "value" : 70
+  }, {
+    "key" : "White Staff",
+    "value" : 69
+  }, {
+    "key" : "108 Gems",
+    "value" : -69
+  }, {
+    "key" : "Light Robe",
+    "value" : -69
+  }, {
+    "key" : "Lightning Bow",
+    "value" : -69
+  }, {
+    "key" : "Kunai",
+    "value" : 69
+  }, {
+    "key" : "Flame Whip",
+    "value" : -69
+  }, {
+    "key" : "Diamond Armlet",
+    "value" : 69
+  }, {
+    "key" : "Leather Helmet",
+    "value" : 69
+  }, {
+    "key" : "Omnislash",
+    "value" : -69
+  }, {
+    "key" : "Silence Song",
+    "value" : 69
+  }, {
+    "key" : "Bizen Boat",
+    "value" : 69
+  }, {
+    "key" : "PiscoDemon",
+    "value" : -69
+  }, {
+    "key" : "Calculator Male",
+    "value" : 69
+  }, {
+    "key" : "Chocobo",
+    "value" : -69
+  }, {
+    "key" : "Chemist Female",
+    "value" : -69
+  }, {
+    "key" : "Squire Female",
+    "value" : -69
+  }, {
+    "key" : "37-Right",
+    "value" : 69
+  }, {
+    "key" : "65-Left",
+    "value" : 69
+  }, {
+    "key" : "66-Left",
+    "value" : 69
+  }, {
+    "key" : "70-Right",
+    "value" : 69
+  }, {
+    "key" : "106-Right",
+    "value" : 69
+  }, {
+    "key" : "Heaven's Cloud-Item",
+    "value" : 68
+  }, {
+    "key" : "Cashmere",
+    "value" : -68
+  }, {
+    "key" : "Chantage",
+    "value" : -68
+  }, {
+    "key" : "Flame Rod",
+    "value" : 68
+  }, {
+    "key" : "Bite",
+    "value" : -68
+  }, {
+    "key" : "Speed Save",
+    "value" : 68
+  }, {
+    "key" : "Water Ball",
+    "value" : -68
+  }, {
+    "key" : "Dark Sword",
+    "value" : 68
+  }, {
+    "key" : "Threaten",
+    "value" : -68
+  }, {
+    "key" : "Parry",
+    "value" : -68
+  }, {
+    "key" : "MagicDefenseUP",
+    "value" : -68
+  }, {
+    "key" : "Bracer",
+    "value" : 68
+  }, {
+    "key" : "Goblin",
+    "value" : 68
+  }, {
+    "key" : "50-Right",
+    "value" : -68
+  }, {
+    "key" : "Bracer-Item",
+    "value" : -67
+  }, {
+    "key" : "Faith Save",
+    "value" : 67
+  }, {
+    "key" : "Maiden's Kiss",
+    "value" : 67
+  }, {
+    "key" : "Leaf Dance",
+    "value" : -67
+  }, {
+    "key" : "Secret Fist",
+    "value" : -67
+  }, {
+    "key" : "EXPBoost",
+    "value" : 67
+  }, {
+    "key" : "DarkBehemoth",
+    "value" : 67
+  }, {
+    "key" : "Bomb",
+    "value" : -67
+  }, {
+    "key" : "2-Left",
+    "value" : -67
+  }, {
+    "key" : "6-Right",
+    "value" : -67
+  }, {
+    "key" : "22-Right",
+    "value" : -67
+  }, {
+    "key" : "31-Right",
+    "value" : -67
+  }, {
+    "key" : "53-Right",
+    "value" : -67
+  }, {
+    "key" : "57-Left",
+    "value" : -67
+  }, {
+    "key" : "76-Left",
+    "value" : 67
+  }, {
+    "key" : "106-Left",
+    "value" : 67
+  }, {
+    "key" : "Iron Sword",
+    "value" : -66
+  }, {
+    "key" : "Rod",
+    "value" : -66
+  }, {
+    "key" : "Carbunkle",
+    "value" : 66
+  }, {
+    "key" : "Critical Quick",
+    "value" : 66
+  }, {
+    "key" : "Tickle",
+    "value" : -66
+  }, {
+    "key" : "ArchaicDemon",
+    "value" : 66
+  }, {
+    "key" : "Priest Male",
+    "value" : 66
+  }, {
+    "key" : "47-Left",
+    "value" : -66
+  }, {
+    "key" : "54-Left",
+    "value" : 66
+  }, {
+    "key" : "68-Left",
+    "value" : -66
+  }, {
+    "key" : "104-Left",
+    "value" : -66
+  }, {
+    "key" : "109-Left",
+    "value" : 66
+  }, {
+    "key" : "Diamond Armor",
+    "value" : -65
+  }, {
+    "key" : "Defense Armlet",
+    "value" : -65
+  }, {
+    "key" : "Papyrus Codex",
+    "value" : 65
+  }, {
+    "key" : "Ulmaguest",
+    "value" : 65
+  }, {
+    "key" : "Solution",
+    "value" : 65
+  }, {
+    "key" : "Sleep",
+    "value" : 65
+  }, {
+    "key" : "Hammer",
+    "value" : 65
+  }, {
+    "key" : "Stab Up",
+    "value" : 65
+  }, {
+    "key" : "Landlocked",
+    "value" : -65
+  }, {
+    "key" : "MathSkill",
+    "value" : 65
+  }, {
+    "key" : "Samurai Male",
+    "value" : -65
+  }, {
+    "key" : "72-Left",
+    "value" : 65
+  }, {
+    "key" : "Barbuta",
+    "value" : -64
+  }, {
+    "key" : "Guns",
+    "value" : 64
+  }, {
+    "key" : "Angel Ring",
+    "value" : -64
+  }, {
+    "key" : "Weapon Break",
+    "value" : -64
+  }, {
+    "key" : "Eye Gouge",
+    "value" : -64
+  }, {
+    "key" : "Ice 3",
+    "value" : 64
+  }, {
+    "key" : "DragonSpirit",
+    "value" : -64
+  }, {
+    "key" : "Flail",
+    "value" : -63
+  }, {
+    "key" : "Books",
+    "value" : 63
+  }, {
+    "key" : "Justice Sword",
+    "value" : 63
+  }, {
+    "key" : "Grease Touch",
+    "value" : 63
+  }, {
+    "key" : "Shellbust Stab",
+    "value" : 63
+  }, {
+    "key" : "Scream",
+    "value" : 63
+  }, {
+    "key" : "VanishMantle",
+    "value" : -63
+  }, {
+    "key" : "Dragon",
+    "value" : 63
+  }, {
+    "key" : "57-Right",
+    "value" : -63
+  }, {
+    "key" : "68-Right",
+    "value" : -63
+  }, {
+    "key" : "86-Right",
+    "value" : -63
+  }, {
+    "key" : "108-Left",
+    "value" : 63
+  }, {
+    "key" : "Harps",
+    "value" : 62
+  }, {
+    "key" : "Antidote-Item",
+    "value" : 62
+  }, {
+    "key" : "Masamune",
+    "value" : 62
+  }, {
+    "key" : "Bio Insanis",
+    "value" : 62
+  }, {
+    "key" : "Marsh Skill",
+    "value" : -62
+  }, {
+    "key" : "Magic Break",
+    "value" : 62
+  }, {
+    "key" : "Equip Armor",
+    "value" : 62
+  }, {
+    "key" : "Spear",
+    "value" : 62
+  }, {
+    "key" : "Long Status",
+    "value" : -62
+  }, {
+    "key" : "BlackMagic",
+    "value" : -62
+  }, {
+    "key" : "89-Left",
+    "value" : -62
+  }, {
+    "key" : "116-Right",
+    "value" : 62
+  }, {
+    "key" : "Elf Mantle",
+    "value" : -61
+  }, {
+    "key" : "Holy Miter",
+    "value" : 61
+  }, {
+    "key" : "Melt",
+    "value" : 61
+  }, {
+    "key" : "Throw Stone",
+    "value" : 61
+  }, {
+    "key" : "Finish Touch",
+    "value" : 61
+  }, {
+    "key" : "EquipPolearm",
+    "value" : -61
+  }, {
+    "key" : "EquipArmor",
+    "value" : 61
+  }, {
+    "key" : "Sing",
+    "value" : 61
+  }, {
+    "key" : "MeatboneSlash",
+    "value" : 61
+  }, {
+    "key" : "74-Left",
+    "value" : 61
+  }, {
+    "key" : "94-Right",
+    "value" : -61
+  }, {
+    "key" : "Swords",
+    "value" : -60
+  }, {
+    "key" : "Brigandine",
+    "value" : -60
+  }, {
+    "key" : "Persia",
+    "value" : -60
+  }, {
+    "key" : "Windslash Bow",
+    "value" : 60
+  }, {
+    "key" : "Snipe Bow",
+    "value" : -60
+  }, {
+    "key" : "Sleep Touch",
+    "value" : -60
+  }, {
+    "key" : "Prime Number",
+    "value" : -60
+  }, {
+    "key" : "Steal Accessory",
+    "value" : -60
+  }, {
+    "key" : "Wind Soul",
+    "value" : -60
+  }, {
+    "key" : "Cheer Up",
+    "value" : -60
+  }, {
+    "key" : "PowerWrist",
+    "value" : 60
+  }, {
+    "key" : "MagicAttackUP",
+    "value" : 60
+  }, {
+    "key" : "Summoner Male",
+    "value" : -60
+  }, {
+    "key" : "Porky",
+    "value" : 60
+  }, {
+    "key" : "60-Right",
+    "value" : 60
+  }, {
+    "key" : "Clothes",
+    "value" : -59
+  }, {
+    "key" : "Triple Breath",
+    "value" : -59
+  }, {
+    "key" : "Gather Power",
+    "value" : -59
+  }, {
+    "key" : "Quicksand",
+    "value" : 59
+  }, {
+    "key" : "Diamond Blade",
+    "value" : 59
+  }, {
+    "key" : "Ice 4",
+    "value" : -59
+  }, {
+    "key" : "58-Right",
+    "value" : 59
+  }, {
+    "key" : "59-Right",
+    "value" : 59
+  }, {
+    "key" : "Kikuichimoji-Item",
+    "value" : 58
+  }, {
+    "key" : "Magic Shuriken",
+    "value" : -58
+  }, {
+    "key" : "Triangle Hat",
+    "value" : 58
+  }, {
+    "key" : "Charge+5",
+    "value" : -58
+  }, {
+    "key" : "Immobilize",
+    "value" : 58
+  }, {
+    "key" : "Blind Rage",
+    "value" : -58
+  }, {
+    "key" : "Grenade",
+    "value" : 58
+  }, {
+    "key" : "82-Right",
+    "value" : 58
+  }, {
+    "key" : "99-Right",
+    "value" : -58
+  }, {
+    "key" : "117-Right",
+    "value" : -58
+  }, {
+    "key" : "Mythril Helmet",
+    "value" : 57
+  }, {
+    "key" : "Mythril Shield",
+    "value" : 57
+  }, {
+    "key" : "Chaos Blade",
+    "value" : -57
+  }, {
+    "key" : "Goo",
+    "value" : 57
+  }, {
+    "key" : "Static Shock",
+    "value" : 57
+  }, {
+    "key" : "PASave",
+    "value" : -57
+  }, {
+    "key" : "Spears",
+    "value" : 56
+  }, {
+    "key" : "Unarmed",
+    "value" : 56
+  }, {
+    "key" : "Hats",
+    "value" : 56
+  }, {
+    "key" : "Ice Soul",
+    "value" : 56
+  }, {
+    "key" : "Choco Cure",
+    "value" : -56
+  }, {
+    "key" : "Triple Attack",
+    "value" : 56
+  }, {
+    "key" : "Hydra Pit",
+    "value" : 56
+  }, {
+    "key" : "Haste",
+    "value" : -56
+  }, {
+    "key" : "Surging Sword",
+    "value" : -56
+  }, {
+    "key" : "Dance",
+    "value" : 56
+  }, {
+    "key" : "Doublehand",
+    "value" : 56
+  }, {
+    "key" : "14-Right",
+    "value" : 56
+  }, {
+    "key" : "Hair Adornments",
+    "value" : 55
+  }, {
+    "key" : "Adaman Vest",
+    "value" : 55
+  }, {
+    "key" : "Setiemson",
+    "value" : 55
+  }, {
+    "key" : "Bow Gun",
+    "value" : -55
+  }, {
+    "key" : "Energize",
+    "value" : -55
+  }, {
+    "key" : "Nameless Dance",
+    "value" : -55
+  }, {
+    "key" : "Phoenix Down",
+    "value" : 55
+  }, {
+    "key" : "Counter",
+    "value" : 55
+  }, {
+    "key" : "Monk Male",
+    "value" : -55
+  }, {
+    "key" : "Geomancer Male",
+    "value" : 55
+  }, {
+    "key" : "25-Right",
+    "value" : 55
+  }, {
+    "key" : "48-Right",
+    "value" : 55
+  }, {
+    "key" : "86-Left",
+    "value" : 55
+  }, {
+    "key" : "98-Left",
+    "value" : 55
+  }, {
+    "key" : "Obelisk",
+    "value" : 54
+  }, {
+    "key" : "Green Beret",
+    "value" : 54
+  }, {
+    "key" : "Black Magic",
+    "value" : 54
+  }, {
+    "key" : "Cure 3",
+    "value" : -54
+  }, {
+    "key" : "Hellcry Punch",
+    "value" : 54
+  }, {
+    "key" : "Equip Bow",
+    "value" : -54
+  }, {
+    "key" : "Earth Slash",
+    "value" : 54
+  }, {
+    "key" : "Magic Spirit",
+    "value" : -54
+  }, {
+    "key" : "Ramuh",
+    "value" : -54
+  }, {
+    "key" : "Doom",
+    "value" : -54
+  }, {
+    "key" : "51-Left",
+    "value" : -54
+  }, {
+    "key" : "87-Left",
+    "value" : -54
+  }, {
+    "key" : "Turn Punch",
+    "value" : 53
+  }, {
+    "key" : "Hallowed Ground",
+    "value" : -53
+  }, {
+    "key" : "Reflect",
+    "value" : 53
+  }, {
+    "key" : "Leg Aim",
+    "value" : -53
+  }, {
+    "key" : "Height",
+    "value" : -53
+  }, {
+    "key" : "Cure 2",
+    "value" : -53
+  }, {
+    "key" : "Giga Flare",
+    "value" : 53
+  }, {
+    "key" : "Cat Kick",
+    "value" : 53
+  }, {
+    "key" : "BattleBoots",
+    "value" : -53
+  }, {
+    "key" : "32-Right",
+    "value" : 53
+  }, {
+    "key" : "Dracula Mantle",
+    "value" : 52
+  }, {
+    "key" : "Excalibur",
+    "value" : -52
+  }, {
+    "key" : "Koutetsu Knife",
+    "value" : 52
+  }, {
+    "key" : "Ignore Terrain",
+    "value" : -52
+  }, {
+    "key" : "Invitation",
+    "value" : 52
+  }, {
+    "key" : "Math Skill",
+    "value" : 52
+  }, {
+    "key" : "Ignore Height",
+    "value" : -52
+  }, {
+    "key" : "Scratch Up",
+    "value" : -52
+  }, {
+    "key" : "Ifrit",
+    "value" : 52
+  }, {
+    "key" : "EquipSword",
+    "value" : 52
+  }, {
+    "key" : "Charge",
+    "value" : -52
+  }, {
+    "key" : "Oracle Female",
+    "value" : 52
+  }, {
+    "key" : "81-Right",
+    "value" : 52
+  }, {
+    "key" : "Cypress Rod",
+    "value" : -51
+  }, {
+    "key" : "Gastrafitis",
+    "value" : 51
+  }, {
+    "key" : "Thief Hat",
+    "value" : 51
+  }, {
+    "key" : "Charge+20",
+    "value" : 51
+  }, {
+    "key" : "Gore Skill",
+    "value" : 51
+  }, {
+    "key" : "Attack UP",
+    "value" : -51
+  }, {
+    "key" : "Moldball Virus",
+    "value" : 51
+  }, {
+    "key" : "Vertical Jump5",
+    "value" : -51
+  }, {
+    "key" : "Confusion Song",
+    "value" : -51
+  }, {
+    "key" : "Bolt 3",
+    "value" : -51
+  }, {
+    "key" : "Praise",
+    "value" : -51
+  }, {
+    "key" : "Flare",
+    "value" : 51
+  }, {
+    "key" : "CounterFlood",
+    "value" : -51
+  }, {
+    "key" : "Hamedo",
+    "value" : 51
+  }, {
+    "key" : "Jump+1",
+    "value" : 51
+  }, {
+    "key" : "Ahriman",
+    "value" : 51
+  }, {
+    "key" : "26-Right",
+    "value" : -51
+  }, {
+    "key" : "Mythril Vest",
+    "value" : -50
+  }, {
+    "key" : "Plate Mail",
+    "value" : 50
+  }, {
+    "key" : "Mimic Titan",
+    "value" : -50
+  }, {
+    "key" : "Wave Fist",
+    "value" : 50
+  }, {
+    "key" : "Spirit of Life",
+    "value" : 50
+  }, {
+    "key" : "Vertical Jump7",
+    "value" : 50
+  }, {
+    "key" : "Archer Male",
+    "value" : -50
+  }, {
+    "key" : "70-Left",
+    "value" : -50
+  }, {
+    "key" : "Power Sleeve",
+    "value" : 49
+  }, {
+    "key" : "Ice Rod",
+    "value" : 49
+  }, {
+    "key" : "Sprint Shoes",
+    "value" : 49
+  }, {
+    "key" : "Axes",
+    "value" : -49
+  }, {
+    "key" : "Small Mantle",
+    "value" : -49
+  }, {
+    "key" : "Ultimus Bow",
+    "value" : -49
+  }, {
+    "key" : "Night Sword",
+    "value" : -49
+  }, {
+    "key" : "Demi",
+    "value" : -49
+  }, {
+    "key" : "Haste 2",
+    "value" : 49
+  }, {
+    "key" : "Ice 2",
+    "value" : 49
+  }, {
+    "key" : "Ninja Female",
+    "value" : -49
+  }, {
+    "key" : "Poison Rod",
+    "value" : -48
+  }, {
+    "key" : "Feather Mantle",
+    "value" : -48
+  }, {
+    "key" : "Morning Star",
+    "value" : 48
+  }, {
+    "key" : "Escutcheon",
+    "value" : 48
+  }, {
+    "key" : "Rune Blade",
+    "value" : 48
+  }, {
+    "key" : "Aegis Shield",
+    "value" : -48
+  }, {
+    "key" : "Steal Weapon",
+    "value" : 48
+  }, {
+    "key" : "Hi-Potion",
+    "value" : -48
+  }, {
+    "key" : "Time Magic",
+    "value" : -48
+  }, {
+    "key" : "Short Charge",
+    "value" : 48
+  }, {
+    "key" : "Galaxy Stop",
+    "value" : -48
+  }, {
+    "key" : "EquipPerfume",
+    "value" : -48
+  }, {
+    "key" : "Apanda",
+    "value" : 48
+  }, {
+    "key" : "4-Left",
+    "value" : -48
+  }, {
+    "key" : "6-Left",
+    "value" : -48
+  }, {
+    "key" : "35-Right",
+    "value" : -48
+  }, {
+    "key" : "Diamond Shield",
+    "value" : 47
+  }, {
+    "key" : "Meteorain",
+    "value" : -47
+  }, {
+    "key" : "Fire",
+    "value" : 47
+  }, {
+    "key" : "Seal Evil",
+    "value" : 47
+  }, {
+    "key" : "Move-HP Up",
+    "value" : 47
+  }, {
+    "key" : "Murasame",
+    "value" : -47
+  }, {
+    "key" : "Zodiac",
+    "value" : -47
+  }, {
+    "key" : "IgnoreTerrain",
+    "value" : -47
+  }, {
+    "key" : "Beastmaster",
+    "value" : 47
+  }, {
+    "key" : "Teleport",
+    "value" : -47
+  }, {
+    "key" : "Priest Female",
+    "value" : -47
+  }, {
+    "key" : "BlackGoblin",
+    "value" : -47
+  }, {
+    "key" : "56-Left",
+    "value" : -47
+  }, {
+    "key" : "69-Right",
+    "value" : -47
+  }, {
+    "key" : "92-Left",
+    "value" : 47
+  }, {
+    "key" : "Headgear",
+    "value" : -46
+  }, {
+    "key" : "Mystic Vest",
+    "value" : -46
+  }, {
+    "key" : "Bio Oleum",
+    "value" : 46
+  }, {
+    "key" : "Magic Defense UP",
+    "value" : 46
+  }, {
+    "key" : "HPRestore",
+    "value" : 46
+  }, {
+    "key" : "Juravis",
+    "value" : -46
+  }, {
+    "key" : "27-Right",
+    "value" : -46
+  }, {
+    "key" : "111-Left",
+    "value" : -46
+  }, {
+    "key" : "111-Right",
+    "value" : -46
+  }, {
+    "key" : "Spark Bomb",
+    "value" : -45
+  }, {
+    "key" : "Gold Staff",
+    "value" : 45
+  }, {
+    "key" : "Assassin Dagger",
+    "value" : -45
+  }, {
+    "key" : "Choco Ball",
+    "value" : -45
+  }, {
+    "key" : "Equip Axe",
+    "value" : 45
+  }, {
+    "key" : "Hi-Ether",
+    "value" : 45
+  }, {
+    "key" : "Disease Skill",
+    "value" : 45
+  }, {
+    "key" : "Spin Fist",
+    "value" : 45
+  }, {
+    "key" : "Steal Shield",
+    "value" : 45
+  }, {
+    "key" : "FeatherMantle",
+    "value" : 45
+  }, {
+    "key" : "BraveSave",
+    "value" : 45
+  }, {
+    "key" : "Ghoul",
+    "value" : 45
+  }, {
+    "key" : "114-Right",
+    "value" : -45
+  }, {
+    "key" : "Poison Bow",
+    "value" : 44
+  }, {
+    "key" : "Leather Outfit",
+    "value" : 44
+  }, {
+    "key" : "Round Shield",
+    "value" : 44
+  }, {
+    "key" : "Slow Dance",
+    "value" : -44
+  }, {
+    "key" : "Vengeance",
+    "value" : 44
+  }, {
+    "key" : "Tendrils",
+    "value" : 44
+  }, {
+    "key" : "Accumulate",
+    "value" : -44
+  }, {
+    "key" : "Potion",
+    "value" : -44
+  }, {
+    "key" : "Witch Hunt",
+    "value" : -44
+  }, {
+    "key" : "AbsorbUsedMP",
+    "value" : 44
+  }, {
+    "key" : "BullDemon",
+    "value" : -44
+  }, {
+    "key" : "SteelGiant",
+    "value" : -44
+  }, {
+    "key" : "33-Left",
+    "value" : 44
+  }, {
+    "key" : "X-Potion-Item",
+    "value" : -43
+  }, {
+    "key" : "Elixir",
+    "value" : 43
+  }, {
+    "key" : "Secret Hunt",
+    "value" : 43
+  }, {
+    "key" : "Power Break",
+    "value" : 43
+  }, {
+    "key" : "Throw",
+    "value" : -43
+  }, {
+    "key" : "CounterTackle",
+    "value" : -43
+  }, {
+    "key" : "Behemoth",
+    "value" : -43
+  }, {
+    "key" : "Perseus Bow",
+    "value" : -42
+  }, {
+    "key" : "Crossbows",
+    "value" : -42
+  }, {
+    "key" : "Linen Robe",
+    "value" : 42
+  }, {
+    "key" : "Steal Helmet",
+    "value" : -42
+  }, {
+    "key" : "Abandon",
+    "value" : 42
+  }, {
+    "key" : "SmallMantle",
+    "value" : -42
+  }, {
+    "key" : "SecretHunt",
+    "value" : -42
+  }, {
+    "key" : "Ninja Male",
+    "value" : -42
+  }, {
+    "key" : "44-Left",
+    "value" : -42
+  }, {
+    "key" : "Bloody Strings",
+    "value" : 41
+  }, {
+    "key" : "Platinum Helmet",
+    "value" : 41
+  }, {
+    "key" : "Bahamut",
+    "value" : -41
+  }, {
+    "key" : "Arrow Guard",
+    "value" : 41
+  }, {
+    "key" : "Foxbird",
+    "value" : 41
+  }, {
+    "key" : "Shell",
+    "value" : 41
+  }, {
+    "key" : "Regenerator",
+    "value" : -41
+  }, {
+    "key" : "SpikeShoes",
+    "value" : -41
+  }, {
+    "key" : "UltimaDemon",
+    "value" : 41
+  }, {
+    "key" : "BlackChocobo",
+    "value" : -41
+  }, {
+    "key" : "Tiamat",
+    "value" : 41
+  }, {
+    "key" : "Malboro",
+    "value" : -41
+  }, {
+    "key" : "27-Left",
+    "value" : 41
+  }, {
+    "key" : "79-Left",
+    "value" : -41
+  }, {
+    "key" : "109-Right",
+    "value" : 41
+  }, {
+    "key" : "Yagyu Shuriken",
+    "value" : -40
+  }, {
+    "key" : "Cross Helmet",
+    "value" : -40
+  }, {
+    "key" : "Dual Wield",
+    "value" : 40
+  }, {
+    "key" : "Goblin Punch",
+    "value" : -40
+  }, {
+    "key" : "Bio Venenum",
+    "value" : -40
+  }, {
+    "key" : "MASave",
+    "value" : 40
+  }, {
+    "key" : "ShortStatus",
+    "value" : 40
+  }, {
+    "key" : "ManaShield",
+    "value" : 40
+  }, {
+    "key" : "Thief Female",
+    "value" : -40
+  }, {
+    "key" : "103-Left",
+    "value" : 40
+  }, {
+    "key" : "115-Right",
+    "value" : 40
+  }, {
+    "key" : "Defense Ring",
+    "value" : 39
+  }, {
+    "key" : "Kiyomori-Item",
+    "value" : -39
+  }, {
+    "key" : "Short Edge",
+    "value" : -39
+  }, {
+    "key" : "Thunder Rod",
+    "value" : 39
+  }, {
+    "key" : "Punch Art",
+    "value" : 39
+  }, {
+    "key" : "Level Jump5",
+    "value" : 39
+  }, {
+    "key" : "Charge+3",
+    "value" : 39
+  }, {
+    "key" : "Battle Skill",
+    "value" : -39
+  }, {
+    "key" : "Halve MP",
+    "value" : 39
+  }, {
+    "key" : "Beak",
+    "value" : 39
+  }, {
+    "key" : "Limit",
+    "value" : -39
+  }, {
+    "key" : "DefenseArmlet",
+    "value" : 39
+  }, {
+    "key" : "BlueMagic",
+    "value" : -39
+  }, {
+    "key" : "15-Left",
+    "value" : -39
+  }, {
+    "key" : "71-Left",
+    "value" : -39
+  }, {
+    "key" : "80-Left",
+    "value" : -39
+  }, {
+    "key" : "Twist Headband",
+    "value" : -38
+  }, {
+    "key" : "Blast Gun",
+    "value" : 38
+  }, {
+    "key" : "Potion-Item",
+    "value" : -38
+  }, {
+    "key" : "Thunder Breath",
+    "value" : -38
+  }, {
+    "key" : "Bequeath Bacon",
+    "value" : 38
+  }, {
+    "key" : "Heaven's Cloud",
+    "value" : 38
+  }, {
+    "key" : "Charge+2",
+    "value" : 38
+  }, {
+    "key" : "Spark",
+    "value" : -38
+  }, {
+    "key" : "Samurai Female",
+    "value" : -38
+  }, {
+    "key" : "102-Right",
+    "value" : -38
+  }, {
+    "key" : "RightTeam",
+    "value" : 37
+  }, {
+    "key" : "Dragon Rod",
+    "value" : 37
+  }, {
+    "key" : "Protect 2",
+    "value" : -37
+  }, {
+    "key" : "Aqua Soul",
+    "value" : -37
+  }, {
+    "key" : "Equip Sword",
+    "value" : 37
+  }, {
+    "key" : "Refute",
+    "value" : -37
+  }, {
+    "key" : "Blade Beam",
+    "value" : -37
+  }, {
+    "key" : "Rehabilitate",
+    "value" : -37
+  }, {
+    "key" : "SunkenState",
+    "value" : -37
+  }, {
+    "key" : "5-Right",
+    "value" : 37
+  }, {
+    "key" : "72-Right",
+    "value" : 37
+  }, {
+    "key" : "Leather Armor",
+    "value" : 36
+  }, {
+    "key" : "Wizard Staff",
+    "value" : -36
+  }, {
+    "key" : "Platinum Sword",
+    "value" : -36
+  }, {
+    "key" : "Asura Knife",
+    "value" : -36
+  }, {
+    "key" : "N-Kai Armlet",
+    "value" : 36
+  }, {
+    "key" : "Level Jump2",
+    "value" : -36
+  }, {
+    "key" : "Fly",
+    "value" : -36
+  }, {
+    "key" : "Skeleton",
+    "value" : 36
+  }, {
+    "key" : "73-Right",
+    "value" : 36
+  }, {
+    "key" : "75-Right",
+    "value" : 36
+  }, {
+    "key" : "95-Left",
+    "value" : -36
+  }, {
+    "key" : "Panther Bag",
+    "value" : 35
+  }, {
+    "key" : "Partisan",
+    "value" : -35
+  }, {
+    "key" : "Slam",
+    "value" : 35
+  }, {
+    "key" : "Level Jump3",
+    "value" : 35
+  }, {
+    "key" : "Defense UP",
+    "value" : -35
+  }, {
+    "key" : "17-Right",
+    "value" : 35
+  }, {
+    "key" : "21-Left",
+    "value" : -35
+  }, {
+    "key" : "Leather Hat",
+    "value" : 34
+  }, {
+    "key" : "Ribbon",
+    "value" : -34
+  }, {
+    "key" : "Echo Grass-Item",
+    "value" : 34
+  }, {
+    "key" : "Petrify",
+    "value" : -34
+  }, {
+    "key" : "Talk Skill",
+    "value" : 34
+  }, {
+    "key" : "Demi 2",
+    "value" : -34
+  }, {
+    "key" : "Dragon Skill",
+    "value" : 34
+  }, {
+    "key" : "PunchArt",
+    "value" : -34
+  }, {
+    "key" : "Mediator Female",
+    "value" : 34
+  }, {
+    "key" : "Octagon Rod",
+    "value" : -33
+  }, {
+    "key" : "Spell Edge",
+    "value" : 33
+  }, {
+    "key" : "Stone Gun",
+    "value" : 33
+  }, {
+    "key" : "Doubt Faith",
+    "value" : 33
+  }, {
+    "key" : "Bio Mortem",
+    "value" : 33
+  }, {
+    "key" : "Grand Cross",
+    "value" : 33
+  }, {
+    "key" : "Byblos",
+    "value" : -33
+  }, {
+    "key" : "83-Right",
+    "value" : -33
+  }, {
+    "key" : "84-Right",
+    "value" : 33
+  }, {
+    "key" : "Holy Water-Item",
+    "value" : 32
+  }, {
+    "key" : "Genji Armor",
+    "value" : 32
+  }, {
+    "key" : "Bio Ranae",
+    "value" : 32
+  }, {
+    "key" : "DamageSplit",
+    "value" : -32
+  }, {
+    "key" : "RedShoes",
+    "value" : 32
+  }, {
+    "key" : "52-Left",
+    "value" : 32
+  }, {
+    "key" : "Golden Hairpin",
+    "value" : 31
+  }, {
+    "key" : "Reflect Mail",
+    "value" : 31
+  }, {
+    "key" : "Gungnir",
+    "value" : 31
+  }, {
+    "key" : "No MP",
+    "value" : 31
+  }, {
+    "key" : "Robosnake Skill",
+    "value" : 31
+  }, {
+    "key" : "MP Restore",
+    "value" : -31
+  }, {
+    "key" : "Reraise",
+    "value" : -31
+  }, {
+    "key" : "Slow 2",
+    "value" : -31
+  }, {
+    "key" : "Cheer Song",
+    "value" : 31
+  }, {
+    "key" : "Wildfire Skill",
+    "value" : -31
+  }, {
+    "key" : "Holy Breath",
+    "value" : 31
+  }, {
+    "key" : "23-Left",
+    "value" : -31
+  }, {
+    "key" : "Kaiser Plate",
+    "value" : 30
+  }, {
+    "key" : "Zorlin Shape",
+    "value" : -30
+  }, {
+    "key" : "Cross-Slash",
+    "value" : 30
+  }, {
+    "key" : "Steal Heart",
+    "value" : -30
+  }, {
+    "key" : "36-Right",
+    "value" : -30
+  }, {
+    "key" : "75-Left",
+    "value" : -30
+  }, {
+    "key" : "Long Bow",
+    "value" : 29
+  }, {
+    "key" : "Chirijiraden-Item",
+    "value" : 29
+  }, {
+    "key" : "Small Bomb",
+    "value" : -29
+  }, {
+    "key" : "Pet Skill",
+    "value" : -29
+  }, {
+    "key" : "Forest Skill",
+    "value" : -29
+  }, {
+    "key" : "MagicRing",
+    "value" : 29
+  }, {
+    "key" : "SpeedSave",
+    "value" : 29
+  }, {
+    "key" : "HolyDragon",
+    "value" : 29
+  }, {
+    "key" : "TimeMage Male",
+    "value" : 29
+  }, {
+    "key" : "8-Left",
+    "value" : 29
+  }, {
+    "key" : "25-Left",
+    "value" : 29
+  }, {
+    "key" : "38-Right",
+    "value" : -29
+  }, {
+    "key" : "69-Left",
+    "value" : 29
+  }, {
+    "key" : "84-Left",
+    "value" : -29
+  }, {
+    "key" : "Bags",
+    "value" : 28
+  }, {
+    "key" : "Shake Off",
+    "value" : -28
+  }, {
+    "key" : "Revive",
+    "value" : 28
+  }, {
+    "key" : "Sword",
+    "value" : -28
+  }, {
+    "key" : "Blue Magic",
+    "value" : 28
+  }, {
+    "key" : "Equip Gun",
+    "value" : 28
+  }, {
+    "key" : "Death Sentence",
+    "value" : -28
+  }, {
+    "key" : "Demon Skill",
+    "value" : 28
+  }, {
+    "key" : "Dispel Magic",
+    "value" : 28
+  }, {
+    "key" : "Compress",
+    "value" : 28
+  }, {
+    "key" : "MartialArts",
+    "value" : 28
+  }, {
+    "key" : "GilgameHeart",
+    "value" : -28
+  }, {
+    "key" : "RedDragon",
+    "value" : 28
+  }, {
+    "key" : "42-Right",
+    "value" : 28
+  }, {
+    "key" : "93-Left",
+    "value" : 28
+  }, {
+    "key" : "Iga Knife",
+    "value" : -27
+  }, {
+    "key" : "Holy Lance",
+    "value" : 27
+  }, {
+    "key" : "Germinas Boots",
+    "value" : -27
+  }, {
+    "key" : "Iron Helmet",
+    "value" : -27
+  }, {
+    "key" : "Oak Staff",
+    "value" : -27
+  }, {
+    "key" : "Earth Clothes",
+    "value" : -27
+  }, {
+    "key" : "Hurricane",
+    "value" : -27
+  }, {
+    "key" : "Elemental",
+    "value" : -27
+  }, {
+    "key" : "17-Left",
+    "value" : 27
+  }, {
+    "key" : "22-Left",
+    "value" : -27
+  }, {
+    "key" : "40-Left",
+    "value" : -27
+  }, {
+    "key" : "Mythril Knife",
+    "value" : 26
+  }, {
+    "key" : "Chaos Skill",
+    "value" : 26
+  }, {
+    "key" : "Level Jump6",
+    "value" : -26
+  }, {
+    "key" : "BattleSkill",
+    "value" : 26
+  }, {
+    "key" : "KingBehemoth",
+    "value" : 26
+  }, {
+    "key" : "Wyvern",
+    "value" : -26
+  }, {
+    "key" : "8-Right",
+    "value" : 26
+  }, {
+    "key" : "24-Right",
+    "value" : 26
+  }, {
+    "key" : "94-Left",
+    "value" : 26
+  }, {
+    "key" : "Burst Bomb",
+    "value" : 25
+  }, {
+    "key" : "Rubber Costume",
+    "value" : 25
+  }, {
+    "key" : "Absorb Used MP",
+    "value" : -25
+  }, {
+    "key" : "Quake",
+    "value" : -25
+  }, {
+    "key" : "Counter Tackle",
+    "value" : -25
+  }, {
+    "key" : "Auto Potion",
+    "value" : -25
+  }, {
+    "key" : "Koutetsu",
+    "value" : -25
+  }, {
+    "key" : "Hell Ivy",
+    "value" : 25
+  }, {
+    "key" : "Earplug",
+    "value" : 25
+  }, {
+    "key" : "52-Right",
+    "value" : -25
+  }, {
+    "key" : "88-Left",
+    "value" : -25
+  }, {
+    "key" : "Gold Armor",
+    "value" : 24
+  }, {
+    "key" : "Ninja Edge",
+    "value" : 24
+  }, {
+    "key" : "Chain Vest",
+    "value" : -24
+  }, {
+    "key" : "Explosion Sword",
+    "value" : -24
+  }, {
+    "key" : "Yell",
+    "value" : 24
+  }, {
+    "key" : "Braver",
+    "value" : -24
+  }, {
+    "key" : "Vertical Jump3",
+    "value" : 24
+  }, {
+    "key" : "Empower",
+    "value" : 24
+  }, {
+    "key" : "Catch",
+    "value" : -24
+  }, {
+    "key" : "SprintShoes",
+    "value" : 24
+  }, {
+    "key" : "RandomMonster",
+    "value" : -24
+  }, {
+    "key" : "Bows",
+    "value" : -23
+  }, {
+    "key" : "Barette",
+    "value" : -23
+  }, {
+    "key" : "Black Costume",
+    "value" : 23
+  }, {
+    "key" : "Feather Hat",
+    "value" : 23
+  }, {
+    "key" : "Ramia Harp",
+    "value" : 23
+  }, {
+    "key" : "Phoenix Down-Item",
+    "value" : -23
+  }, {
+    "key" : "Last Dance",
+    "value" : -23
+  }, {
+    "key" : "Salamander",
+    "value" : 23
+  }, {
+    "key" : "Curse Skill",
+    "value" : 23
+  }, {
+    "key" : "Local Quake",
+    "value" : -23
+  }, {
+    "key" : "Fire 4",
+    "value" : -23
+  }, {
+    "key" : "Pummel",
+    "value" : 23
+  }, {
+    "key" : "Cherry Blossom",
+    "value" : -23
+  }, {
+    "key" : "RaidBoss",
+    "value" : -23
+  }, {
+    "key" : "35-Left",
+    "value" : -23
+  }, {
+    "key" : "39-Left",
+    "value" : 23
+  }, {
+    "key" : "45-Left",
+    "value" : 23
+  }, {
+    "key" : "88-Right",
+    "value" : 23
+  }, {
+    "key" : "Ice Breath",
+    "value" : 22
+  }, {
+    "key" : "Peck",
+    "value" : -22
+  }, {
+    "key" : "Ultima",
+    "value" : -22
+  }, {
+    "key" : "Ice",
+    "value" : -22
+  }, {
+    "key" : "Vertical Jump6",
+    "value" : -22
+  }, {
+    "key" : "Fury",
+    "value" : 22
+  }, {
+    "key" : "Calculator Female",
+    "value" : 22
+  }, {
+    "key" : "28-Right",
+    "value" : -22
+  }, {
+    "key" : "78-Left",
+    "value" : -22
+  }, {
+    "key" : "100-Right",
+    "value" : -22
+  }, {
+    "key" : "103-Right",
+    "value" : -22
+  }, {
+    "key" : "Flare 2",
+    "value" : -21
+  }, {
+    "key" : "Protect Spirit",
+    "value" : 21
+  }, {
+    "key" : "Protect",
+    "value" : -21
+  }, {
+    "key" : "PreferredArms",
+    "value" : -21
+  }, {
+    "key" : "Lancer Female",
+    "value" : -21
+  }, {
+    "key" : "82-Left",
+    "value" : -21
+  }, {
+    "key" : "Gold Shield",
+    "value" : 20
+  }, {
+    "key" : "Mythril Gun",
+    "value" : -20
+  }, {
+    "key" : "Ivory Rod",
+    "value" : -20
+  }, {
+    "key" : "Look of Devil",
+    "value" : 20
+  }, {
+    "key" : "Lava Walking",
+    "value" : 20
+  }, {
+    "key" : "Esuna",
+    "value" : 20
+  }, {
+    "key" : "Level Jump4",
+    "value" : -20
+  }, {
+    "key" : "Mind Blast",
+    "value" : -20
+  }, {
+    "key" : "Throw Spirit",
+    "value" : -20
+  }, {
+    "key" : "CriticalQuick",
+    "value" : 20
+  }, {
+    "key" : "40-Right",
+    "value" : 20
+  }, {
+    "key" : "50-Left",
+    "value" : 20
+  }, {
+    "key" : "78-Right",
+    "value" : 20
+  }, {
+    "key" : "85-Right",
+    "value" : 20
+  }, {
+    "key" : "Hydra Bag",
+    "value" : -19
+  }, {
+    "key" : "Leather Mantle",
+    "value" : 19
+  }, {
+    "key" : "Storm Around",
+    "value" : 19
+  }, {
+    "key" : "Death",
+    "value" : 19
+  }, {
+    "key" : "Chakra",
+    "value" : 19
+  }, {
+    "key" : "Odin",
+    "value" : 19
+  }, {
+    "key" : "Charge+7",
+    "value" : -19
+  }, {
+    "key" : "Gusty Wind",
+    "value" : -19
+  }, {
+    "key" : "Defend",
+    "value" : 19
+  }, {
+    "key" : "CursedRing",
+    "value" : 19
+  }, {
+    "key" : "Dryad",
+    "value" : 19
+  }, {
+    "key" : "BlueDragon",
+    "value" : -19
+  }, {
+    "key" : "21-Right",
+    "value" : -19
+  }, {
+    "key" : "41-Left",
+    "value" : 19
+  }, {
+    "key" : "117-Left",
+    "value" : -19
+  }, {
+    "key" : "Hunting Bow",
+    "value" : -18
+  }, {
+    "key" : "Crystal Shield",
+    "value" : 18
+  }, {
+    "key" : "Despair 2",
+    "value" : -18
+  }, {
+    "key" : "Frozen Cry",
+    "value" : 18
+  }, {
+    "key" : "Charge+10",
+    "value" : 18
+  }, {
+    "key" : "Nanoflare",
+    "value" : 18
+  }, {
+    "key" : "Tentacle",
+    "value" : -18
+  }, {
+    "key" : "Thief Male",
+    "value" : 18
+  }, {
+    "key" : "77-Right",
+    "value" : 18
+  }, {
+    "key" : "91-Right",
+    "value" : 18
+  }, {
+    "key" : "Bizen Boat-Item",
+    "value" : -17
+  }, {
+    "key" : "Oink",
+    "value" : -17
+  }, {
+    "key" : "Icewolf Bite",
+    "value" : -17
+  }, {
+    "key" : "Mighty Sword",
+    "value" : 17
+  }, {
+    "key" : "WhiteMagic",
+    "value" : 17
+  }, {
+    "key" : "EquipAxe",
+    "value" : -17
+  }, {
+    "key" : "Move+3",
+    "value" : 17
+  }, {
+    "key" : "Bard Male",
+    "value" : 17
+  }, {
+    "key" : "Mindflayer",
+    "value" : -17
+  }, {
+    "key" : "Minotaur",
+    "value" : -17
+  }, {
+    "key" : "5-Left",
+    "value" : -17
+  }, {
+    "key" : "18-Left",
+    "value" : -17
+  }, {
+    "key" : "20-Right",
+    "value" : -17
+  }, {
+    "key" : "45-Right",
+    "value" : 17
+  }, {
+    "key" : "Feather Boots",
+    "value" : 16
+  }, {
+    "key" : "Bestiary",
+    "value" : 16
+  }, {
+    "key" : "Poles",
+    "value" : 16
+  }, {
+    "key" : "Whale Whisker",
+    "value" : 16
+  }, {
+    "key" : "Calm Spirit",
+    "value" : -16
+  }, {
+    "key" : "Fairy",
+    "value" : 16
+  }, {
+    "key" : "Sky Demon",
+    "value" : 16
+  }, {
+    "key" : "Pitfall",
+    "value" : 16
+  }, {
+    "key" : "Bolt 4",
+    "value" : -16
+  }, {
+    "key" : "FaithBoost",
+    "value" : -16
+  }, {
+    "key" : "DrawOut",
+    "value" : 16
+  }, {
+    "key" : "MonsterTalk",
+    "value" : 16
+  }, {
+    "key" : "Doppelganger",
+    "value" : 16
+  }, {
+    "key" : "Coeurl",
+    "value" : 16
+  }, {
+    "key" : "102-Left",
+    "value" : -16
+  }, {
+    "key" : "125-Left",
+    "value" : 16
+  }, {
+    "key" : "125-Right",
+    "value" : -16
+  }, {
+    "key" : "Dagger",
+    "value" : -15
+  }, {
+    "key" : "Sage Staff",
+    "value" : -15
+  }, {
+    "key" : "Flame Shield",
+    "value" : -15
+  }, {
+    "key" : "Blaze Gun",
+    "value" : -15
+  }, {
+    "key" : "Robes",
+    "value" : 15
+  }, {
+    "key" : "Chameleon Robe",
+    "value" : -15
+  }, {
+    "key" : "Lava Ball",
+    "value" : 15
+  }, {
+    "key" : "Levitate",
+    "value" : -15
+  }, {
+    "key" : "GenjiGauntlet",
+    "value" : -15
+  }, {
+    "key" : "Summoner Female",
+    "value" : 15
+  }, {
+    "key" : "Archer Female",
+    "value" : -15
+  }, {
+    "key" : "33-Right",
+    "value" : 15
+  }, {
+    "key" : "37-Left",
+    "value" : -15
+  }, {
+    "key" : "89-Right",
+    "value" : -15
+  }, {
+    "key" : "113-Right",
+    "value" : -15
+  }, {
+    "key" : "Hi-Potion-Item",
+    "value" : 14
+  }, {
+    "key" : "Persuade",
+    "value" : 14
+  }, {
+    "key" : "Ninja Sword",
+    "value" : -14
+  }, {
+    "key" : "Squidraken",
+    "value" : -14
+  }, {
+    "key" : "Vampire",
+    "value" : 14
+  }, {
+    "key" : "31-Left",
+    "value" : -14
+  }, {
+    "key" : "62-Right",
+    "value" : 14
+  }, {
+    "key" : "Mythril Armor",
+    "value" : 13
+  }, {
+    "key" : "Elixir-Item",
+    "value" : 13
+  }, {
+    "key" : "Spike Shoes",
+    "value" : 13
+  }, {
+    "key" : "Bio Sanctus",
+    "value" : -13
+  }, {
+    "key" : "Teleport 2",
+    "value" : -13
+  }, {
+    "key" : "FaithSave",
+    "value" : -13
+  }, {
+    "key" : "AutoPotion",
+    "value" : -13
+  }, {
+    "key" : "HighlySkilled",
+    "value" : -13
+  }, {
+    "key" : "39-Right",
+    "value" : 13
+  }, {
+    "key" : "64-Right",
+    "value" : -13
+  }, {
+    "key" : "Cherche",
+    "value" : 12
+  }, {
+    "key" : "Clothing",
+    "value" : 12
+  }, {
+    "key" : "Kiyomori",
+    "value" : -12
+  }, {
+    "key" : "Tentacle Skill",
+    "value" : 12
+  }, {
+    "key" : "14-Left",
+    "value" : -12
+  }, {
+    "key" : "67-Left",
+    "value" : 12
+  }, {
+    "key" : "73-Left",
+    "value" : -12
+  }, {
+    "key" : "Materia Blade",
+    "value" : 11
+  }, {
+    "key" : "Glacier Gun",
+    "value" : -11
+  }, {
+    "key" : "Robe of Lords",
+    "value" : -11
+  }, {
+    "key" : "Platinum Shield",
+    "value" : -11
+  }, {
+    "key" : "Self Destruct",
+    "value" : 11
+  }, {
+    "key" : "Wing Attack",
+    "value" : 11
+  }, {
+    "key" : "Martial Arts",
+    "value" : -11
+  }, {
+    "key" : "Demi 3",
+    "value" : 11
+  }, {
+    "key" : "Knight Male",
+    "value" : -11
+  }, {
+    "key" : "36-Left",
+    "value" : 11
+  }, {
+    "key" : "44-Right",
+    "value" : -11
+  }, {
+    "key" : "93-Right",
+    "value" : -11
+  }, {
+    "key" : "97-Left",
+    "value" : 11
+  }, {
+    "key" : "Brave",
+    "value" : 10
+  }, {
+    "key" : "Blind Knife",
+    "value" : -10
+  }, {
+    "key" : "Long Sword",
+    "value" : 10
+  }, {
+    "key" : "Black Hood",
+    "value" : 10
+  }, {
+    "key" : "Catfish Skill",
+    "value" : 10
+  }, {
+    "key" : "Bio Lapis",
+    "value" : 10
+  }, {
+    "key" : "Void Storage",
+    "value" : 10
+  }, {
+    "key" : "Magic Attack UP",
+    "value" : 10
+  }, {
+    "key" : "DefenseRing",
+    "value" : 10
+  }, {
+    "key" : "Swine",
+    "value" : 10
+  }, {
+    "key" : "Mime Female",
+    "value" : 10
+  }, {
+    "key" : "Ghost",
+    "value" : 10
+  }, {
+    "key" : "19-Left",
+    "value" : 10
+  }, {
+    "key" : "34-Left",
+    "value" : -10
+  }, {
+    "key" : "104-Right",
+    "value" : 10
+  }, {
+    "key" : "112-Right",
+    "value" : -10
+  }, {
+    "key" : "Reflect Ring",
+    "value" : 9
+  }, {
+    "key" : "Staves",
+    "value" : -9
+  }, {
+    "key" : "Noxious Gas",
+    "value" : 9
+  }, {
+    "key" : "Tornado",
+    "value" : -9
+  }, {
+    "key" : "Choco Attack",
+    "value" : -9
+  }, {
+    "key" : "Thunder Soul",
+    "value" : 9
+  }, {
+    "key" : "Cyclops",
+    "value" : -9
+  }, {
+    "key" : "Negotiate",
+    "value" : 9
+  }, {
+    "key" : "Sylph",
+    "value" : 9
+  }, {
+    "key" : "LongStatus",
+    "value" : -9
+  }, {
+    "key" : "BasicSkill",
+    "value" : 9
+  }, {
+    "key" : "Squire Male",
+    "value" : -9
+  }, {
+    "key" : "Fairy Harp",
+    "value" : 8
+  }, {
+    "key" : "Holy",
+    "value" : -8
+  }, {
+    "key" : "Zombie Touch",
+    "value" : 8
+  }, {
+    "key" : "Move-MPUp",
+    "value" : 8
+  }, {
+    "key" : "N-KaiArmlet",
+    "value" : -8
+  }, {
+    "key" : "Taiju",
+    "value" : -8
+  }, {
+    "key" : "7-Right",
+    "value" : -8
+  }, {
+    "key" : "15-Right",
+    "value" : 8
+  }, {
+    "key" : "23-Right",
+    "value" : 8
+  }, {
+    "key" : "47-Right",
+    "value" : -8
+  }, {
+    "key" : "54-Right",
+    "value" : -8
+  }, {
+    "key" : "Knives",
+    "value" : -7
+  }, {
+    "key" : "Lucavi Skill",
+    "value" : -7
+  }, {
+    "key" : "Angel Song",
+    "value" : 7
+  }, {
+    "key" : "Choco Esuna",
+    "value" : 7
+  }, {
+    "key" : "Jump+3",
+    "value" : -7
+  }, {
+    "key" : "19-Right",
+    "value" : 7
+  }, {
+    "key" : "87-Right",
+    "value" : -7
+  }, {
+    "key" : "Soft-Item",
+    "value" : 6
+  }, {
+    "key" : "Labyrinth Skill",
+    "value" : 6
+  }, {
+    "key" : "Charge+4",
+    "value" : -6
+  }, {
+    "key" : "Feather Bomb",
+    "value" : -6
+  }, {
+    "key" : "Tail Swing",
+    "value" : -6
+  }, {
+    "key" : "Last Song",
+    "value" : -6
+  }, {
+    "key" : "Shell 2",
+    "value" : -6
+  }, {
+    "key" : "EquipBow",
+    "value" : 6
+  }, {
+    "key" : "SummonMagic",
+    "value" : 6
+  }, {
+    "key" : "1-Left",
+    "value" : 6
+  }, {
+    "key" : "51-Right",
+    "value" : -6
+  }, {
+    "key" : "Stop",
+    "value" : 5
+  }, {
+    "key" : "Mimic Daravon",
+    "value" : -5
+  }, {
+    "key" : "Staff",
+    "value" : 5
+  }, {
+    "key" : "Stabilize Time",
+    "value" : 5
+  }, {
+    "key" : "Yin Yang Magic",
+    "value" : -5
+  }, {
+    "key" : "Sand Storm",
+    "value" : 5
+  }, {
+    "key" : "Damage Split",
+    "value" : 5
+  }, {
+    "key" : "CounterMagic",
+    "value" : 5
+  }, {
+    "key" : "ArrowGuard",
+    "value" : -5
+  }, {
+    "key" : "EquipGun",
+    "value" : 5
+  }, {
+    "key" : "BladeGrasp",
+    "value" : -5
+  }, {
+    "key" : "Draugr",
+    "value" : -5
+  }, {
+    "key" : "12-Left",
+    "value" : 5
+  }, {
+    "key" : "30-Left",
+    "value" : 5
+  }, {
+    "key" : "41-Right",
+    "value" : -5
+  }, {
+    "key" : "79-Right",
+    "value" : -5
+  }, {
+    "key" : "95-Right",
+    "value" : -5
+  }, {
+    "key" : "LeftTeam",
+    "value" : 4
+  }, {
+    "key" : "Murasame-Item",
+    "value" : 4
+  }, {
+    "key" : "Grand Helmet",
+    "value" : 4
+  }, {
+    "key" : "Disillusion",
+    "value" : 4
+  }, {
+    "key" : "5",
+    "value" : 4
+  }, {
+    "key" : "Titan",
+    "value" : 4
+  }, {
+    "key" : "Snake Carrier",
+    "value" : -4
+  }, {
+    "key" : "Steal Armor",
+    "value" : -4
+  }, {
+    "key" : "Preach",
+    "value" : 4
+  }, {
+    "key" : "Beam",
+    "value" : 4
+  }, {
+    "key" : "Cockatrice",
+    "value" : -4
+  }, {
+    "key" : "16-Right",
+    "value" : 4
+  }, {
+    "key" : "81-Left",
+    "value" : -4
+  }, {
+    "key" : "96-Right",
+    "value" : -4
+  }, {
+    "key" : "Faith",
+    "value" : 3
+  }, {
+    "key" : "Save the Queen",
+    "value" : 3
+  }, {
+    "key" : "3",
+    "value" : 3
+  }, {
+    "key" : "CT",
+    "value" : -3
+  }, {
+    "key" : "108Gems",
+    "value" : 3
+  }, {
+    "key" : "Move+1",
+    "value" : -3
+  }, {
+    "key" : "Teleport2",
+    "value" : -3
+  }, {
+    "key" : "GreatMalboro",
+    "value" : -3
+  }, {
+    "key" : "42-Left",
+    "value" : -3
+  }, {
+    "key" : "Wizard Rod",
+    "value" : -2
+  }, {
+    "key" : "Javelin",
+    "value" : -2
+  }, {
+    "key" : "Fabrics",
+    "value" : -2
+  }, {
+    "key" : "Crystal Mail",
+    "value" : -2
+  }, {
+    "key" : "Mythril Sword",
+    "value" : 2
+  }, {
+    "key" : "Cachusha",
+    "value" : 2
+  }, {
+    "key" : "Stick",
+    "value" : -2
+  }, {
+    "key" : "HP Restore",
+    "value" : 2
+  }, {
+    "key" : "Undeath Skill",
+    "value" : -2
+  }, {
+    "key" : "AngelRing",
+    "value" : -2
+  }, {
+    "key" : "RubberShoes",
+    "value" : -2
+  }, {
+    "key" : "Dancer Female",
+    "value" : -2
+  }, {
+    "key" : "18-Right",
+    "value" : 2
+  }, {
+    "key" : "92-Right",
+    "value" : -2
+  }, {
+    "key" : "98-Right",
+    "value" : -2
+  }, {
+    "key" : "110-Right",
+    "value" : -2
+  }, {
+    "key" : "Shields",
+    "value" : 1
+  }, {
+    "key" : "Romanda Gun",
+    "value" : -1
+  }, {
+    "key" : "Hi-Ether-Item",
+    "value" : 1
+  }, {
+    "key" : "Golem",
+    "value" : 1
+  }, {
+    "key" : "Blind",
+    "value" : 1
+  }, {
+    "key" : "Leviathan",
+    "value" : 1
+  }, {
+    "key" : "Arm Aim",
+    "value" : 1
+  }, {
+    "key" : "Bio Immortuos",
+    "value" : -1
+  }, {
+    "key" : "Magic Barrier",
+    "value" : 1
+  }, {
+    "key" : "LavaWalking",
+    "value" : -1
+  }, {
+    "key" : "TimeMagic",
+    "value" : -1
+  }, {
+    "key" : "YinYangMagic",
+    "value" : -1
+  }, {
+    "key" : "LeatherMantle",
+    "value" : -1
+  }, {
+    "key" : "Waterwalking",
+    "value" : 1
+  }, {
+    "key" : "GerminasBoots",
+    "value" : -1
+  }, {
+    "key" : "10-Left",
+    "value" : -1
+  }, {
+    "key" : "24-Left",
+    "value" : -1
+  }, {
+    "key" : "29-Right",
+    "value" : 1
+  }, {
+    "key" : "Scorpion Tail",
+    "value" : 0
+  }, {
+    "key" : "Look of Fright",
+    "value" : 0
+  }, {
+    "key" : "BraveBoost",
+    "value" : 0
+  }, {
+    "key" : "ThrowItem",
+    "value" : 0
+  }, {
+    "key" : "Mediator Male",
+    "value" : 0
+  }, {
+    "key" : "Mime Male",
+    "value" : 0
+  }, {
+    "key" : "RedChocobo",
+    "value" : 0
+  }, {
+    "key" : "Sekhret",
+    "value" : 0
+  }, {
+    "key" : "43-Right",
+    "value" : 0
+  }, {
+    "key" : "115-Left",
+    "value" : 0
+  } ]
+}

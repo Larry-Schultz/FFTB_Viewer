@@ -1,5 +1,6 @@
 package fft_battleground.botland;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,11 +11,11 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.TeamData;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.BettingEndsEvent;
-import fft_battleground.event.model.MatchInfoEvent;
-import fft_battleground.event.model.TeamInfoEvent;
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.BettingEndsEvent;
+import fft_battleground.event.detector.model.MatchInfoEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.tournament.model.Unit;
@@ -27,6 +28,7 @@ public class BotlandHelper {
 
 	protected Integer currentAmountToBetWith;
 	protected List<BetEvent> otherPlayerBets;
+	protected Set<UnitInfoEvent> unitInfoEvents;
 	protected Map<String, PlayerRecord> playerBetRecords;
 	protected BattleGroundTeam left;
 	protected BattleGroundTeam right;
@@ -41,6 +43,7 @@ public class BotlandHelper {
 	
 	public BotlandHelper(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, List<BetEvent> bets, Set<UnitInfoEvent> unitInfoEvents) {
 		this.otherPlayerBets = bets;
+		this.unitInfoEvents = unitInfoEvents;
 		this.currentAmountToBetWith = currentAmountToBetWith;
 		this.left = left;
 		this.right = right;
@@ -67,6 +70,21 @@ public class BotlandHelper {
 		this.betsBySide = eventsBySide;
 		
 		return eventsBySide;
+	}
+	
+	public Pair<List<Unit>, List<Unit>> sortUnitsBySide() {
+		List<Unit> leftUnits = new ArrayList<>();
+		List<Unit> rightUnits = new ArrayList<>();
+		for(UnitInfoEvent event: this.unitInfoEvents) {
+			if(event.getTeam() == this.left) {
+				leftUnits.add(event.getUnit());
+			} else if (event.getTeam() == this.right) {
+				rightUnits.add(event.getUnit());
+			}
+		}
+		
+		Pair<List<Unit>, List<Unit>> result = new ImmutablePair<>(leftUnits, rightUnits);
+		return result;
 	}
 	
 	/**

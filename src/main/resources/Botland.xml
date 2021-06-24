@@ -91,4 +91,8 @@
 		<param id="betType" description="type of bet this bot makes">allin</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">right</param>
 	</bot>
+	<bot id="winner1000geneticbot" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-1000.txt</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+	</bot>
 </bots>

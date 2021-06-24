@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.FightEntryEvent;
+import fft_battleground.event.detector.model.FightEntryEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.model.Gender;
 

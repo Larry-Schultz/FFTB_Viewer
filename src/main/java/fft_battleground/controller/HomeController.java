@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
-import fft_battleground.botland.model.SkillType;
 import fft_battleground.controller.model.BotLeaderboardData;
 import fft_battleground.controller.model.BotlandData;
 import fft_battleground.controller.model.ExpLeaderboardData;
@@ -69,6 +68,7 @@ import fft_battleground.repo.repository.BotsHourlyDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
 import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.repo.util.SkillType;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;

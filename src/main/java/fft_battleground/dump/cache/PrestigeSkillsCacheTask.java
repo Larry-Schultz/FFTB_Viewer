@@ -5,10 +5,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import fft_battleground.botland.model.SkillType;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.util.SkillCategory;
-
+import fft_battleground.repo.util.SkillType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

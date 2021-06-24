@@ -19,14 +19,15 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.botland.bot.DataBetBot;
+import fft_battleground.botland.bot.GeneticBot;
 import fft_battleground.botland.bot.ArbitraryBot;
 import fft_battleground.botland.bot.BetCountBot;
 import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.event.BattleGroundEventBackPropagation;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.BettingBeginsEvent;
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.BettingBeginsEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.repository.BotsRepo;
@@ -161,6 +162,8 @@ public class BetBotFactory {
 			betBot = new OddsBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "arbitrarybot")) {
 			betBot = new ArbitraryBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "genebot")) {
+			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 		} else {
 			log.error("botData with data: {} failed", botData);
 		}

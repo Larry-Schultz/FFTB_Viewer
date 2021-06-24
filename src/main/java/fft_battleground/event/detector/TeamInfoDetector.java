@@ -8,7 +8,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 

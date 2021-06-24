@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.OtherPlayerSkillOnCooldownEvent;
-import fft_battleground.event.model.SkillOnCooldownEvent;
+import fft_battleground.event.detector.model.OtherPlayerSkillOnCooldownEvent;
+import fft_battleground.event.detector.model.SkillOnCooldownEvent;
 import fft_battleground.model.ChatMessage;
 
 public class OtherPlayerSkillOnCooldownDetector implements EventDetector<OtherPlayerSkillOnCooldownEvent> {

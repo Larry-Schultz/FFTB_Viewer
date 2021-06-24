@@ -6,8 +6,8 @@ import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.BuySkillRandomEvent;
-import fft_battleground.event.model.PlayerSkillEvent;
+import fft_battleground.event.detector.model.BuySkillRandomEvent;
+import fft_battleground.event.detector.model.PlayerSkillEvent;
 import fft_battleground.model.ChatMessage;
 
 public class BuySkillRandomDetector implements EventDetector<BuySkillRandomEvent> {

@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.repo.model.PlayerRecord;
 import lombok.extern.slf4j.Slf4j;
 

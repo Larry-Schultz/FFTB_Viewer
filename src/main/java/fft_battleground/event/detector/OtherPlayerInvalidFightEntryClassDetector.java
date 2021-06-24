@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.InvalidFightEntryClassEvent;
-import fft_battleground.event.model.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.detector.model.InvalidFightEntryClassEvent;
+import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntryClassEvent;
 import fft_battleground.model.ChatMessage;
 
 public class OtherPlayerInvalidFightEntryClassDetector implements EventDetector<OtherPlayerInvalidFightEntryClassEvent> {

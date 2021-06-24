@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fft_battleground.botland.model.BattleGroundEventType;
-import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.metrics.AccessTracker;
 import fft_battleground.repo.model.Match;
 import fft_battleground.util.GenericElementOrdering;

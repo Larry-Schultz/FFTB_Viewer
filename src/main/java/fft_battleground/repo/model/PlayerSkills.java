@@ -28,8 +28,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.botland.model.SkillType;
 import fft_battleground.repo.util.SkillCategory;
+import fft_battleground.repo.util.SkillType;
 import fft_battleground.util.BooleanConverter;
 
 import lombok.AllArgsConstructor;

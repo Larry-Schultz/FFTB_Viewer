@@ -11,14 +11,14 @@ import org.thymeleaf.util.StringUtils;
 
 import fft_battleground.botland.model.Bet;
 import fft_battleground.event.BattleGroundEventBackPropagation;
-import fft_battleground.event.model.BadBetEvent;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.BetInfoEvent;
-import fft_battleground.event.model.BettingBeginsEvent;
-import fft_battleground.event.model.BettingEndsEvent;
-import fft_battleground.event.model.MatchInfoEvent;
-import fft_battleground.event.model.TeamInfoEvent;
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.BadBetEvent;
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.BetInfoEvent;
+import fft_battleground.event.detector.model.BettingBeginsEvent;
+import fft_battleground.event.detector.model.BettingEndsEvent;
+import fft_battleground.event.detector.model.MatchInfoEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.repository.BotsRepo;
@@ -56,9 +56,11 @@ public class BotLand extends TimerTask {
 	@SneakyThrows
 	public void run() {
 		Pair<List<BetEvent>, List<BetEvent>> betsBySide = this.helper.sortBetsBySide();
+		this.helper.setUnitsBySide(this.helper.sortUnitsBySide());
 		this.primaryBot.setBetsBySide(betsBySide);
 		this.primaryBot.setCurrentAmountToBetWith(helper.getCurrentAmountToBetWith());
 		this.primaryBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
+		this.primaryBot.setUnitsBySide(this.helper.getUnitsBySide());
 		//get results from main bot
 		Bet bet = primaryBot.call();
 		//send results to irc
@@ -71,6 +73,7 @@ public class BotLand extends TimerTask {
 					BetterBetBot currentSubordinateBot = this.subordinateBots.get(i);
 					currentSubordinateBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
 					currentSubordinateBot.setBetsBySide(betsBySide);
+					currentSubordinateBot.setUnitsBySide(this.helper.getUnitsBySide());
 					Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(currentSubordinateBot.getDateFormat(), currentSubordinateBot.getName());
 					currentSubordinateBot.setCurrentAmountToBetWith(botDataFromDatabase.getBalance());
 					Bet secondaryBet = currentSubordinateBot.call();

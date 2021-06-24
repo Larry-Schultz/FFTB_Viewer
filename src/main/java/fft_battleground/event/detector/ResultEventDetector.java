@@ -3,13 +3,13 @@ package fft_battleground.event.detector;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.ResultEvent;
+import fft_battleground.event.detector.model.ResultEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 
 public class ResultEventDetector implements EventDetector<ResultEvent> {
 
-	private static final String SEARCH_STRING = " team was victorious! Next match starting soon...";
+	private static final String SEARCH_STRING = " Team was victorious! Next match starting soon...";
 	
 	@Override
 	public ResultEvent detect(ChatMessage message) {

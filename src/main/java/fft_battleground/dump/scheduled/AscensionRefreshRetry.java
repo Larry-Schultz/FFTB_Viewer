@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.dump.DumpDataProvider;
 import fft_battleground.dump.DumpService;
-import fft_battleground.event.PlayerSkillRefresh;
-import fft_battleground.event.model.PlayerSkillEvent;
-import fft_battleground.event.model.PrestigeSkillsEvent;
+import fft_battleground.event.detector.model.PlayerSkillEvent;
+import fft_battleground.event.detector.model.PrestigeSkillsEvent;
+import fft_battleground.event.model.PlayerSkillRefresh;
 import fft_battleground.exception.AscensionException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.repo.model.PlayerSkills;

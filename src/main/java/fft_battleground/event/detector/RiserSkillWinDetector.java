@@ -3,7 +3,7 @@ package fft_battleground.event.detector;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.RiserSkillWinEvent;
+import fft_battleground.event.detector.model.RiserSkillWinEvent;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.util.GambleUtil;
 

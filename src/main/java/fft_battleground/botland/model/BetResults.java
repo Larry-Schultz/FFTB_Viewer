@@ -5,10 +5,11 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.botland.BetterBetBot;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.BettingEndsEvent;
-import fft_battleground.event.model.MatchInfoEvent;
-import fft_battleground.event.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.BettingEndsEvent;
+import fft_battleground.event.detector.model.MatchInfoEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
+import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.AllArgsConstructor;
 import lombok.Data;

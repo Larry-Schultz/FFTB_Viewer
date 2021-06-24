@@ -3,7 +3,7 @@ package fft_battleground.event.detector;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.ExpEvent;
+import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.model.ChatMessage;
 
 @SuppressWarnings("rawtypes")

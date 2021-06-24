@@ -1,6 +1,7 @@
 package fft_battleground.tournament.model;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -8,12 +9,17 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
 import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Unit {
+	public static final List<String> itemsToPrefix = Arrays.asList(new String[] {"Bracer", "Elixir", "Kiyomori", "Soft", "X-Potion", "Remedy", "Muramasa",
+			"Maiden's Kiss", "Masamune", "Murasame", "Eye Drop", "Shuriken", "Antidote", "Hi-Potion", "Heaven's Cloud", "Bizen Boat",
+			"Hi-Ether", "Chirijiraden", "Kikuichimoji", "Potion", "Holy Water", "Spear", "Echo Grass", "Phoenix Down", "Ether"});
+	public static final String itemSuffix = "-Item";
+	
 	@JsonProperty("Name")
 	private String Name;
 	@JsonProperty("Gender")
@@ -94,6 +100,47 @@ public class Unit {
 		}
 		
 		return builder.toString();
+	}
+	
+	public List<String> getUnitGeneAbilityElements() {
+		List<String> elements = new LinkedList<>();
+		elements.add(this.className);
+		elements.add(this.ActionSkill);
+		elements.add(this.ReactionSkill);
+		elements.add(this.MoveSkill);
+		
+		String mainHand = this.addItemSuffixIfNecessary(this.Mainhand);
+		elements.add(mainHand);
+		
+		String offHand = this.addItemSuffixIfNecessary(this.Offhand);
+		elements.add(offHand);
+
+		String head = this.addItemSuffixIfNecessary(this.Head);
+		elements.add(head);
+		
+		String armor = this.addItemSuffixIfNecessary(this.Armor);
+		elements.add(armor);
+		
+		String accessory = this.addItemSuffixIfNecessary(this.Accessory);
+		elements.add(accessory);
+		
+		if(this.ClassSkills != null) {
+			elements.addAll(this.ClassSkills);
+		}
+		if(this.ExtraSkills != null) {
+			elements.addAll(ExtraSkills);
+		}
+		
+		return elements;
+	}
+	
+	private String addItemSuffixIfNecessary(final String item) {
+		String result = item;
+		if(itemsToPrefix.contains(item)) {
+			result = this.Offhand + itemSuffix;
+		}
+		
+		return result;
 	}
 	
 }

@@ -10,7 +10,7 @@ import java.util.Optional;
 import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BotParam;
-import fft_battleground.event.model.BetEvent;
+import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;

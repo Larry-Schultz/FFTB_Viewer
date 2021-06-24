@@ -28,8 +28,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.botland.model.BetResults;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.BattleGroundTeamConverter;
 

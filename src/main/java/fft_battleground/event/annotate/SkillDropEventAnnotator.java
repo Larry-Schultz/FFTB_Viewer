@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.event.model.SkillDropEvent;
+import fft_battleground.event.detector.model.SkillDropEvent;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.tournament.Tips;
 import fft_battleground.tournament.TournamentService;

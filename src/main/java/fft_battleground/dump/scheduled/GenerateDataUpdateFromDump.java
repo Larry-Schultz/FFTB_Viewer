@@ -14,10 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fft_battleground.dump.DumpService;
-import fft_battleground.event.model.BattleGroundEvent;
-import fft_battleground.event.model.PlayerSkillEvent;
-import fft_battleground.event.model.fake.ClassBonusEvent;
-import fft_battleground.event.model.fake.SkillBonusEvent;
+import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.detector.model.PlayerSkillEvent;
+import fft_battleground.event.detector.model.fake.ClassBonusEvent;
+import fft_battleground.event.detector.model.fake.SkillBonusEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.repo.model.ClassBonus;
 import fft_battleground.repo.model.PlayerSkills;

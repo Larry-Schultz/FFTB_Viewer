@@ -14,20 +14,20 @@ import com.google.common.collect.Sets;
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
 import fft_battleground.botland.model.BetResults;
-import fft_battleground.botland.model.DatabaseResultsData;
 import fft_battleground.dump.DumpService;
-import fft_battleground.event.model.BadBetEvent;
-import fft_battleground.event.model.BalanceEvent;
-import fft_battleground.event.model.BattleGroundEvent;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.BetInfoEvent;
-import fft_battleground.event.model.BettingBeginsEvent;
-import fft_battleground.event.model.BettingEndsEvent;
-import fft_battleground.event.model.FightEntryEvent;
-import fft_battleground.event.model.MatchInfoEvent;
-import fft_battleground.event.model.ResultEvent;
-import fft_battleground.event.model.TeamInfoEvent;
-import fft_battleground.event.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.BadBetEvent;
+import fft_battleground.event.detector.model.BalanceEvent;
+import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.BetInfoEvent;
+import fft_battleground.event.detector.model.BettingBeginsEvent;
+import fft_battleground.event.detector.model.BettingEndsEvent;
+import fft_battleground.event.detector.model.FightEntryEvent;
+import fft_battleground.event.detector.model.MatchInfoEvent;
+import fft_battleground.event.detector.model.ResultEvent;
+import fft_battleground.event.detector.model.TeamInfoEvent;
+import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
@@ -88,7 +88,7 @@ public class EventManager extends Thread {
 						sendBalanceRequest(); //start the WIN/LOSS chain of events
 						bettingCurrently = true;
 						currentBets = new Vector<>();
-						currentUnits = Sets.newConcurrentHashSet();
+						//currentUnits = Sets.newConcurrentHashSet();
 						if(event instanceof BettingBeginsEvent) {
 							BettingBeginsEvent beginEvent = (BettingBeginsEvent) event;
 							this.botLand = this.betBotFactory.createBotLand(currentAmount, currentBets, currentUnits, beginEvent);
@@ -98,6 +98,7 @@ public class EventManager extends Thread {
 					case BETTING_ENDS:
 						bettingCurrently = false;
 						BettingEndsEvent bettingEndsEvent = (BettingEndsEvent) event;
+						currentUnits = Sets.newConcurrentHashSet();
 						if(this.botLand != null) {
 							this.botLand.setBettingEndsEvent(bettingEndsEvent);
 						}
@@ -155,7 +156,9 @@ public class EventManager extends Thread {
 						break;
 					case UNIT_INFO:
 						if(event instanceof UnitInfoEvent && this.botLand != null) {
-							this.botLand.addUnitInfo((UnitInfoEvent) event);
+							UnitInfoEvent unitInfoEvent = (UnitInfoEvent) event;
+							this.botLand.addUnitInfo(unitInfoEvent);
+							currentUnits.add(unitInfoEvent);
 						}
 						break;
 					case SKILL_DROP: case PLAYER_SKILL: default:

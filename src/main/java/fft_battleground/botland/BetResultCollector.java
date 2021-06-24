@@ -5,9 +5,8 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.botland.model.BetResults;
-import fft_battleground.event.model.BetEvent;
-import fft_battleground.event.model.ResultEvent;
-
+import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.event.detector.model.ResultEvent;
 import lombok.Data;
 
 @Data

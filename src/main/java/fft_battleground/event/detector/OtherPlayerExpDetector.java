@@ -6,9 +6,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.model.BattleGroundEvent;
-import fft_battleground.event.model.ExpEvent;
-import fft_battleground.event.model.OtherPlayerExpEvent;
+import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.detector.model.ExpEvent;
+import fft_battleground.event.detector.model.OtherPlayerExpEvent;
 import fft_battleground.model.ChatMessage;
 
 public class OtherPlayerExpDetector implements EventDetector<OtherPlayerExpEvent> {

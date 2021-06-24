@@ -8,8 +8,10 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class GenericPairing<U, V> {
 	private U key;
@@ -23,5 +25,10 @@ public class GenericPairing<U, V> {
 	public static <U,V> List<GenericPairing<U,V>> convertMapToGenericPairList(Map<U,V> map) {
 		List<GenericPairing<U,V>> result = map.keySet().parallelStream().map(key -> new GenericPairing<U,V>(key, map.get(key))).collect(Collectors.toList());
 		return result;
+	}
+	
+	public static <U,V> Map<U,V> convertGenericPairListToMap(List<GenericPairing<U,V>> genericPairingList) {
+		Map<U,V> map = genericPairingList.stream().collect(Collectors.toMap(genericPairing -> genericPairing.getKey(), genericPairing -> genericPairing.getValue()));
+		return map;
 	}
 }
