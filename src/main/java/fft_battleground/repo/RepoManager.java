@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.botland.BetterBetBot;
-import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
@@ -41,6 +40,7 @@ import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.event.model.PlayerSkillRefresh;
 import fft_battleground.exception.IncorrectTypeException;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.util.GambleUtil;
 
 import lombok.SneakyThrows;

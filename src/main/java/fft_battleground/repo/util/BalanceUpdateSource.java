@@ -1,4 +1,4 @@
-package fft_battleground.botland.model;
+package fft_battleground.repo.util;
 
 public enum BalanceUpdateSource {
 	CHAT,

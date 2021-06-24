@@ -21,8 +21,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.botland.model.BalanceType;
-import fft_battleground.botland.model.BalanceUpdateSource;
 import fft_battleground.event.detector.model.BalanceEvent;
+import fft_battleground.repo.util.BalanceUpdateSource;
 import lombok.Data;
 
 @Entity
