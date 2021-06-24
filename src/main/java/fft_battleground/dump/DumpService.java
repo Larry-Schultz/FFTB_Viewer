@@ -42,7 +42,6 @@ import org.xml.sax.InputSource;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
-import fft_battleground.botland.model.BalanceType;
 import fft_battleground.controller.model.PlayerData;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.model.Music;
@@ -72,6 +71,7 @@ import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.repository.SkillBonusRepo;
+import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.repo.util.SkillType;
 import fft_battleground.tournament.MonsterUtils;

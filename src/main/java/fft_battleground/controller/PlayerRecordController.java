@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fft_battleground.botland.model.BalanceType;
 import fft_battleground.controller.model.GilDateGraphEntry;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
@@ -41,6 +40,7 @@ import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.repository.BalanceHistoryRepo;
 import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GenericResponse;

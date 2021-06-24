@@ -3,9 +3,9 @@ package fft_battleground.event.detector.model;
 import java.util.Arrays;
 import java.util.List;
 
-import fft_battleground.botland.model.BalanceType;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
+import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import lombok.Data;
 

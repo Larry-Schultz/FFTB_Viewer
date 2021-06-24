@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.botland.BetterBetBot;
-import fft_battleground.botland.model.BalanceType;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
@@ -49,6 +48,7 @@ import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.repo.util.SkillType;
 import fft_battleground.repo.util.UpdateSource;
