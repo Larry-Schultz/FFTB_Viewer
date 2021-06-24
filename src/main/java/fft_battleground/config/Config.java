@@ -45,10 +45,10 @@ import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
+import fft_battleground.image.Images;
 import fft_battleground.event.detector.OtherPlayerSnubEventDetector;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.model.Images;
 import fft_battleground.repo.repository.ErrorMessageEntryRepo;
 import fft_battleground.util.Router;
 

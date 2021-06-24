@@ -1,4 +1,4 @@
-package fft_battleground.model;
+package fft_battleground.image;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.TeamInfo;
 
 import lombok.AllArgsConstructor;
