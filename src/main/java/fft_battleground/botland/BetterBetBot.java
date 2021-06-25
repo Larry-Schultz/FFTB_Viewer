@@ -1,5 +1,6 @@
 package fft_battleground.botland;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BetterBetBot
 implements Callable<Bet> {
 	protected boolean isBotSubscriber = true;
+	protected PersonalityModule personalityModule = null;
+	protected Map<Integer, Integer> quantiles = Collections.emptyMap();
 	
 	protected Integer currentAmountToBetWith;
 	protected List<BetEvent> otherPlayerBets;
@@ -42,6 +45,9 @@ implements Callable<Bet> {
 	
 	protected Date startTime;
 	protected String dateFormat;
+	
+	protected Float leftScore;
+	protected Float rightScore;
 	
 	public BetterBetBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right) {
 		this.currentAmountToBetWith = currentAmountToBetWith;
@@ -64,17 +70,26 @@ implements Callable<Bet> {
 		return bet;
 	}
 	
+	public String getPersonalityString() {
+		String result = null;
+		if(this.personalityModule != null) {
+			result = this.personalityModule.personalityString(this.getName(), this.leftScore, this.left, this.rightScore, this.right, this.quantiles);
+		}
+		
+		return result;
+	}
+	
 	/**
 	 * Calculate a bet using two scoring algorithms.
 	 * 
 	 * @return
 	 */
 	protected Bet determineBet() {
-		Float leftScore = this.generateLeftScore();
-		Float rightScore = this.generateRightScore();
+		this.leftScore = this.generateLeftScore();
+		this.rightScore = this.generateRightScore();
 		
-		BattleGroundTeam winningTeam = this.determineWinningTeam(leftScore, rightScore);
-		Bet result = this.generateBetAmount(leftScore, rightScore, winningTeam);
+		BattleGroundTeam winningTeam = this.determineWinningTeam(this.leftScore, this.rightScore);
+		Bet result = this.generateBetAmount(this.leftScore, this.rightScore, winningTeam);
 		
 		return result;
 	}

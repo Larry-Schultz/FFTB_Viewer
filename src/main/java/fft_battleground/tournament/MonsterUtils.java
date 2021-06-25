@@ -28,8 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class MonsterUtils {
-	private static final List<String> ELITE_MONSTERS = Arrays.asList(new String[]{"UltimaDemon", "SteelGiant", "Byblos", "Serpentarius", "Tiamat", "DarkBehemoth", "HolyDragon"});
-	private static final List<String> STRONG_MONSTERS = Arrays.asList(new String[]{"Apanda", "ArchaicDemon", "KingBehemoth", "Hydra", "RedDragon", "Sehkret"});
+	private static final List<String> ELITE_MONSTERS = Arrays.asList(new String[]{"RedChocobo", "UltimaDemon", "SteelGiant", "Byblos", "Serpentarius", "Tiamat", "DarkBehemoth", "HolyDragon"});
+	private static final List<String> STRONG_MONSTERS = Arrays.asList(new String[]{"Apanda", "ArchaicDemon", "KingBehemoth", "Hydra", "RedDragon", "Sehkret", "BlueDragon", "Dragon"});
 	private static final List<String> ADDITIONAL_MONSTER_SKILLS = Arrays.asList(new String[] {"RandomMonster"});
 	
 	private static final List<String> JOB_SKILLS = Arrays.asList(new String[] {"BasicSkill","BattleSkill","Item","Charge","PunchArt","Elemental","Jump","DrawOut","Throw","Steal",
