@@ -27,7 +27,7 @@ public class AllegianceDetector implements EventDetector<AllegianceEvent> {
 					break;
 				} else if(StringUtils.contains(str, SEARCH_STRING_2)) {
 					String player = StringUtils.substringBefore(str, ", you are currently allied with the ");
-					String teamName = StringUtils.substringBetween(str, ", you are currently allied with the ", " team.");
+					String teamName = StringUtils.substringBetween(str, ", you are currently allied with the ", " Team.");
 					BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 					event = new AllegianceEvent(player, team);
 					break;
