@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.event.detector.model.BetEvent;

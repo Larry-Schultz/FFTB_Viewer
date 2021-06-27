@@ -12,10 +12,10 @@ import org.mariuszgromada.math.mxparser.Expression;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.model.ResultData;
+import fft_battleground.botland.personality.FactsPersonality;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GambleUtil;
@@ -36,7 +36,7 @@ public class GeneticBot extends BetterBetBot {
 
 	public GeneticBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right) {
 		super(currentAmountToBetWith, left, right);
-		// TODO Auto-generated constructor stub
+		super.personalityModule = new FactsPersonality();
 	}
 
 	@Override

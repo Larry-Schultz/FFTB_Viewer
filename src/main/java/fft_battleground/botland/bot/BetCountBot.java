@@ -6,7 +6,6 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
-import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.BotParam;

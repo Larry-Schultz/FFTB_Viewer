@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
+import fft_battleground.botland.PersonalityModuleFactory;
 import fft_battleground.controller.model.BotLeaderboardData;
 import fft_battleground.controller.model.BotlandData;
 import fft_battleground.controller.model.ExpLeaderboardData;
@@ -90,6 +91,9 @@ public class HomeController {
 	
 	@Autowired
 	private BotsHourlyDataRepo botsHourlyDataRepo;
+	
+	@Autowired
+	private PersonalityModuleFactory personalityModuleFactory;
 	
 	@Autowired
 	private DumpService dumpService;
@@ -253,7 +257,11 @@ public class HomeController {
 		
 		List<String> botNames = botData.parallelStream().map(bots -> bots.getPlayer()).collect(Collectors.toList());
 		Map<String, List<GenericElementOrdering<BotHourlyData>>> botHourlyDataMap = this.botsHourlyDataRepo.getOrderedBotHourlyDataForBots(botNames);
-		BotlandData data = new BotlandData(botData, this.betBotFactory.getIrcName(), this.betBotFactory.getPrimaryBotName(), this.betBotFactory.getBotDataMap(), botHourlyDataMap);
+		
+		Map<String, String> botResponses = this.personalityModuleFactory.getLastBotPersonalityResponses();
+		
+		BotlandData data = new BotlandData(botData, this.betBotFactory.getIrcName(), this.betBotFactory.getPrimaryBotName(), this.betBotFactory.getBotDataMap(), 
+				botHourlyDataMap, botResponses);
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	

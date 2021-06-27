@@ -9,7 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fft_battleground.botland.BetterBetBot;
+import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.model.BetResults;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;

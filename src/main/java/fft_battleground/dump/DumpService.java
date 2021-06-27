@@ -454,12 +454,10 @@ public class DumpService {
 			
 			boolean containsPrestige = false;
 			int prestigeLevel = 0;
-			for(PlayerSkills skill: record.getPlayerSkills()) {
-				if(skill.getSkillType() == SkillType.PRESTIGE) {
-					containsPrestige = true;
-					prestigeLevel++;
-				}
+			if(this.prestigeSkillsCache.get(playerName) != null) {
+				prestigeLevel = this.prestigeSkillsCache.get(playerName).size();
 			}
+			
 			playerData.setContainsPrestige(containsPrestige);
 			playerData.setPrestigeLevel(prestigeLevel);
 			playerData.setExpRank(this.getExpRankLeaderboardByPlayer().get(record.getPlayer()));

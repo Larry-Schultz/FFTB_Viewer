@@ -7,7 +7,6 @@ import java.util.Random;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.botland.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.BotParam;

@@ -1,5 +1,6 @@
 package fft_battleground.repo;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -8,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import fft_battleground.botland.model.BetType;
+import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
@@ -30,6 +32,7 @@ import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
 import fft_battleground.event.detector.TeamInfoDetector;
+import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BetInfoEvent;
@@ -236,6 +239,26 @@ public class DetectorTests {
 		PortraitEvent portraitEvent = (PortraitEvent) event;
 		assertTrue(portraitEvent.getPlayer() != null && portraitEvent.getPortrait() != null
 				&& portraitEvent.getPlayer().equals("otherbrand") && portraitEvent.getPortrait().equals("chocobo"));
+	}
+	
+	@Test
+	public void testAllegianceDetector() {
+		String test1 = "nhammen, you are currently allied with the Brown Team. In the current tournament, you will earn 5 EXP each time Purple Team wins.";
+		ChatMessage message = new ChatMessage("fftbattleground", test1);
+		AllegianceDetector detector = new AllegianceDetector();
+		
+		AllegianceEvent event = detector.detect(message);
+		assertNotNull(event);
+		assertEquals(event.getPlayer(), "nhammen");
+		assertEquals(event.getTeam(), BattleGroundTeam.BROWN);
+		
+		String test2 = "king_smashington, you are currently allied with the Black Team. In the current tournament, you will earn 12 EXP each time White Team wins.";
+		message = new ChatMessage("fftbattleground", test2);
+		event = detector.detect(message);
+		assertNotNull(event);
+		assertEquals(event.getPlayer(), "king_smashington");
+		assertEquals(event.getTeam(), BattleGroundTeam.BLACK);
+		
 	}
 
 	@Test

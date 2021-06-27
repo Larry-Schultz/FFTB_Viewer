@@ -12,37 +12,39 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum BattleGroundTeam {
-	RED(new String[] {"red", "friends"}, 0, "red"),
-	BLUE(new String[] {"blue", "crew"}, 1, "blue"),
-	GREEN(new String[] {"green", "dream"}, 2, "green"),
-	YELLOW(new String[] {"yellow", "fellows"}, 3, "yellow"),
-	WHITE(new String[] {"white", "delight"}, 4, "white"),
-	BLACK(new String[] {"black", "pack"}, 5, "black"),
-	PURPLE(new String[] {"purple", "pals"}, 6, "purple"),
-	BROWN(new String[] {"brown", "town"}, 7, "brown"),
-	CHAMPION(new String[] {"champ", "champion", "champs", "orange"}, 8, "champion"),
-	LEFT(new String[] {"left", "p1", "player1", "t1", "team1"}, null, "left"),
-	RIGHT(new String[] {"right", "p2", "player2", "t2", "team2"}, null, "right"),
-	RANDOM(new String[] {"random"}, null, "random"), 
-	NONE(new String[] {"none"}, -1, "none");
+	RED(new String[] {"red", "friends"}, 0, "red", "friends"),
+	BLUE(new String[] {"blue", "crew"}, 1, "blue", "crew"),
+	GREEN(new String[] {"green", "dream"}, 2, "green", "dream"),
+	YELLOW(new String[] {"yellow", "fellows"}, 3, "yellow", "fellows"),
+	WHITE(new String[] {"white", "delight"}, 4, "white", "delight"),
+	BLACK(new String[] {"black", "pack"}, 5, "black", "pack"),
+	PURPLE(new String[] {"purple", "pals"}, 6, "purple", "pals"),
+	BROWN(new String[] {"brown", "town"}, 7, "brown", "town"),
+	CHAMPION(new String[] {"champ", "champion", "champs", "orange"}, 8, "champion", "champs"),
+	LEFT(new String[] {"left", "p1", "player1", "t1", "team1"}, null, "left", "player1"),
+	RIGHT(new String[] {"right", "p2", "player2", "t2", "team2"}, null, "right", "player2"),
+	RANDOM(new String[] {"random"}, null, "random", null), 
+	NONE(new String[] {"none"}, -1, "none", "none");
 	
 	private static Random random;
 	
 	private Set<String> teamNames;
 	private Integer teamCode;
 	private String properName;
+	private String informalName;
 	
 	static {
 		random = new Random();
 	}
 	
-	BattleGroundTeam(String[] teamNames, Integer teamCode, String properName) {
+	BattleGroundTeam(String[] teamNames, Integer teamCode, String properName, String informalName) {
 		List<String> teamNamesList = Arrays.asList(teamNames);
 		this.teamNames = new HashSet<String>();
 		this.teamNames.addAll(teamNamesList);
 		
 		this.teamCode = teamCode;
 		this.properName = properName;
+		this.informalName = informalName;
 	}
 	
 	public static BattleGroundTeam parse(String teamName) {
@@ -126,6 +128,10 @@ public enum BattleGroundTeam {
 	@JsonValue
 	public String getProperName() {
 		return this.properName;
+	}
+	
+	public String getInformalName() {
+		return this.informalName;
 	}
 	
 }

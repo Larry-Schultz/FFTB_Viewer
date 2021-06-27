@@ -1,4 +1,4 @@
-package fft_battleground.botland;
+package fft_battleground.botland.bot;
 
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +12,7 @@ import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.model.TeamData;
+import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -27,7 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BetterBetBot
 implements Callable<Bet> {
 	protected boolean isBotSubscriber = true;
-	protected PersonalityModule personalityModule = null;
+	
+	protected String personalityName;
+	protected PersonalityModule personalityModule;
 	protected Map<Integer, Integer> quantiles = Collections.emptyMap();
 	
 	protected Integer currentAmountToBetWith;
@@ -70,7 +73,7 @@ implements Callable<Bet> {
 		return bet;
 	}
 	
-	public String getPersonalityString() {
+	public String generatePersonalityResponse() {
 		String result = null;
 		if(this.personalityModule != null) {
 			result = this.personalityModule.personalityString(this.getName(), this.leftScore, this.left, this.rightScore, this.right, this.quantiles);

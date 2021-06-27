@@ -167,7 +167,7 @@ public class DumpReportsService {
 	public AscensionData generatePrestigeTable() {
 		List<PrestigeTableEntry> results = this.dumpService.getPrestigeSkillsCache().keySet().parallelStream()
 				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player) != null)
-				.filter(player -> !this.dumpService.getPrestigeSkillsCache().get(player).isEmpty())
+				.filter(player -> !this.dumpService.getPrestigeSkillsCache().get(player).isEmpty()) 
 				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player).size() != 417)
 				.map(player -> new PrestigeTableEntry(player,
 						this.dumpService.getPrestigeSkillsCache().get(player).size(), 

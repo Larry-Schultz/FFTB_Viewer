@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -15,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.dump.cache.AllegianceCacheTask;
 import fft_battleground.dump.cache.BalanceCacheTask;
-import fft_battleground.dump.cache.CacheTask;
 import fft_battleground.dump.cache.ClassBonusCacheTask;
 import fft_battleground.dump.cache.ExpCacheTask;
 import fft_battleground.dump.cache.LastActiveCacheTask;
@@ -23,6 +21,7 @@ import fft_battleground.dump.cache.LastFightActiveCacheTask;
 import fft_battleground.dump.cache.PortraitCacheTask;
 import fft_battleground.dump.cache.PrestigeSkillsCacheTask;
 import fft_battleground.dump.cache.SkillBonusCacheTask;
+import fft_battleground.dump.cache.SnubCacheTask;
 import fft_battleground.dump.cache.UserSkillsCacheTask;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.BotLeaderboard;
@@ -105,29 +104,6 @@ implements Runnable {
 	public void run() {
 		this.dumpServiceRef.setPlaylist();
 	}
-	
-}
-
-@Slf4j
-class SnubCacheTask
-extends CacheTask
-implements Callable<Map<String, Integer>> {
-	
-	public SnubCacheTask(List<PlayerRecord> playerRecords) {
-		super(playerRecords);
-	}
-	
-	@Override
-	public Map<String, Integer> call() throws Exception {
-		Map<String, Integer> snubMap = new HashMap<>();
-		log.info("loading snub cache");
-		for(PlayerRecord record: this.playerRecords) {
-			snubMap.put(record.getPlayer(), record.getSnubStreak());
-		}
-		log.info("finished loading snub cache");
-		return snubMap;
-	}
-	
 	
 }
 

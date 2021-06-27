@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,8 +23,10 @@ import fft_battleground.botland.bot.DataBetBot;
 import fft_battleground.botland.bot.GeneticBot;
 import fft_battleground.botland.bot.ArbitraryBot;
 import fft_battleground.botland.bot.BetCountBot;
+import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.botland.model.BotData;
+import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingBeginsEvent;
@@ -59,6 +62,9 @@ public class BetBotFactory {
 	private boolean enableBetting;
 	
 	@Autowired
+	private PersonalityModuleFactory personalityModuleFactory;
+	
+	@Autowired
 	private Router<ChatMessage> messageSenderRouter;
 	
 	@Autowired
@@ -69,6 +75,8 @@ public class BetBotFactory {
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
+	
+	private Timer botlandTimer = new Timer();
 	
 	private Cache<String, Map<String, BotData>> botDataCache = Caffeine.newBuilder()
 			  .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -85,6 +93,8 @@ public class BetBotFactory {
 		land.setBattleGroundEventBackPropagationRef(this.battleGroundEventBackPropagation);
 		land.setIrcName(this.ircName);
 		land.setEnableBetting(this.enableBetting);
+		land.setPersonalityModuleFactoryRef(this.personalityModuleFactory);
+		land.setBotlandTimerRef(this.botlandTimer);
 		
 		this.attachBots(land, currentAmountToBetWith, otherPlayerBets, beginEvent);
 		
@@ -174,6 +184,9 @@ public class BetBotFactory {
 			betBot.setPlayerRecordRepoRef(this.playerRecordRepo);
 			betBot.setDateFormat(botDateString);
 			betBot.setBotSubscriber(this.isBotSubscriber);
+			if(betBot.getPersonalityName() != null) {
+				PersonalityModule module = this.personalityModuleFactory.getPersonalityModuleByName(betBot.getPersonalityName());
+				betBot.setPersonalityModule(module);			}
 		}
 		
 		return betBot;

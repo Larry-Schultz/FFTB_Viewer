@@ -3,12 +3,14 @@ package fft_battleground.botland;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.thymeleaf.util.StringUtils;
 
+import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BadBetEvent;
@@ -42,6 +44,8 @@ public class BotLand extends TimerTask {
 	protected PlayerRecordRepo playerRecordRepo;
 	protected BotsRepo botsRepo;
 	protected BattleGroundEventBackPropagation battleGroundEventBackPropagationRef;
+	protected PersonalityModuleFactory personalityModuleFactoryRef;
+	protected Timer botlandTimerRef;
 	
 	//state data
 	private BetterBetBot primaryBot;
@@ -65,6 +69,11 @@ public class BotLand extends TimerTask {
 		Bet bet = primaryBot.call();
 		//send results to irc
 		this.sendBet(bet);
+		//get personality
+		String personalityMessage = this.primaryBot.generatePersonalityResponse();
+		if(personalityMessage != null) {
+			this.sendPersonalityMessage(personalityMessage);
+		}
 		
 		//call subordinate bots
 		if (this.subordinateBots != null) {
@@ -77,7 +86,9 @@ public class BotLand extends TimerTask {
 					Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(currentSubordinateBot.getDateFormat(), currentSubordinateBot.getName());
 					currentSubordinateBot.setCurrentAmountToBetWith(botDataFromDatabase.getBalance());
 					Bet secondaryBet = currentSubordinateBot.call();
-					log.info("Subordinate bot {} created bet with {}", currentSubordinateBot.getName(), secondaryBet.generateBetString());
+					String secondaryPersonalityMessage = currentSubordinateBot.generatePersonalityResponse();
+					log.info("Subordinate bot {} created bet with {} and replies \"{}\"", currentSubordinateBot.getName(), secondaryBet.generateBetString(), 
+							secondaryPersonalityMessage != null ? secondaryPersonalityMessage : "none");
 				} catch(Exception e) {
 					log.error("something went wrong with one of the subordinate bots", e);
 				}
@@ -174,5 +185,26 @@ public class BotLand extends TimerTask {
 			this.chatMessageRouterRef.sendDataToQueues(new ChatMessage(betString));
 			this.battleGroundEventBackPropagationRef.SendUnitThroughTimer(new BetEvent(this.ircName, bet.getTeam(), String.valueOf(bet.getAmount()), String.valueOf(bet.getAmount()), bet.getType(), bet.getIsBettorSubscriber()));
 		}
+	}
+	
+	protected void sendPersonalityMessage(String personalityMessage) {
+		if(personalityMessage != null) {
+			this.botlandTimerRef.schedule(new PersonalityMessageTimerTask(personalityMessage, this.chatMessageRouterRef), 5000);
+		}
+	}
+}
+
+class PersonalityMessageTimerTask extends TimerTask {
+	private String message;
+	private Router<ChatMessage> chatMessageRouterRef;
+	
+	public PersonalityMessageTimerTask(String message, Router<ChatMessage> chatMessageRouterRef) {
+		this.message = message;
+		this.chatMessageRouterRef = chatMessageRouterRef;
+	}
+	
+	@Override
+	public void run() {
+		this.chatMessageRouterRef.sendDataToQueues(new ChatMessage(this.message));
 	}
 }
