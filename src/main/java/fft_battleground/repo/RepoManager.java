@@ -192,6 +192,8 @@ public class RepoManager extends Thread {
 	
 	protected void handleAllegianceEvent(AllegianceEvent event) {
 		this.repoTransactionManager.updatePlayerAllegiance(event);
+		String player = GambleUtil.cleanString(event.getPlayer());
+		this.dumpService.getAllegianceCache().put(player, event.getTeam());
 	}
 	
 	protected void handlePrestigeSkillsEvent(PrestigeSkillsEvent event) {

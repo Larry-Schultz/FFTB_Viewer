@@ -2,13 +2,15 @@ package fft_battleground.botland.personality;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import fft_battleground.model.BattleGroundTeam;
 
-public class YoloPersonality implements PersonalityModule {
+public class YoloPersonality extends PersonalityModule {
 
 	@Override
 	public String personalityString(String botName, Float leftScore, BattleGroundTeam leftTeam, Float rightScore,
-			BattleGroundTeam rightTeam, Map<Integer, Integer> percentiles) {
+			BattleGroundTeam rightTeam, Map<Integer, Integer> percentiles, Integer percentile) {
 		StringBuilder builder = new StringBuilder(botName).append(": ");
 		builder.append("YOLO, betting on ");
 		if(leftScore >= rightScore) {
@@ -27,7 +29,7 @@ public class YoloPersonality implements PersonalityModule {
 			result = "the Champs";
 		} else {
 			StringBuilder teamBuilder = new StringBuilder("the ");
-			teamBuilder.append(team.getProperName()).append(" ").append(team.getInformalName());
+			teamBuilder.append(StringUtils.capitalize(team.getProperName())).append(" ").append(StringUtils.capitalize(team.getInformalName()));
 			result = teamBuilder.toString();
 		}
 		

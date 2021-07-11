@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import fft_battleground.repo.model.ErrorMessageEntry;
 import fft_battleground.repo.repository.ErrorMessageEntryRepo;
+import fft_battleground.util.GenericResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -23,9 +24,9 @@ public class ErrorMessageController {
 	
 	@GetMapping("/error/stacktrace/{id}")
 	@Transactional
-	public ResponseEntity<String> getStrackTraceData(@PathVariable Long id) {
+	public ResponseEntity<GenericResponse<String>> getStrackTraceData(@PathVariable Long id) {
 		ErrorMessageEntry entry = this.errorMessageEntryRepo.getOne(id);
 		String result = entry.getStackTrace();
-		return new ResponseEntity<String>(result, HttpStatus.OK);
+		return GenericResponse.createGenericResponseEntity(result);
 	}
 }

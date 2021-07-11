@@ -27,10 +27,12 @@ import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.personality.PersonalityModule;
+import fft_battleground.botland.personality.PersonalityModuleFactory;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingBeginsEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.repository.BotsRepo;
@@ -61,6 +63,9 @@ public class BetBotFactory {
 	@Value("${enableBetting}")
 	private boolean enableBetting;
 	
+	@Value("${enablePersonality}")
+	private boolean enablePersonality;
+	
 	@Autowired
 	private PersonalityModuleFactory personalityModuleFactory;
 	
@@ -77,12 +82,16 @@ public class BetBotFactory {
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
 	
 	private Timer botlandTimer = new Timer();
+	private Cache<String, Map<String, BotData>> botDataCache;
+	private GeneFileCache geneFileCache;
 	
-	private Cache<String, Map<String, BotData>> botDataCache = Caffeine.newBuilder()
-			  .expireAfterWrite(5, TimeUnit.MINUTES)
-			  .maximumSize(1)
-			  .build();
-
+	public BetBotFactory(@Value("${botlandCacheDuration}") long botlandCacheDuration) {
+		this.botDataCache = Caffeine.newBuilder()
+				  .expireAfterWrite(botlandCacheDuration, TimeUnit.MINUTES)
+				  .maximumSize(1)
+				  .build();
+		this.geneFileCache = new GeneFileCache(botlandCacheDuration);
+	}
 	
 	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> currentUnits, BettingBeginsEvent beginEvent) {
 		BotLand land = new BotLand(currentAmountToBetWith, beginEvent, otherPlayerBets, currentUnits);
@@ -93,6 +102,7 @@ public class BetBotFactory {
 		land.setBattleGroundEventBackPropagationRef(this.battleGroundEventBackPropagation);
 		land.setIrcName(this.ircName);
 		land.setEnableBetting(this.enableBetting);
+		land.setEnablePersonality(this.enablePersonality);
 		land.setPersonalityModuleFactoryRef(this.personalityModuleFactory);
 		land.setBotlandTimerRef(this.botlandTimer);
 		
@@ -173,7 +183,7 @@ public class BetBotFactory {
 		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "arbitrarybot")) {
 			betBot = new ArbitraryBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "genebot")) {
-			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
 		} else {
 			log.error("botData with data: {} failed", botData);
 		}
@@ -185,8 +195,12 @@ public class BetBotFactory {
 			betBot.setDateFormat(botDateString);
 			betBot.setBotSubscriber(this.isBotSubscriber);
 			if(betBot.getPersonalityName() != null) {
-				PersonalityModule module = this.personalityModuleFactory.getPersonalityModuleByName(betBot.getPersonalityName());
-				betBot.setPersonalityModule(module);			}
+				PersonalityModule module;
+				try {
+					module = this.personalityModuleFactory.getPersonalityModuleByName(betBot.getPersonalityName());
+					betBot.setPersonalityModule(module);
+				} catch (BotConfigException e) {}
+			}
 		}
 		
 		return betBot;

@@ -2,97 +2,223 @@
 <bots>
 	<bot id="minbetbot" classname="betcountbot" canPrimary="true" description="The default bot, bets the floor based on the team with the most bets.">
 		<param id="betType" description="type of bet this bot makes">floor</param>
+		<param id="personality" description="personality of bot">follower</param>
+	</bot>
+	<bot id="minbetbotinverse" classname="betcountbot" canPrimary="true" description="The default bot, bets the floor based on the team with the most bets.">
+		<param id="betType" description="type of bet this bot makes">floor</param>
+		<param id="personality" description="personality of bot">inverse</param>
+		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
 	<bot id="allinbetcountbot" classname="betcountbot" canPrimary="false" description="Bot that goes allin on the team with the most bets irrespective of gil.">
 		<param id="betType" description="type of bet this bot makes">allin</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount40percent" classname="betcountbot" canPrimary="true" description="Bot that bets 40% on the team with the most bets irrespective of gil.">
 		<param id="betType" description="type of bet this bot makes">percentage</param>
 		<param id="betAmount" description="This field is used to either store a hardcoded bet amount, or percentages for bots with betType=percentage">40</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount62percent" classname="betcountbot" canPrimary="true" description="Bot that bets 62% on the team with the most bets irrespective of gil.">
 		<param id="betType" description="type of bet this bot makes">percentage</param>
 		<param id="betAmount" description="This field is used to either store a hardcoded bet amount, or percentages for bots with betType=percentage">62</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount10increment" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + 10 * (difference in bet count).">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 10 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount20increment" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + 20 * (difference in bet count).">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 20 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount50increment" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + 50 * (difference in bet count).">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 50 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount75increment" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + 75 * (difference in bet count).">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 75 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount100increment" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + 100 * (difference in bet count).">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 100 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount150increment" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + 150 * (difference in bet count).">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 150 * (max(leftScore, rightScore) - min(leftScore, rightScore)), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcount10nsquaredincrement" classname="betcountbot" canPrimary="true" description="Bot that bets on the team with the most bets, increasing its bet by 100 + (difference in bet count)^2. This means the difference in bet count is the number to increase by, and the multiplier on that value.">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, mnBet + 10 * (max(leftScore, rightScore) - min(leftScore, rightScore)^2), balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcountbet500ifable" classname="betcountbot" canPrimary="true" description="Bot that bets 500 on the side with most bets, if it has 500 or more gil.">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(500, balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="betcountbet1000ifable" classname="betcountbot" canPrimary="true" description="Bot that bets 1000 on the side with most bets, if it has 500 or more gil.">
 		<param id="betType" description="type of bet this bot makes">value</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">follower</param>
 	</bot>
 	<bot id="datadrivenbot" classname="databetbot" canPrimary="true" description="Bot that uses analytics to determine which side's betters are more trustworthy, and bets on the most trustworthy side based on the ratio of calculated trust score.">
+		<param id="personality" description="personality of bot">facts</param>
+	</bot>
+	<bot id="datadrivenbotinverse" classname="databetbot" canPrimary="true" description="Bot that uses analytics to determine which side's betters are more trustworthy, and bets on the most trustworthy side based on the ratio of calculated trust score.">
+		<param id="personality" description="personality of bot">inverse</param>
+		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
 	<bot id="oddsbot" classname="oddsbot" canPrimary="true" description="Bot that picks sides based on the number of gil bet on each side.">
 		<param id="betType" description="type of bet this bot makes">allin</param>
+		<param id="personality" description="personality of bot">money</param>
+	</bot>
+	<bot id="oddsbotinverse" classname="oddsbot" canPrimary="true" description="Bot that picks sides based on the number of gil bet on each side.">
+		<param id="betType" description="type of bet this bot makes">allin</param>
+		<param id="personality" description="personality of bot">money</param>
+		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
 	<bot id="allinrandombot" classname="arbitrarybot" canPrimary="false" description="Bot that goes allin on a random side.">
 		<param id="betType" description="type of bet this bot makes">allin</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">random</param>
+		<param id="personality" description="personality of bot">yolo</param>
 	</bot>
 	<bot id="randomrandombot" classname="arbitrarybot" canPrimary="false" description="Bot that bets a random amount (within the betting bounds of bots and its own balance) on a random team.">
 		<param id="betType" description="type of bet this bot makes">random</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">random</param>
+		<param id="personality" description="personality of bot">yolo</param>
+	</bot>
+	<bot id="randomrandombotinverse" classname="arbitrarybot" canPrimary="false" description="Bot that bets a random amount (within the betting bounds of bots and its own balance) on a random team.">
+		<param id="betType" description="type of bet this bot makes">random</param>
+		<param id="choice" description="This field dictate which side a bot will always choose">random</param>
+		<param id="personality" description="personality of bot">yolo</param>
+		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
 	<bot id="halfrandombot" classname="arbitrarybot" canPrimary="false" description="Bot that bets half on a random team.">
 		<param id="betType" description="type of bet this bot makes">half</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">random</param>
+		<param id="personality" description="personality of bot">yolo</param>
 	</bot>
 	<bot id="leftminimumbot" classname="arbitrarybot" canPrimary="false" description="Bot that bets floor on the left team.">
 		<param id="betType" description="type of bet this bot makes">floor</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">left</param>
+		<param id="personality" description="personality of bot">left</param>
 	</bot>
 	<bot id="lefthalfbot" classname="arbitrarybot" canPrimary="false" description="Bot that bets half on the left team.">
 		<param id="betType" description="type of bet this bot makes">half</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">left</param>
+		<param id="personality" description="personality of bot">left</param>
 	</bot>
 	<bot id="leftallinbot" classname="arbitrarybot" canPrimary="false" description="Bot that goes allin on the left team.">
 		<param id="betType" description="type of bet this bot makes">allin</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">left</param>
+		<param id="personality" description="personality of bot">left</param>
 	</bot>
 	<bot id="rightminimumbot" classname="arbitrarybot" canPrimary="false" description="Bot that bets floor on the right team.">
 		<param id="betType" description="type of bet this bot makes">floor</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">right</param>
+		<param id="personality" description="personality of bot">right</param>
 	</bot>
 	<bot id="righthalfbot" classname="arbitrarybot" canPrimary="false" description="Bot that bets half on the right team.">
 		<param id="betType" description="type of bet this bot makes">half</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">right</param>
+		<param id="personality" description="personality of bot">right</param>
 	</bot>
 	<bot id="rightallinbot" classname="arbitrarybot" canPrimary="false" description="Bot that goes allin on the right team.">
 		<param id="betType" description="type of bet this bot makes">allin</param>
 		<param id="choice" description="This field dictate which side a bot will always choose">right</param>
+		<param id="personality" description="personality of bot">right</param>
 	</bot>
 	<bot id="winner1000geneticbot" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
 		<param id="geneFile" description="file location that contains the genes">winner-1000.txt</param>
 		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">facts</param>
+	</bot>
+	<bot id="winner1000geneticbotinverse" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-1000.txt</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">facts</param>
+	</bot>
+	<bot id="winner100geneticbotsmartbet" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-100.txt</param>
+		<param id="personality" description="personality of bot">nerd</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">
+			iff(
+				percentile &lt;= 1, 1;
+				percentile &gt; 1 &amp;&amp; percentile &lt;= 20, minBet;
+				percentile &gt; 20 &amp;&amp; percentile &lt; 80, 13 * percentile - 60;
+				percentile &gt;= 80 &amp;&amp; percentile &lt; 99, min(mxBet, balance)
+				percentile &gt;= 99, balance
+			)
+		</param>
+	</bot>
+	<bot id="winner100geneticbotsmartbetinverse" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-100.txt</param>
+		<param id="personality" description="personality of bot">nerd</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">
+			iff(
+				percentile &lt;= 1, 1;
+				percentile &gt; 1 &amp;&amp; percentile &lt;= 20, minBet;
+				percentile &gt; 20 &amp;&amp; percentile &lt; 80, 13 * percentile - 60;
+				percentile &gt;= 80 &amp;&amp; percentile &lt; 99, min(mxBet, balance)
+				percentile &gt;= 99, balance
+			)
+		</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="winner100geneticbot" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-100.txt</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">nerd</param>
+	</bot>
+	<bot id="winner100geneticbotinverse" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-100.txt</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">inverse</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="winner1000run2geneticbotsmartbet" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-1000-run2.txt</param>
+		<param id="personality" description="personality of bot">nerd</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">
+			iff(
+				percentile &lt;= 1, 1;
+				percentile &gt; 1 &amp;&amp; percentile &lt;= 20, minBet;
+				percentile &gt; 20 &amp;&amp; percentile &lt; 80, 13 * percentile - 60;
+				percentile &gt;= 80 &amp;&amp; percentile &lt; 99, min(mxBet, balance)
+				percentile &gt;= 99, balance
+			)
+		</param>
+	</bot>
+	<bot id="winner1000run2geneticbotsmartbetinverse" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-1000-run2.txt</param>
+		<param id="personality" description="personality of bot">inverse_percentile</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">
+			iff(
+				percentile &lt;= 1, 1;
+				percentile &gt; 1 &amp;&amp; percentile &lt;= 20, minBet;
+				percentile &gt; 20 &amp;&amp; percentile &lt; 80, 13 * percentile - 60;
+				percentile &gt;= 80 &amp;&amp; percentile &lt; 99, min(mxBet, balance)
+				percentile &gt;= 99, balance
+			)
+		</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="winner1000run2geneticbot" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-1000-run2.txt</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">nerd</param>
+	</bot>
+	<bot id="winner1000run2geneticbotinverse" classname="genebot" canPrimary="true" description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile" description="file location that contains the genes">winner-1000-run2.txt</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">inverse_percentile</param>
+		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
 </bots>

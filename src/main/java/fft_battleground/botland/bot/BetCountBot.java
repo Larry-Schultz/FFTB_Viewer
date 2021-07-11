@@ -54,6 +54,12 @@ public class BetCountBot extends BetterBetBot {
 		if(parameters.containsKey(BET_AMOUNT_EXPRESSION_PARAMETER)) {
 			this.betAmountExpression = parameters.get(BET_AMOUNT_EXPRESSION_PARAMETER).getValue();
 		}
+		if(parameters.containsKey(PERSONALITY_PARAM)) {
+			this.personalityName = parameters.get(PERSONALITY_PARAM).getValue();
+		}
+		if(parameters.containsKey(INVERSE_PARAM)) {
+			this.inverse = Boolean.valueOf(parameters.get(INVERSE_PARAM).getValue());
+		}
 		
 	}
 

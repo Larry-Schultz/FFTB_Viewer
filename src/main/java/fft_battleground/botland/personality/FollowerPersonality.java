@@ -4,25 +4,49 @@ import java.util.Map;
 
 import fft_battleground.model.BattleGroundTeam;
 
-public class FollowerPersonality implements PersonalityModule {
+public class FollowerPersonality extends PersonalityModule {
 
+	public static String BETS = "bets";
+	public static String MONEY = "money";
+	
+	private String mode;
+	
+	public FollowerPersonality() {
+		this.mode = BETS;
+	}
+	
+	public FollowerPersonality(String mode) {
+		this.mode = mode;
+	}
+	
 	@Override
 	public String personalityString(String botName, Float leftScore, BattleGroundTeam leftTeam, Float rightScore,
-			BattleGroundTeam rightTeam, Map<Integer, Integer> percentiles) {
+			BattleGroundTeam rightTeam, Map<Integer, Integer> percentiles, Integer percentile) {
 		StringBuilder builder = new StringBuilder(botName).append(": ");
 		
 		Integer roundedLeftScore = (int) leftScore.floatValue();
 		Integer roundedRightScore = (int) rightScore.floatValue();
 		
 		if(leftScore >= rightScore) {
-			builder.append("Betting on ").append(leftTeam.getProperName()).append(" as it is more popular. ")
+			builder.append("Betting on ").append(leftTeam.getProperName()).append(this.getModeString())
 			.append(roundedLeftScore).append(" vs ").append(roundedRightScore).append(".");
 		} else {
-			builder.append("Betting on ").append(rightTeam.getProperName()).append(" as it is more popular. ")
+			builder.append("Betting on ").append(rightTeam.getProperName()).append(this.getModeString())
 			.append(roundedRightScore).append(" vs ").append(roundedLeftScore).append(".");
 		}
 		
 		return builder.toString();
+	}
+	
+	public String getModeString() {
+		String result = null;
+		if(this.mode == BETS) {
+			result = " as it is more popular. ";
+		} else if(this.mode == MONEY) {
+			result = " since it has more gil. ";
+		}
+		
+		return result;
 	}
 
 }

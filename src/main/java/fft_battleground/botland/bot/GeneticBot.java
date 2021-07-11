@@ -1,7 +1,5 @@
 package fft_battleground.botland.bot;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +8,9 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import fft_battleground.botland.GeneFileCache;
 import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.model.ResultData;
 import fft_battleground.botland.personality.FactsPersonality;
@@ -32,11 +30,13 @@ public class GeneticBot extends BetterBetBot {
 	protected String betAmountExpression;
 	
 	protected ResultData genes;
-	Map<String, Integer> geneMap;
+	protected Map<String, Integer> geneMap;
+	protected GeneFileCache geneFileCache;
 
-	public GeneticBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right) {
+	public GeneticBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, GeneFileCache geneFileCache) {
 		super(currentAmountToBetWith, left, right);
 		super.personalityModule = new FactsPersonality();
+		this.geneFileCache = geneFileCache;
 	}
 
 	@Override
@@ -47,18 +47,19 @@ public class GeneticBot extends BetterBetBot {
 		if(map.containsKey(GENE_FILE_PARAMETER)) {
 			this.filename = map.get(GENE_FILE_PARAMETER).getValue();
 		}
+		if(map.containsKey(PERSONALITY_PARAM)) {
+			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
+		}
+		if(map.containsKey(INVERSE_PARAM)) {
+			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
+		}
 	}
 
 	@Override
 	public void init() {
-		URL resourceUrl = this.getClass().getClassLoader().getResource(filename);
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			this.genes = mapper.readValue(resourceUrl, ResultData.class);
-		} catch (IOException e) {
-			log.error("Error initializing gene bot from file {}", this.filename, e);
-		}
+		this.genes = this.geneFileCache.getGeneData(this.filename);
 		this.geneMap = GenericPairing.convertGenericPairListToMap(this.genes.getGeneticAttributes());
+		super.percentiles = GenericPairing.convertGenericPairListToMap(this.genes.getPercentiles());
 	}
 
 	@Override
@@ -113,7 +114,15 @@ public class GeneticBot extends BetterBetBot {
 	@Override
 	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
 		Integer betAmount = this.calculateBetAmount(leftScore, rightScore);
-		Bet result = new Bet(chosenTeam, betAmount.intValue(), this.isBotSubscriber);
+		Bet result = null;
+		if(betAmount != this.currentAmountToBetWith && betAmount != GambleUtil.getMinimumBetForBettor(this.isBotSubscriber)) {
+			result = new Bet(chosenTeam, betAmount.intValue(), this.isBotSubscriber);
+		} else if(betAmount == this.currentAmountToBetWith){
+			result = new Bet(chosenTeam, BetType.ALLIN, this.isBotSubscriber);
+		} else {
+			result = new Bet(chosenTeam, BetType.FLOOR, this.isBotSubscriber);
+		}
+
 		return result;
 	}
 	
@@ -125,8 +134,9 @@ public class GeneticBot extends BetterBetBot {
 		Constant minBet = new Constant("mnBet", (double) GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
 		Constant maxBet = new Constant("mxBet", (double) GambleUtil.MAX_BET);
 		Argument balanceArg = new Argument("balance", this.currentAmountToBetWith);
+		Argument percentileArg = new Argument("percentile", GambleUtil.calculatePercentile(leftScore, rightScore, super.percentiles));
 		
-		Expression exp = new Expression(this.betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
+		Expression exp = new Expression(this.betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg, percentileArg);
 		
 		result = Double.valueOf(exp.calculate()).intValue();
 		

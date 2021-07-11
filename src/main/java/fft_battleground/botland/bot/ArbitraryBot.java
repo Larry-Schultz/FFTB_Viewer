@@ -47,6 +47,12 @@ public class ArbitraryBot extends BetterBetBot {
 		if(map.containsKey(CHOICE_PARAMETER)) {
 			this.choice = BetChoice.getChoiceFromString(map.get(CHOICE_PARAMETER).getValue());
 		}
+		if(map.containsKey(PERSONALITY_PARAM)) {
+			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
+		}
+		if(map.containsKey(INVERSE_PARAM)) {
+			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
+		}
 		
 	}
 

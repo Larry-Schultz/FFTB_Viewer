@@ -5,12 +5,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import fft_battleground.util.GenericPairing;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ResultData {
 	private boolean abilityEnabled;
 	private boolean itemEnabled;
@@ -27,7 +30,10 @@ public class ResultData {
 	private int minGene;
 	private int maxBraveFaithGene;
 	private int minBraveFaithGene;
+	private String creationDateString;
+	private long score;
 	private List<GenericPairing<String, Integer>> geneticAttributes;
+	private List<GenericPairing<Integer, Integer>> percentiles;
 	
 	public ResultData(List<Integer> geneAttributes, List<String> attributeNames, int currentResultSuccessPercentage, boolean ABILITY_ENABLED, boolean ITEM_ENABLED,
 	boolean USER_SKILLS_ENABLED, boolean CLASS_ENABLED, boolean MAPS_ENABLED, boolean BRAVE_FAITH_ENABLED,

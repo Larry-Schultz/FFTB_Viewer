@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.botland.BetBotFactory;
-import fft_battleground.botland.PersonalityModuleFactory;
+import fft_battleground.botland.personality.PersonalityModuleFactory;
 import fft_battleground.controller.model.BotLeaderboardData;
 import fft_battleground.controller.model.BotlandData;
 import fft_battleground.controller.model.ExpLeaderboardData;

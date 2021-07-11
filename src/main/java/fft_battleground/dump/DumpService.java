@@ -199,11 +199,15 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
-		this.dumpScheduledTasks.forceScheduleUserSkillsTask();
-		this.dumpScheduledTasks.forceScheduleClassBonusTask();
-		this.dumpScheduledTasks.forceScheduleSkillBonusTask();
-		
+		this.dumpScheduledTasks.forceCertificateCheck();
 		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
+		/*
+		 * this.dumpScheduledTasks.forceScheduleUserSkillsTask();
+		 * this.dumpScheduledTasks.forceScheduleClassBonusTask();
+		 * this.dumpScheduledTasks.forceScheduleSkillBonusTask();
+		 * 
+		 * 
+		 */
 		
 		Date latestDate = this.getLatestActiveDate();
 	}

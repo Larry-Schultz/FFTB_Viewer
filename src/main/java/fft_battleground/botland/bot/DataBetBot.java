@@ -37,6 +37,12 @@ public class DataBetBot extends BetterBetBot {
 		if(map.containsKey(PLAYER_SCORE_EXPRESSION_PARAMETER)) {
 			this.playerScoreExpression = map.get(PLAYER_SCORE_EXPRESSION_PARAMETER).getValue();
 		}
+		if(map.containsKey(PERSONALITY_PARAM)) {
+			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
+		}
+		if(map.containsKey(INVERSE_PARAM)) {
+			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
+		}
 		
 	}
 

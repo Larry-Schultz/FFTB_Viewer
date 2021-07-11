@@ -53,9 +53,9 @@ public class Images {
 		Collections.sort(this.portraits);
 		
 		this.portraitsBaseUrl = browserBaseUrl;
-		log.info("logging portraits");
+		//log.info("logging portraits");
 		for(Portrait portrait: this.portraits) {
-			log.info("{}", portrait);
+			//log.info("{}", portrait);
 		}
 	}
 	

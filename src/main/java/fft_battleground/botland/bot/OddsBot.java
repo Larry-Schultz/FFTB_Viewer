@@ -28,8 +28,12 @@ public class OddsBot extends BetterBetBot {
 	
 	@Override
 	public void initParams(Map<String, BotParam> map) {
-		// TODO Auto-generated method stub
-		
+		if(map.containsKey(PERSONALITY_PARAM)) {
+			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
+		}
+		if(map.containsKey(INVERSE_PARAM)) {
+			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
+		}
 	}
 	
 	@Override

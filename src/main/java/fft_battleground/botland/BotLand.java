@@ -12,6 +12,8 @@ import org.thymeleaf.util.StringUtils;
 
 import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.personality.PersonalityModuleFactory;
+import fft_battleground.botland.personality.PersonalityResponse;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BetEvent;
@@ -38,6 +40,7 @@ public class BotLand extends TimerTask {
 	private String ircName;
 	private boolean acceptingBets = true;
 	private boolean enableBetting = false;
+	private boolean enablePersonality = false;
 	
 	//references
 	protected Router<ChatMessage> chatMessageRouterRef;
@@ -70,9 +73,12 @@ public class BotLand extends TimerTask {
 		//send results to irc
 		this.sendBet(bet);
 		//get personality
-		String personalityMessage = this.primaryBot.generatePersonalityResponse();
-		if(personalityMessage != null) {
-			this.sendPersonalityMessage(personalityMessage);
+		PersonalityResponse personalityMessage = this.primaryBot.generatePersonalityResponse();
+		if(personalityMessage != null && personalityMessage.isDisplay()) {
+			this.personalityModuleFactoryRef.addBotResponse(this.primaryBot.getName(), personalityMessage.getResponse());
+			if(this.enablePersonality) {
+				this.sendPersonalityMessage(personalityMessage.getResponse());
+			}
 		}
 		
 		//call subordinate bots
@@ -86,9 +92,12 @@ public class BotLand extends TimerTask {
 					Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(currentSubordinateBot.getDateFormat(), currentSubordinateBot.getName());
 					currentSubordinateBot.setCurrentAmountToBetWith(botDataFromDatabase.getBalance());
 					Bet secondaryBet = currentSubordinateBot.call();
-					String secondaryPersonalityMessage = currentSubordinateBot.generatePersonalityResponse();
+					String secondaryPersonalityMessage = currentSubordinateBot.generatePersonalityResponse().getResponse();
 					log.info("Subordinate bot {} created bet with {} and replies \"{}\"", currentSubordinateBot.getName(), secondaryBet.generateBetString(), 
 							secondaryPersonalityMessage != null ? secondaryPersonalityMessage : "none");
+					if(secondaryPersonalityMessage != null) {
+						this.personalityModuleFactoryRef.addBotResponse(currentSubordinateBot.getName(), secondaryPersonalityMessage);
+					}
 				} catch(Exception e) {
 					log.error("something went wrong with one of the subordinate bots", e);
 				}

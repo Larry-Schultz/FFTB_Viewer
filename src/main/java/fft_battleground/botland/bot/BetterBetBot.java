@@ -13,6 +13,7 @@ import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.model.TeamData;
 import fft_battleground.botland.personality.PersonalityModule;
+import fft_battleground.botland.personality.PersonalityResponse;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -27,11 +28,16 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public abstract class BetterBetBot
 implements Callable<Bet> {
+	protected static final String PERSONALITY_PARAM = "personality";
+	protected static final String INVERSE_PARAM = "inverse";
+	
 	protected boolean isBotSubscriber = true;
 	
 	protected String personalityName;
 	protected PersonalityModule personalityModule;
-	protected Map<Integer, Integer> quantiles = Collections.emptyMap();
+	protected Map<Integer, Integer> percentiles = Collections.emptyMap();
+	
+	protected boolean inverse = false;
 	
 	protected Integer currentAmountToBetWith;
 	protected List<BetEvent> otherPlayerBets;
@@ -73,10 +79,10 @@ implements Callable<Bet> {
 		return bet;
 	}
 	
-	public String generatePersonalityResponse() {
-		String result = null;
+	public PersonalityResponse generatePersonalityResponse() {
+		PersonalityResponse result = null;
 		if(this.personalityModule != null) {
-			result = this.personalityModule.personalityString(this.getName(), this.leftScore, this.left, this.rightScore, this.right, this.quantiles);
+			result = this.personalityModule.getPersonalityResponse(this.getName(), this.leftScore, this.left, this.rightScore, this.right, this.percentiles);
 		}
 		
 		return result;
@@ -92,6 +98,9 @@ implements Callable<Bet> {
 		this.rightScore = this.generateRightScore();
 		
 		BattleGroundTeam winningTeam = this.determineWinningTeam(this.leftScore, this.rightScore);
+		if(this.inverse) {
+			winningTeam = this.inverse(winningTeam);
+		}
 		Bet result = this.generateBetAmount(this.leftScore, this.rightScore, winningTeam);
 		
 		return result;
@@ -133,6 +142,14 @@ implements Callable<Bet> {
 		}
 		
 		return winningTeam;
+	}
+	
+	protected BattleGroundTeam inverse(BattleGroundTeam realWinningTeam) {
+		if(realWinningTeam == this.left) {
+			return this.right;
+		} else {
+			return this.left;
+		}
 	}
 
 	public abstract void initParams(Map<String, BotParam> map);

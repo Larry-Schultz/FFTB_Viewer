@@ -1,5 +1,6 @@
 package fft_battleground.util;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,7 +29,13 @@ public class GenericPairing<U, V> {
 	}
 	
 	public static <U,V> Map<U,V> convertGenericPairListToMap(List<GenericPairing<U,V>> genericPairingList) {
-		Map<U,V> map = genericPairingList.stream().collect(Collectors.toMap(genericPairing -> genericPairing.getKey(), genericPairing -> genericPairing.getValue()));
-		return map;
+		if(genericPairingList == null) {
+			return null;
+		} else if(genericPairingList.size() == 0) {
+			return Collections.emptyMap();
+		} else {
+			Map<U,V> map = genericPairingList.stream().collect(Collectors.toMap(genericPairing -> genericPairing.getKey(), genericPairing -> genericPairing.getValue()));
+			return map;
+		}
 	}
 }

@@ -1,10 +1,19 @@
 package fft_battleground.dump;
 
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +27,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +95,9 @@ public class DumpScheduledTasks {
 	@Autowired
 	private WebhookManager ascensionWebhookManager;
 	
+	@Value("${server.ssl.key-store-password}")
+	private String keyStorePass;
+	
 	private Timer batchTimer = new Timer();
 	private Timer cacheTimer = new Timer();
 	private Timer forceTimer = new Timer();
@@ -110,6 +125,7 @@ public class DumpScheduledTasks {
 	public void runAllUpdates() {
 		DumpScheduledTask[] dumpScheduledTasks = new DumpScheduledTask[] {
 				new BadAccountsTask(this),
+				new CheckCertificateTask(this),
 				new AllegianceTask(this), 
 				new BotListTask(this), 
 				new PortraitsTask(this),
@@ -142,6 +158,32 @@ public class DumpScheduledTasks {
 		}
 		
 		log.info("finished writing bad accounts file");
+	}
+	
+	public void checkExpirationDateOfCertificate() {
+		try {
+			Resource keystoreResource = new ClassPathResource("keystore.p12");
+	        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+	        keystore.load(new FileInputStream(keystoreResource.getFile()), this.keyStorePass.toCharArray() );
+	        Enumeration<String> aliases = keystore.aliases();
+	        for(; aliases.hasMoreElements();) {
+	            String alias = (String) aliases.nextElement();
+	            X509Certificate cert= ((X509Certificate) keystore.getCertificate(alias));
+	            Date certExpiryDate = cert.getNotAfter();
+	            Principal subject = cert.getSubjectDN();
+	            SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+	            //Tue Oct 17 06:02:22 AEST 2006
+	            Date today = new Date();
+	            long dateDiff = certExpiryDate.getTime() - today.getTime();
+	            Long expiresIn = dateDiff / (24 * 60 * 60 * 1000);
+	            if(expiresIn < 7) {
+	            	this.errorWebhookManager.sendMessage("The certificate expires in" + expiresIn.toString() + " days!");
+	            }
+	            log.info("Certifiate: " + alias + "\tExpires On: " + certExpiryDate + "\tFormated Date: " + ft.format(certExpiryDate) + "\tToday's Date: " + ft.format(today) + "\tExpires In: "+ expiresIn);
+	        }
+		} catch (KeyStoreException|NoSuchAlgorithmException|CertificateException|IOException e) {
+			log.error("Error loading certificate", e);
+		} 
 	}
 	
 	public void updatePortraits() {
@@ -439,6 +481,10 @@ public class DumpScheduledTasks {
 		return result;
 	}
 	
+	public void forceCertificateCheck() {
+		this.forceSchedule(new CheckCertificateTask(this));
+	}
+	
 	public void forceScheduleAllegianceBatch() {
 		this.forceSchedule(new AllegianceTask(this));
 	}
@@ -470,6 +516,8 @@ public class DumpScheduledTasks {
 	protected void forceSchedule(DumpScheduledTask task) {
 		this.forceTimer.schedule(task, 0);
 	}
+	
+	
 	
 	@Transactional
 	protected void writeToBatchDataEntryRepo(BatchDataEntry batchDataEntry) {
@@ -554,6 +602,11 @@ abstract class DumpScheduledTask extends TimerTask {
 class BadAccountsTask extends DumpScheduledTask {
 	public BadAccountsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks); }
 	protected void task() {this.dumpScheduledTasksRef.generateOutOfSyncPlayerRecordsFile();}
+}
+
+class CheckCertificateTask extends DumpScheduledTask {
+	public CheckCertificateTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks); }
+	protected void task() {this.dumpScheduledTasksRef.checkExpirationDateOfCertificate();}
 }
 
 class AllegianceTask extends DumpScheduledTask {

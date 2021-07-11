@@ -1,5 +1,7 @@
 package fft_battleground.util;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.detector.model.BetEvent;
@@ -142,6 +144,18 @@ public class GambleUtil {
 		result = StringUtils.replace(result, ",", "");
 		result = StringUtils.trim(result);
 		return result;
+	}
+	
+	public static int calculatePercentile(Float leftScore, Float rightScore, Map<Integer, Integer> percentiles) {
+		if(percentiles == null || percentiles.isEmpty()) {
+			return 50;
+		}
+		int scoreDifference = (int) Math.abs(leftScore - rightScore);
+		int percentile = 0;
+		for(int i = 1; i < 100 && percentiles.get(i) < scoreDifference; i++) {
+			percentile = i;
+		}
+		return percentile;
 	}
 	
 }
