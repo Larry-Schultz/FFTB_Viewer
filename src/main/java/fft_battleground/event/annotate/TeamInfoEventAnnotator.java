@@ -39,6 +39,11 @@ public class TeamInfoEventAnnotator implements BattleGroundEventAnnotator<TeamIn
 	
 	@Override
 	public void annotateEvent(TeamInfoEvent event) {
+		this.setMetaData(event);
+		this.setTeamValue(event);
+	}
+	
+	private void setMetaData(TeamInfoEvent event) {
 		List<PlayerRecord> metadataRecords = new ArrayList<>();
 		List<Pair<String, String>> replacementPairList = new ArrayList<>();
 		for(Pair<String, String> playerUnitData : event.getPlayerUnitPairs()) {
@@ -72,6 +77,11 @@ public class TeamInfoEventAnnotator implements BattleGroundEventAnnotator<TeamIn
 		event.setMetaData(metadataRecords);
 	}
 	
+	private void setTeamValue(TeamInfoEvent event) {
+		Integer teamValue = this.currentTournament.getTeamValue().get(event.getTeam());
+		event.setTeamValue(teamValue);
+	}
+	
 	public String findClosestMatchingName(String playerName, Collection<String> entrants) {
 		List<String> cleanedEntrants = Collections.unmodifiableList(entrants.parallelStream().collect(Collectors.toList()));
 		LevenshteinDistance distanceCalculator = LevenshteinDistance.getDefaultInstance();
@@ -96,5 +106,7 @@ public class TeamInfoEventAnnotator implements BattleGroundEventAnnotator<TeamIn
 		
 		return result;
 	}
+	
+	
 
 }

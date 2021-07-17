@@ -64,20 +64,24 @@ public class BotLand extends TimerTask {
 	public void run() {
 		Pair<List<BetEvent>, List<BetEvent>> betsBySide = this.helper.sortBetsBySide();
 		this.helper.setUnitsBySide(this.helper.sortUnitsBySide());
-		this.primaryBot.setBetsBySide(betsBySide);
-		this.primaryBot.setCurrentAmountToBetWith(helper.getCurrentAmountToBetWith());
-		this.primaryBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
-		this.primaryBot.setUnitsBySide(this.helper.getUnitsBySide());
-		//get results from main bot
-		Bet bet = primaryBot.call();
-		//send results to irc
-		this.sendBet(bet);
-		//get personality
-		PersonalityResponse personalityMessage = this.primaryBot.generatePersonalityResponse();
-		if(personalityMessage != null && personalityMessage.isDisplay()) {
-			this.personalityModuleFactoryRef.addBotResponse(this.primaryBot.getName(), personalityMessage.getResponse());
-			if(this.enablePersonality) {
-				this.sendPersonalityMessage(personalityMessage.getResponse());
+		if (this.primaryBot != null) {
+			this.primaryBot.setBetsBySide(betsBySide);
+			this.primaryBot.setCurrentAmountToBetWith(helper.getCurrentAmountToBetWith());
+			this.primaryBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
+			this.primaryBot.setUnitsBySide(this.helper.getUnitsBySide());
+			this.primaryBot.setTeamData(this.helper.getTeamData());
+			// get results from main bot
+			Bet bet = primaryBot.call();
+			// send results to irc
+			this.sendBet(bet);
+			// get personality
+			PersonalityResponse personalityMessage = this.primaryBot.generatePersonalityResponse();
+			if (personalityMessage != null && personalityMessage.isDisplay()) {
+				this.personalityModuleFactoryRef.addBotResponse(this.primaryBot.getName(),
+						personalityMessage.getResponse());
+				if (this.enablePersonality) {
+					this.sendPersonalityMessage(personalityMessage.getResponse());
+				}
 			}
 		}
 		
@@ -89,6 +93,7 @@ public class BotLand extends TimerTask {
 					currentSubordinateBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
 					currentSubordinateBot.setBetsBySide(betsBySide);
 					currentSubordinateBot.setUnitsBySide(this.helper.getUnitsBySide());
+					currentSubordinateBot.setTeamData(this.helper.getTeamData());;
 					Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(currentSubordinateBot.getDateFormat(), currentSubordinateBot.getName());
 					currentSubordinateBot.setCurrentAmountToBetWith(botDataFromDatabase.getBalance());
 					Bet secondaryBet = currentSubordinateBot.call();

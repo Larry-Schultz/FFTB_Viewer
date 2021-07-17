@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -54,6 +56,7 @@ public class TournamentService {
 	private static final String tournamentPotUrlTemplate = "http://www.fftbattleground.com/fftbg/tournament_%1$s/pot%2$s.txt";
 	private static final String entrantUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/entrants.txt";
 	private static final String winnersTxtUrlFormat = "http://www.fftbattleground.com/fftbg/tournament_%s/winner.txt";
+	private static final String teamValueUrlFormat =  "http://www.fftbattleground.com/fftbg/tournament_%s/teamvalue.txt";
 	
 	@Autowired
 	private DumpResourceManager dumpResourceManager;
@@ -86,6 +89,9 @@ public class TournamentService {
 		
 		Set<String> allPlayers = this.dumpDataProvider.getHighScoreDump().keySet();
 		currentTournament.setAllPlayers(allPlayers);
+		
+		Map<BattleGroundTeam, Integer> teamValue = this.parseTeamValueFile(latestTournament.getID());
+		currentTournament.setTeamValue(teamValue);
 		
 		return currentTournament;
 	}
@@ -298,6 +304,42 @@ public class TournamentService {
 		}
 		
 		return entrants;
+	}
+	
+	protected Map<BattleGroundTeam, Integer> parseTeamValueFile(Long tournamentId) throws DumpException {
+		Map<BattleGroundTeam, Integer> teamValues = new HashMap<>();
+		Resource resource;
+		try {
+			resource = new UrlResource(String.format(TournamentService.teamValueUrlFormat, tournamentId.toString()));
+		} catch (MalformedURLException e1) {
+			throw new DumpException(e1);
+		}
+		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			while((line = botReader.readLine()) != null) {
+				String cleanedString = line;
+				cleanedString = StringUtils.replace(cleanedString, ",", "");
+				cleanedString = StringUtils.trim(cleanedString);
+				String teamString = StringUtils.substringBefore(cleanedString, ":");
+				BattleGroundTeam team = BattleGroundTeam.parse(teamString);
+				String valueString = StringUtils.substringBetween(cleanedString, ": ", "G");
+				Integer value = Integer.valueOf(valueString);
+				teamValues.put(team, value);
+			}
+		} catch (IOException e) {
+			throw new DumpException(e);
+		}
+		
+		List<BattleGroundTeam> coreTeams = new ArrayList<>(BattleGroundTeam.coreTeams());
+		coreTeams.add(BattleGroundTeam.CHAMPION);
+		for(BattleGroundTeam team: coreTeams) {
+			if(!teamValues.containsKey(team)) {
+				teamValues.put(team, 0);
+			}
+		}
+		
+		
+		return teamValues;
 	}
 	
 	private Set<String> getPrestigeSkillList() throws DumpException {

@@ -25,6 +25,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +34,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -54,6 +55,7 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.model.ClassBonus;
+import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.repo.util.BatchDataEntryType;
@@ -137,15 +139,26 @@ public class DumpScheduledTasks {
 		}
 		
 	}
-	
+
 	public void generateOutOfSyncPlayerRecordsFile() {
 		log.info("starting out of sync player record file batch");
 		try {
 			Map<String, Integer> balanceMap = this.dumpDataProvider.getHighScoreDump();
 			List<String> realPlayers = balanceMap.keySet().parallelStream().map(key -> StringUtils.lowerCase(key)).collect(Collectors.toList());
-			List<String> currentAccounts = this.dumpService.getPlayerRecordRepo().findPlayerNames();
+			List<PlayerRecord> currentAccounts = this.dumpService.getPlayerRecordRepo().findAllPlayerNames();
 			
-			List<String> badAccounts = currentAccounts.parallelStream().filter(account -> !realPlayers.contains(account)).collect(Collectors.toList());
+			List<String> badAccounts = currentAccounts.parallelStream().map(playerRecord -> playerRecord.getPlayer())
+					.filter(account -> !realPlayers.contains(account))
+					.collect(Collectors.toList());
+			List<String> falselyFlaggedAccounts = currentAccounts.parallelStream().filter(playerRecord -> !playerRecord.getIsActive())
+					.map(playerRecord -> playerRecord.getPlayer())
+					.filter(player -> realPlayers.contains(player))
+					.collect(Collectors.toList());
+			
+			this.dumpService.getRepoManager().getRepoTransactionManager().softDeletePlayerAccount(badAccounts);
+			log.info("soft deleted {} accounts", badAccounts.size());
+			this.dumpService.getRepoManager().getRepoTransactionManager().undeletePlayerAccounts(falselyFlaggedAccounts);
+			log.info("undeleted {} accounts", falselyFlaggedAccounts.size());
 			
 			try(BufferedWriter writer = new BufferedWriter(new FileWriter("badAccounts.txt"))) {
 				for(String badAccountName : badAccounts) {

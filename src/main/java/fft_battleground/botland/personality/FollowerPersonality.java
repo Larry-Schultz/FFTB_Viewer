@@ -29,10 +29,12 @@ public class FollowerPersonality extends PersonalityModule {
 		
 		if(leftScore >= rightScore) {
 			builder.append("Betting on ").append(leftTeam.getProperName()).append(this.getModeString())
-			.append(roundedLeftScore).append(" vs ").append(roundedRightScore).append(".");
+			.append(roundedLeftScore).append(" vs ").append(roundedRightScore).append(" ").append(this.scoretype())
+			.append(".");
 		} else {
 			builder.append("Betting on ").append(rightTeam.getProperName()).append(this.getModeString())
-			.append(roundedRightScore).append(" vs ").append(roundedLeftScore).append(".");
+			.append(roundedRightScore).append(" vs ").append(roundedLeftScore).append(" ").append(this.scoretype())
+			.append(".");
 		}
 		
 		return builder.toString();
@@ -44,6 +46,17 @@ public class FollowerPersonality extends PersonalityModule {
 			result = " as it is more popular. ";
 		} else if(this.mode == MONEY) {
 			result = " since it has more gil. ";
+		}
+		
+		return result;
+	}
+	
+	public String scoretype() {
+		String result = null;
+		if(this.mode == BETS) {
+			result = "bets";
+		} else if(this.mode == MONEY) {
+			result = "gil";
 		}
 		
 		return result;

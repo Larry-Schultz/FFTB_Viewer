@@ -21,12 +21,14 @@ public class TeamInfoEvent extends BattleGroundEvent {
 
 	private static final BattleGroundEventType type = BattleGroundEventType.TEAM_INFO;
 	
-	public BattleGroundTeam team;
+	private BattleGroundTeam team;
 	
 	@JsonIgnore
-	public List<Pair<String, String>> playerUnitPairs;
+	private List<Pair<String, String>> playerUnitPairs;
 	
-	public List<PlayerRecord> metaData;
+	private List<PlayerRecord> metaData;
+	private Integer teamValue;
+	
 	
 	public TeamInfoEvent(BattleGroundTeam team, List<Pair<String, String>> unitData) {
 		super(type);

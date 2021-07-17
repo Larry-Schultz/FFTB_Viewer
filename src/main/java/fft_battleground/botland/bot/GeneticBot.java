@@ -14,6 +14,7 @@ import fft_battleground.botland.model.BetType;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.model.ResultData;
 import fft_battleground.botland.personality.FactsPersonality;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GambleUtil;
@@ -40,7 +41,7 @@ public class GeneticBot extends BetterBetBot {
 	}
 
 	@Override
-	public void initParams(Map<String, BotParam> map) {
+	public void initParams(Map<String, BotParam> map) throws BotConfigException {
 		if(map.containsKey(BET_AMOUNT_EXPRESSION_PARAMETER)) {
 			this.betAmountExpression = map.get(BET_AMOUNT_EXPRESSION_PARAMETER).getValue();
 		}
@@ -53,11 +54,13 @@ public class GeneticBot extends BetterBetBot {
 		if(map.containsKey(INVERSE_PARAM)) {
 			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
 		}
+		
+		this.genes = this.geneFileCache.getGeneData(this.filename);
 	}
 
 	@Override
 	public void init() {
-		this.genes = this.geneFileCache.getGeneData(this.filename);
+		
 		this.geneMap = GenericPairing.convertGenericPairListToMap(this.genes.getGeneticAttributes());
 		super.percentiles = GenericPairing.convertGenericPairListToMap(this.genes.getPercentiles());
 	}

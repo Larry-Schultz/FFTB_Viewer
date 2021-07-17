@@ -221,4 +221,46 @@
 		<param id="personality" description="personality of bot">inverse_percentile</param>
 		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
+	<bot id="bravebot" classname="bravefaithbot" canPrimary="true" description="Bot that looks at bravery">
+		<param id="bravefaith" description="indicates if this bot looks at bravery or faith">brave</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">brave</param>
+	</bot>
+	<bot id="cowardbot" classname="bravefaithbot" canPrimary="true" description="Bot that looks for low bravery">
+		<param id="bravefaith" description="indicates if this bot looks at bravery or faith">brave</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">coward</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="faithbot" classname="bravefaithbot" canPrimary="true" description="Bot that looks at faith">
+		<param id="bravefaith" description="indicates if this bot looks at bravery or faith">faith</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">faith</param>
+	</bot>
+	<bot id="athiestbot" classname="bravefaithbot" canPrimary="true" description="Bot that looks at bravery">
+		<param id="bravefaith" description="indicates if this bot looks at bravery or faith">faith</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">athiest</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="bravefaithbot" classname="bravefaithbot" canPrimary="true" description="Bot that looks at both brave and faith">
+		<param id="bravefaith" description="indicates if this bot looks at bravery or faith">both</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">bravefaith</param>
+	</bot>
+	<bot id="inversebravefaithbot" classname="bravefaithbot" canPrimary="true" description="Bot that looks for low bravery and faith">
+		<param id="bravefaith" description="indicates if this bot looks at bravery or faith">both</param>
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">antibravefaith</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="teamvaluebot" classname="teamvalue" canPrimary="true" description="Bot that picks sides based on the amount of gil spent to join the tournament for this team.">
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">teamvalue</param>
+	</bot>
+	<bot id="inverseteamvaluebot" classname="teamvalue" canPrimary="true" description="Bot that picks sides based on the amount of gil spent to join the tournament for this team.">
+		<param id="betExpression" description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">inverseteamvalue</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
 </bots>

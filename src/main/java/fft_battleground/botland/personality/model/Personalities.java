@@ -2,6 +2,7 @@ package fft_battleground.botland.personality.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.botland.personality.BraveFaithPersonalityModule;
 import fft_battleground.botland.personality.FactsPersonality;
 import fft_battleground.botland.personality.FollowerPersonality;
 import fft_battleground.botland.personality.InversePercentilePersonality;
@@ -9,6 +10,7 @@ import fft_battleground.botland.personality.InversePersonality;
 import fft_battleground.botland.personality.NerdPersonality;
 import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.SidePersonality;
+import fft_battleground.botland.personality.TeamValuePersonality;
 import fft_battleground.botland.personality.YoloPersonality;
 
 public enum Personalities {
@@ -20,7 +22,15 @@ public enum Personalities {
 	LEFT("left", new SidePersonality("left")),
 	RIGHT("right", new SidePersonality("right")),
 	INVERSE("inverse", new InversePersonality()),
-	INVERSE_PERCENTILE("inverse_percentile", new InversePercentilePersonality());
+	INVERSE_PERCENTILE("inverse_percentile", new InversePercentilePersonality()),
+	BRAVE("brave", new BraveFaithPersonalityModule(BraveFaith.BRAVE, false)),
+	FAITH("faith", new BraveFaithPersonalityModule(BraveFaith.FAITH, false)),
+	COWARD("coward", new BraveFaithPersonalityModule(BraveFaith.BRAVE, true)),
+	ATHIEST("athiest", new BraveFaithPersonalityModule(BraveFaith.FAITH, true)),
+	BRAVEFAITH("bravefaith", new BraveFaithPersonalityModule(BraveFaith.BOTH, false)),
+	ANTIBRAVEFAITH("antibravefaith", new BraveFaithPersonalityModule(BraveFaith.BOTH, true)),
+	TEAMVALUEPERSONALITY("teamvalue", new TeamValuePersonality(false)),
+	INVERSETEAMVALUEPERSONALITY("inverseteamvalue", new TeamValuePersonality(true));
 	
 	Personalities(String name, PersonalityModule module) {
 		this.name = name;

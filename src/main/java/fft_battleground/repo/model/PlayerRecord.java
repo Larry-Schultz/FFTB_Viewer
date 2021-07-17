@@ -23,6 +23,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -35,11 +36,11 @@ import fft_battleground.event.detector.model.LevelUpEvent;
 import fft_battleground.event.detector.model.PortraitEvent;
 import fft_battleground.event.detector.model.SnubEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.util.SkillCategory;
 import fft_battleground.repo.util.SkillType;
 import fft_battleground.repo.util.UpdateSource;
 import fft_battleground.util.BattleGroundTeamConverter;
 import fft_battleground.util.BooleanConverter;
+import fft_battleground.util.BooleanConverterNullToTrue;
 import fft_battleground.util.GambleUtil;
 
 import lombok.AllArgsConstructor;
@@ -49,6 +50,7 @@ import lombok.Data;
 @Table(name = "player_record")
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Where(clause = "is_active IS NULL OR is_active = 'Y'")
 @Data
 @AllArgsConstructor
 public class PlayerRecord {
@@ -114,6 +116,10 @@ public class PlayerRecord {
     @Column(name="is_subscriber", nullable=true)
     @Convert(converter = BooleanConverter.class)
     private Boolean isSubscriber;
+    
+    @Column(name="is_active", nullable=true)
+    @Convert(converter = BooleanConverterNullToTrue.class)
+    private Boolean isActive;
     
     @Column(name="current_snub_streak", nullable=true)
     @ColumnDefault("0")

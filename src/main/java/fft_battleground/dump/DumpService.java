@@ -61,6 +61,7 @@ import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.image.Images;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.repo.RepoManager;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
@@ -114,6 +115,9 @@ public class DumpService {
 	
 	@Autowired
 	@Getter private MonsterUtils monsterUtils;
+	
+	@Autowired
+	@Getter private RepoManager repoManager;
 	
 	@Autowired
 	@Getter private MatchRepo matchRepo;
@@ -199,8 +203,9 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
+		//this.dumpScheduledTasks.forceScheduleAllegianceBatch();
 		this.dumpScheduledTasks.forceCertificateCheck();
-		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
+		this.dumpScheduledTasks.forceScheduledBadAccountsTask();
 		/*
 		 * this.dumpScheduledTasks.forceScheduleUserSkillsTask();
 		 * this.dumpScheduledTasks.forceScheduleClassBonusTask();

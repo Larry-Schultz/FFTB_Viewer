@@ -15,5 +15,6 @@ public enum UpdateSource {
 	LAST_ACTIVE, 
 	LAST_FIGHT_ACTIVE, 
 	SNUB,
+	SOFT_DELETE
 
 }

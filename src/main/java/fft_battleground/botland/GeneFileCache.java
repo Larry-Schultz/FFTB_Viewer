@@ -9,6 +9,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.botland.model.ResultData;
+import fft_battleground.exception.BotConfigException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -25,7 +26,7 @@ public class GeneFileCache {
 		this.geneFileCache = this.buildCache(cacheDuration);
 	}
 	
-	public ResultData getGeneData(String filename) {
+	public ResultData getGeneData(String filename) throws BotConfigException {
 		ResultData data = this.geneFileCache.getIfPresent(filename);
 		if(data == null) {
 			data = this.loadGeneDataFromFile(filename);
@@ -35,14 +36,16 @@ public class GeneFileCache {
 		return data;
 	}
 	
-	private ResultData loadGeneDataFromFile(String filename) {
+	private ResultData loadGeneDataFromFile(String filename) throws BotConfigException {
 		URL resourceUrl = this.getClass().getClassLoader().getResource(filename);
 		ObjectMapper mapper = new ObjectMapper();
 		ResultData genes = null;
 		try {
 			genes = mapper.readValue(resourceUrl, ResultData.class);
 		} catch (IOException e) {
-			log.error("Error initializing gene bot from file {}", filename, e);
+			String errorMessage = "Error initializing gene bot from file " + filename;
+			log.error(errorMessage);
+			throw new BotConfigException(errorMessage);
 		}
 		
 		return genes;

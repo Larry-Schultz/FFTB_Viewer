@@ -4,11 +4,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import fft_battleground.model.BattleGroundTeam;
 
 public enum PersonalityDisplayFields {
 	WINNING_TEAM_PROPER,
+	WINNING_TEAM_INFORMAL,
 	LOSING_TEAM_PROPER,
+	LOSING_TEAM_INFORMAL,
+	LEFT_TEAM_PROPER,
+	RIGHT_TEAM_PROPER,
 	WINNING_SCORE,
 	LOSING_SCORE,
 	DIFFERENCE,
@@ -47,17 +53,39 @@ public enum PersonalityDisplayFields {
 		}
 		if(requiredFields.contains(PersonalityDisplayFields.LOSING_TEAM_PROPER)) {
 			if(winningSide == BattleGroundTeam.LEFT) {
-				fieldData.put(PersonalityDisplayFields.LOSING_TEAM_PROPER, rightTeam.getProperName());
+				fieldData.put(PersonalityDisplayFields.LOSING_TEAM_PROPER, StringUtils.capitalize(rightTeam.getProperName()));
 			} else {
-				fieldData.put(PersonalityDisplayFields.LOSING_TEAM_PROPER, leftTeam.getProperName());
+				fieldData.put(PersonalityDisplayFields.LOSING_TEAM_PROPER, StringUtils.capitalize(leftTeam.getProperName()));
 			}
 		}
+		if(requiredFields.contains(PersonalityDisplayFields.LOSING_TEAM_INFORMAL)) {
+			if(winningSide == BattleGroundTeam.LEFT) {
+				fieldData.put(PersonalityDisplayFields.LOSING_TEAM_INFORMAL, StringUtils.capitalize(rightTeam.getInformalName()));
+			} else {
+				fieldData.put(PersonalityDisplayFields.LOSING_TEAM_INFORMAL, StringUtils.capitalize(leftTeam.getInformalName()));
+			}
+		}
+		
 		if(requiredFields.contains(PersonalityDisplayFields.WINNING_TEAM_PROPER)) {
 			if(winningSide == BattleGroundTeam.LEFT) {
-				fieldData.put(PersonalityDisplayFields.WINNING_TEAM_PROPER, leftTeam.getProperName());
+				fieldData.put(PersonalityDisplayFields.WINNING_TEAM_PROPER, StringUtils.capitalize(leftTeam.getProperName()));
 			} else {
-				fieldData.put(PersonalityDisplayFields.WINNING_TEAM_PROPER, rightTeam.getProperName());
+				fieldData.put(PersonalityDisplayFields.WINNING_TEAM_PROPER, StringUtils.capitalize(rightTeam.getProperName()));
 			}
+		}
+		if(requiredFields.contains(PersonalityDisplayFields.WINNING_TEAM_INFORMAL)) {
+			if(winningSide == BattleGroundTeam.LEFT) {
+				fieldData.put(PersonalityDisplayFields.WINNING_TEAM_INFORMAL, StringUtils.capitalize(leftTeam.getInformalName()));
+			} else {
+				fieldData.put(PersonalityDisplayFields.WINNING_TEAM_INFORMAL, StringUtils.capitalize(rightTeam.getInformalName()));
+			}	
+		}
+		
+		if(requiredFields.contains(PersonalityDisplayFields.LEFT_TEAM_PROPER)) {
+			fieldData.put(PersonalityDisplayFields.LEFT_TEAM_PROPER, StringUtils.capitalize(leftTeam.getProperName()));
+		}
+		if(requiredFields.contains(PersonalityDisplayFields.RIGHT_TEAM_PROPER)) {
+			fieldData.put(PersonalityDisplayFields.RIGHT_TEAM_PROPER, StringUtils.capitalize(rightTeam.getProperName()));
 		}
 		
 		return fieldData;

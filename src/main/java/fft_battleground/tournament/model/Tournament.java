@@ -2,6 +2,7 @@ package fft_battleground.tournament.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,7 @@ public class Tournament {
 	private Integer winnersCount;
 	private List<String> raidbosses;
 	private Set<String> allPlayers;
+	private Map<BattleGroundTeam, Integer> teamValue;
 	
 	public Tournament() {}
 	

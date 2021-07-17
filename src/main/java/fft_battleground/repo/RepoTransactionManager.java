@@ -338,6 +338,20 @@ public class RepoTransactionManager {
 		this.dumpService.getUserSkillsCache().put(id, new ArrayList<>());
 	}
 	
+	@Transactional
+	public void softDeletePlayerAccount(List<String> badAccounts) {
+		for(String account : badAccounts) {
+			this.dumpService.getPlayerRecordRepo().softDeletePlayer(account);
+		}
+	}
+	
+	@Transactional
+	public void undeletePlayerAccounts(List<String> falselyFlaggedAccounts) {
+		for(String account: falselyFlaggedAccounts) {
+			this.dumpService.getPlayerRecordRepo().unDeletePlayer(account);
+		}
+	}
+	
 	@Transactional(propagation=Propagation.REQUIRED)
 	public void updatePlayerSkills(PlayerSkillEvent event) {
 		String id = this.cleanString(event.getPlayer());

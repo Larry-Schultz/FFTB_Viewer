@@ -34,6 +34,17 @@ public class PersonalityMatrixEntry {
 		this.requiredFields = Arrays.asList(requiredFields);
 	}
 	
+	public PersonalityMatrixEntry(Function<Map<PersonalityDisplayFields, String>, String> messageFunction, boolean display, PersonalityDisplayFields[] requiredFields) {
+		this.messageFunction = messageFunction;
+		this.display = display;
+		this.requiredFields = Arrays.asList(requiredFields);
+	}
+	
+	public PersonalityMatrixEntry(String message, boolean display) {
+		this.messageFunction = map -> message;
+		this.display = false;
+	}
+	
 	public String getMessage(Map<PersonalityDisplayFields, String> fieldData) {
 		String message = this.messageFunction.apply(fieldData);
 		return message;

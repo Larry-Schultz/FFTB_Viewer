@@ -24,7 +24,9 @@ import fft_battleground.botland.bot.GeneticBot;
 import fft_battleground.botland.bot.ArbitraryBot;
 import fft_battleground.botland.bot.BetCountBot;
 import fft_battleground.botland.bot.BetterBetBot;
+import fft_battleground.botland.bot.BraveFaithBot;
 import fft_battleground.botland.bot.OddsBot;
+import fft_battleground.botland.bot.TeamValueBot;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
@@ -131,7 +133,11 @@ public class BetBotFactory {
 		if(!maybePrimaryBotData.isPresent() ) {
 			log.error("No primary bot configuration found!");
 		} else {
-			primaryBot = this.createBot(otherPlayerBets, beginEvent, maybePrimaryBotData.get(), botDateString);
+			try {
+				primaryBot = this.createBot(otherPlayerBets, beginEvent, maybePrimaryBotData.get(), botDateString);
+			} catch (BotConfigException e) {
+				log.error("primary bot was unabled to be created, please fix!", e);
+			}
 			log.info("primary bot is minbetbot");
 		}
 		
@@ -157,13 +163,17 @@ public class BetBotFactory {
 	private List<BetterBetBot> createSecondaryBots(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, List<BotData> botData, String botDateString) {
 		List<BetterBetBot> secondaryBots = new ArrayList<>();
 		for(BotData data: botData) {
-			BetterBetBot newBot = this.createBot(otherPlayerBets, beginEvent, data, botDateString);
-			secondaryBots.add(newBot);
+			BetterBetBot newBot;
+			try {
+				newBot = this.createBot(otherPlayerBets, beginEvent, data, botDateString);
+				secondaryBots.add(newBot);
+			} catch (BotConfigException e) {} //only add bot if the exception is not thrown
+			
 		}
 		return secondaryBots;
 	}
 	
-	private BetterBetBot createBot(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, BotData botData, String botDateString) {
+	private BetterBetBot createBot(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, BotData botData, String botDateString) throws BotConfigException {
 		BetterBetBot betBot = null;
 		
 		Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(botDateString, botData.getName());
@@ -184,12 +194,21 @@ public class BetBotFactory {
 			betBot = new ArbitraryBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "genebot")) {
 			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
+		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "bravefaithbot")) {
+			betBot = new BraveFaithBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "teamvalue")) { 
+			betBot = new TeamValueBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 		} else {
 			log.error("botData with data: {} failed", botData);
 		}
 		
 		if(betBot != null) {
-			betBot.initParams(botData.getParams());
+			try {
+				betBot.initParams(botData.getParams());
+			} catch (BotConfigException e1) {
+				log.error("exception initializing bot {}", botData.getName(), e1);
+				throw e1;
+			}
 			betBot.setName(botData.getName());
 			betBot.setPlayerRecordRepoRef(this.playerRecordRepo);
 			betBot.setDateFormat(botDateString);

@@ -16,6 +16,7 @@ import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.PersonalityResponse;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.model.Unit;
@@ -30,6 +31,7 @@ public abstract class BetterBetBot
 implements Callable<Bet> {
 	protected static final String PERSONALITY_PARAM = "personality";
 	protected static final String INVERSE_PARAM = "inverse";
+	protected static final String BET_AMOUNT_EXPRESSION_PARAMETER = "betExpression";
 	
 	protected boolean isBotSubscriber = true;
 	
@@ -152,7 +154,7 @@ implements Callable<Bet> {
 		}
 	}
 
-	public abstract void initParams(Map<String, BotParam> map);
+	public abstract void initParams(Map<String, BotParam> map) throws BotConfigException;
 	
 	public abstract void init();
 	
