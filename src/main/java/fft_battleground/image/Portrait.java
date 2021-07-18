@@ -10,6 +10,11 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
+/**
+ * Object to contain information about a particular character image
+ * @author banme
+ *
+ */
 public class Portrait implements Comparable<Portrait> {
 	private String className;
 	private String gender;

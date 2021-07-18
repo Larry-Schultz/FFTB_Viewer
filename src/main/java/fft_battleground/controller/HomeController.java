@@ -1,31 +1,22 @@
 package fft_battleground.controller;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -58,20 +49,12 @@ import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.image.Images;
+import fft_battleground.image.ImageCache;
 import fft_battleground.metrics.AccessTracker;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
-import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.model.PlayerSkills;
-import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.repo.repository.BotsHourlyDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
-import fft_battleground.repo.repository.MatchRepo;
-import fft_battleground.repo.repository.PlayerRecordRepo;
-import fft_battleground.repo.util.SkillType;
-import fft_battleground.tournament.TournamentService;
-import fft_battleground.util.GambleUtil;
 import fft_battleground.util.GenericElementOrdering;
 import fft_battleground.util.GenericResponse;
 
@@ -84,7 +67,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HomeController {
 	
 	@Autowired
-	private Images images;
+	private ImageCache imageCache;
 	
 	@Autowired
 	private BotsRepo botsRepo;
@@ -109,18 +92,22 @@ public class HomeController {
 	
 	@GetMapping(value = "/images/characters/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
-		String basePath = "/static";
-		String imagePath = images.getCharacterImagePath(characterName);
-		String path = basePath + imagePath;
-		Resource imageResource = new ClassPathResource(path);
-		InputStream in = null;
-		try {
-			in = imageResource.getInputStream();
-		} catch(FileNotFoundException e) {
-			byte[] blankArray = null;
-			return new ResponseEntity<byte[]>(blankArray, HttpStatus.NOT_FOUND);
-		}
-	    return new ResponseEntity<byte[]>(IOUtils.toByteArray(in), HttpStatus.OK);
+		byte[] data = this.imageCache.getCharacterImage(characterName);
+	    if(data == null) {
+	    	return new ResponseEntity<>(new byte[] {}, HttpStatus.NOT_FOUND);
+	    } else {
+	    	return new ResponseEntity<>(data, HttpStatus.OK);
+	    }
+	}
+	
+	@GetMapping(value = "/images/portraits/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
+	public @ResponseBody ResponseEntity<byte[]> getPortraitImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
+		byte[] data = this.imageCache.getPortaitImage(characterName);
+	    if(data == null) {
+	    	return new ResponseEntity<>(new byte[] {}, HttpStatus.NOT_FOUND);
+	    } else {
+	    	return new ResponseEntity<>(data, HttpStatus.OK);
+	    }
 	}
 	
 	@GetMapping("/")

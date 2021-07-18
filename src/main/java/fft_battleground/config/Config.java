@@ -82,7 +82,7 @@ public class Config {
 		log.debug("loading images");
 		Resource imagesJsonFileResource = new ClassPathResource("/images.json");
 		String portraitLocation = "/static/img/portraits/";
-		String browserBaseUrl = "/img/portraits/";
+		String browserBaseUrl = "/images/portraits/";
 		Images images = new Images(imagesJsonFileResource, portraitLocation, browserBaseUrl);
 		
 		return images;
