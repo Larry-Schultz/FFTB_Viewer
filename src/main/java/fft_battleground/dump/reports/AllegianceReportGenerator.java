@@ -177,10 +177,14 @@ public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderb
 						})));
 
 		Set<String> filteredPlayers = new HashSet<>();
-		filteredPlayers.addAll(this.filterConversionFunction(topTenFilter));
-		filteredPlayers.addAll(this.filterConversionFunction(botFilter));
-		filteredPlayers.addAll(this.filterConversionFunction(activeFilter));
-		filteredPlayers.addAll(this.filterConversionFunction(noAllegianceFilter));
+		List<String> topTenFiltered = this.filterConversionFunction(topTenFilter);
+		filteredPlayers.addAll(topTenFiltered);
+		List<String> botFiltered = this.filterConversionFunction(botFilter);
+		filteredPlayers.addAll(botFiltered);
+		List<String> activeFiltered = this.filterConversionFunction(activeFilter);
+		filteredPlayers.addAll(activeFiltered);
+		List<String> noAllegianceFiltered = this.filterConversionFunction(noAllegianceFilter);
+		filteredPlayers.addAll(noAllegianceFiltered);
 		filteredPlayers.parallelStream().forEach(playerName -> highScoreDataFromDump.remove(playerName));
 
 		Calendar currentTimeOfCompletion = Calendar.getInstance();
@@ -294,8 +298,10 @@ public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderb
 		// access player data from database using a projection
 		List<PlayerRecord> teamPlayers = null;
 		synchronized(playerRepoLock) {
-			teamPlayers = this.playerRecordRepo.getPlayerDataForAllegiance(teamData.keySet())
-				.parallelStream().filter(playerRecord -> playerRecord != null).collect(Collectors.toList());
+			teamPlayers = this.playerRecordRepo.getPlayerDataForAllegiance(teamData.keySet()).parallelStream()
+				.filter(playerRecord -> playerRecord != null)
+				//.filter(playerRecord -> allegianceData.get(team).containsKey(playerRecord.getPlayer()))
+				.collect(Collectors.toList());
 		}
 
 		// sort the players by gil balance.

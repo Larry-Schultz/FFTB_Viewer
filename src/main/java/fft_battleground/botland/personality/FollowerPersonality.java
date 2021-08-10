@@ -27,13 +27,17 @@ public class FollowerPersonality extends PersonalityModule {
 		Integer roundedLeftScore = (int) leftScore.floatValue();
 		Integer roundedRightScore = (int) rightScore.floatValue();
 		
-		if(leftScore >= rightScore) {
+		if(leftScore > rightScore) {
 			builder.append("Betting on ").append(leftTeam.getProperName()).append(this.getModeString())
 			.append(roundedLeftScore).append(" vs ").append(roundedRightScore).append(" ").append(this.scoretype())
 			.append(".");
-		} else {
+		} else if(leftScore < rightScore) {
 			builder.append("Betting on ").append(rightTeam.getProperName()).append(this.getModeString())
 			.append(roundedRightScore).append(" vs ").append(roundedLeftScore).append(" ").append(this.scoretype())
+			.append(".");
+		} else {
+			builder.append("Betting on ").append(leftTeam.getProperName()).append(" as there is a tie in regards to ")
+			.append(this.scoretype()).append(" ").append(roundedLeftScore).append(" vs ").append(roundedRightScore)
 			.append(".");
 		}
 		

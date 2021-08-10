@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.OtherBrand</groupId>
 	<artifactId>FFT_BattleGround_Databot</artifactId>
-	<version>2.6.2-SNAPSHOT</version> 
+	<version>2.7.4-SNAPSHOT</version> 
 	<packaging>war</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>

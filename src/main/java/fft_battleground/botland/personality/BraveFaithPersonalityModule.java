@@ -14,7 +14,7 @@ public class BraveFaithPersonalityModule extends PersonalityModule {
 	private PersonalityMatrixEntry relevantEntry = braveEntry;
 	
 	protected static final PersonalityMatrixEntry braveEntry = new PersonalityMatrixEntry(map -> new StringBuilder("The Brave shall prevail! The ")
-			.append(map.get(PersonalityDisplayFields.WINNING_TEAM_PROPER)).append(" ").append(map.get(PersonalityDisplayFields.WINNING_TEAM_INFORMAL)).append(" are more brave than the")
+			.append(map.get(PersonalityDisplayFields.WINNING_TEAM_PROPER)).append(" ").append(map.get(PersonalityDisplayFields.WINNING_TEAM_INFORMAL)).append(" are more brave than the ")
 			.append(map.get(PersonalityDisplayFields.LOSING_TEAM_PROPER)).append(" ").append(map.get(PersonalityDisplayFields.LOSING_TEAM_INFORMAL))
 			.append(", with bravery of ").append(map.get(PersonalityDisplayFields.WINNING_SCORE)).append(" vs ").append(map.get(PersonalityDisplayFields.LOSING_SCORE)).append(".")
 			.toString(),
@@ -55,7 +55,7 @@ public class BraveFaithPersonalityModule extends PersonalityModule {
 		new PersonalityDisplayFields[] {PersonalityDisplayFields.LOSING_TEAM_PROPER, PersonalityDisplayFields.WINNING_TEAM_PROPER, PersonalityDisplayFields.LOSING_SCORE,
 				PersonalityDisplayFields.WINNING_SCORE,});
 	
-	protected static final PersonalityMatrixEntry noNumbersEntry = new PersonalityMatrixEntry(map -> new StringBuilder("Math is hard, I hate numbers! The")
+	protected static final PersonalityMatrixEntry noNumbersEntry = new PersonalityMatrixEntry(map -> new StringBuilder("Math is hard, I hate numbers! The ")
 			.append(map.get(PersonalityDisplayFields.LOSING_TEAM_PROPER)).append(" ").append(map.get(PersonalityDisplayFields.LOSING_TEAM_INFORMAL)).append(" have fewer brave and faith number thingies than ")
 			.append(map.get(PersonalityDisplayFields.WINNING_TEAM_PROPER)).append(" ").append(map.get(PersonalityDisplayFields.WINNING_TEAM_INFORMAL))
 			.append(", with maths of ").append(map.get(PersonalityDisplayFields.LOSING_SCORE)).append(" vs ").append(map.get(PersonalityDisplayFields.WINNING_SCORE)).append(".")

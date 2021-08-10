@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
@@ -19,8 +20,23 @@ public class BetEventAnnotator implements BattleGroundEventAnnotator<BetEvent> {
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
+	@Autowired
+	private DumpService dumpService;
+	
 	@Override
 	public void annotateEvent(BetEvent event) {
+		this.annotePlayerMetadata(event);
+		String cleanedPlayerName = GambleUtil.cleanString(event.getPlayer());
+		if(this.dumpService.getBotNames().contains(cleanedPlayerName)) {
+			if(event.getBetAmountInteger() != event.getMetadata().getLastKnownAmount()) {
+				Integer botBet = Math.min(GambleUtil.MAX_BET, event.getBetAmountInteger());
+				event.setBetAmount(botBet.toString());
+			}
+		}
+		return;
+	}
+	
+	private void annotePlayerMetadata(BetEvent event) {
 		PlayerRecord metadata = new PlayerRecord();
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPlayer()));
 		if(maybeRecord.isPresent()) {
@@ -35,7 +51,6 @@ public class BetEventAnnotator implements BattleGroundEventAnnotator<BetEvent> {
 			event.setBetAmount(GambleUtil.MINIMUM_BET.toString());
 		}
 		
-		return;
 	}
 
 }

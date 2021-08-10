@@ -3,12 +3,15 @@ package fft_battleground.botland.personality.model;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.botland.personality.BraveFaithPersonalityModule;
+import fft_battleground.botland.personality.ChemicalPersonality;
 import fft_battleground.botland.personality.FactsPersonality;
 import fft_battleground.botland.personality.FollowerPersonality;
+import fft_battleground.botland.personality.HealingPersonality;
 import fft_battleground.botland.personality.InversePercentilePersonality;
 import fft_battleground.botland.personality.InversePersonality;
 import fft_battleground.botland.personality.NerdPersonality;
 import fft_battleground.botland.personality.PersonalityModule;
+import fft_battleground.botland.personality.PokemonPersonality;
 import fft_battleground.botland.personality.SidePersonality;
 import fft_battleground.botland.personality.TeamValuePersonality;
 import fft_battleground.botland.personality.YoloPersonality;
@@ -30,7 +33,10 @@ public enum Personalities {
 	BRAVEFAITH("bravefaith", new BraveFaithPersonalityModule(BraveFaith.BOTH, false)),
 	ANTIBRAVEFAITH("antibravefaith", new BraveFaithPersonalityModule(BraveFaith.BOTH, true)),
 	TEAMVALUEPERSONALITY("teamvalue", new TeamValuePersonality(false)),
-	INVERSETEAMVALUEPERSONALITY("inverseteamvalue", new TeamValuePersonality(true));
+	INVERSETEAMVALUEPERSONALITY("inverseteamvalue", new TeamValuePersonality(true)),
+	CHEMICAL("chemical", new ChemicalPersonality()),
+	HEALING("healing", new HealingPersonality()),
+	POKEMON("pokemon", new PokemonPersonality());
 	
 	Personalities(String name, PersonalityModule module) {
 		this.name = name;

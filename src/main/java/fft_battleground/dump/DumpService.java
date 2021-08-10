@@ -74,7 +74,6 @@ import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.repository.SkillBonusRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
-import fft_battleground.repo.util.SkillType;
 import fft_battleground.tournament.MonsterUtils;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
@@ -155,6 +154,7 @@ public class DumpService {
 	@Getter @Setter private Set<String> botCache;
 	@Getter @Setter private Map<String, Set<String>> classBonusCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, Set<String>> skillBonusCache = new ConcurrentHashMap<>();
+	@Getter @Setter private Set<String> softDeleteCache; //threadsafe
 	
 	@Getter private Map<String, Integer> leaderboard = new ConcurrentHashMap<>();
 	@Getter private Map<Integer, String> expRankLeaderboardByRank = new ConcurrentHashMap<>();
@@ -203,9 +203,9 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
-		//this.dumpScheduledTasks.forceScheduleAllegianceBatch();
+		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
 		this.dumpScheduledTasks.forceCertificateCheck();
-		this.dumpScheduledTasks.forceScheduledBadAccountsTask();
+		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
 		/*
 		 * this.dumpScheduledTasks.forceScheduleUserSkillsTask();
 		 * this.dumpScheduledTasks.forceScheduleClassBonusTask();

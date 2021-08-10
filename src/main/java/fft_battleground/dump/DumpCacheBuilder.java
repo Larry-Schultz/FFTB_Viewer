@@ -18,10 +18,12 @@ import fft_battleground.dump.cache.ClassBonusCacheTask;
 import fft_battleground.dump.cache.ExpCacheTask;
 import fft_battleground.dump.cache.LastActiveCacheTask;
 import fft_battleground.dump.cache.LastFightActiveCacheTask;
+import fft_battleground.dump.cache.MusicBuilder;
 import fft_battleground.dump.cache.PortraitCacheTask;
 import fft_battleground.dump.cache.PrestigeSkillsCacheTask;
 import fft_battleground.dump.cache.SkillBonusCacheTask;
 import fft_battleground.dump.cache.SnubCacheTask;
+import fft_battleground.dump.cache.SoftDeleteBuilder;
 import fft_battleground.dump.cache.UserSkillsCacheTask;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.BotLeaderboard;
@@ -32,6 +34,7 @@ import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,6 +66,8 @@ public class DumpCacheBuilder {
 		Future<Map<String, List<String>>> prestigeSkillsCacheTaskFuture = this.threadPool.submit(new PrestigeSkillsCacheTask(playerRecords));
 		Future<Map<String, Set<String>>> classBonusCacheTaskFuture = this.threadPool.submit(new ClassBonusCacheTask(playerRecords, dumpService.getClassBonusRepo()));
 		Future<Map<String, Set<String>>> skillBonusCacheTaskFuture = this.threadPool.submit(new SkillBonusCacheTask(playerRecords, dumpService.getSkillBonusRepo()));
+		
+		Future<Set<String>> softDeleteCacheBuilderFuture = this.threadPool.submit(new SoftDeleteBuilder(this.dumpService));
 
 		this.dumpService.setBalanceCache(balanceCacheTaskFuture.get());
 		this.dumpService.setExpCache(expCacheTaskFuture.get());
@@ -75,6 +80,7 @@ public class DumpCacheBuilder {
 		this.dumpService.setPrestigeSkillsCache(prestigeSkillsCacheTaskFuture.get());
 		this.dumpService.setClassBonusCache(classBonusCacheTaskFuture.get());
 		this.dumpService.setSkillBonusCache(skillBonusCacheTaskFuture.get());
+		this.dumpService.setSoftDeleteCache(softDeleteCacheBuilderFuture.get());
 		log.info("finished loading player cache");
 
 	}
@@ -87,22 +93,6 @@ public class DumpCacheBuilder {
 	@SneakyThrows
 	public void buildPlaylist() {
 		this.threadPool.submit(new MusicBuilder(this.dumpService));
-	}
-	
-}
-
-@Slf4j
-class MusicBuilder
-implements Runnable {
-	private DumpService dumpServiceRef;
-	
-	public MusicBuilder(DumpService dumpServiceRef) {
-		this.dumpServiceRef = dumpServiceRef;
-	}
-	
-	@Override
-	public void run() {
-		this.dumpServiceRef.setPlaylist();
 	}
 	
 }

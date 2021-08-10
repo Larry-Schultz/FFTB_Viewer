@@ -7,12 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
@@ -58,10 +56,10 @@ public class SecondaryBotConfig {
 			Node node = leafs.item(i);
 			if(node.getNodeType() == Node.ELEMENT_NODE) {
 				Element element = (Element) node;
-				String name = element.getAttribute("id");
-				String classname = element.getAttribute("classname");
-				String canPrimaryString = element.getAttribute("canPrimary");
-				String botDescription= element.getAttribute("description");
+				String name = StringUtils.trim(element.getAttribute("id"));
+				String classname = StringUtils.trim(element.getAttribute("classname"));
+				String canPrimaryString = StringUtils.trim(element.getAttribute("canPrimary"));
+				String botDescription = StringUtils.trim(element.getAttribute("description"));
 				Boolean canPrimary = Boolean.valueOf(canPrimaryString);
 				NodeList params = node.getChildNodes();
 				Map<String, BotParam> paramMap = new HashMap<>();
@@ -69,9 +67,9 @@ public class SecondaryBotConfig {
 					Node paramNode = params.item(j);
 					if(paramNode.getNodeType() == Node.ELEMENT_NODE) {
 						Element paramElement = (Element) paramNode;
-						String paramName = paramElement.getAttribute("id");
-						String paramDescription = paramElement.getAttribute("description");
-						String parameter = paramElement.getTextContent();
+						String paramName = StringUtils.trim(paramElement.getAttribute("id"));
+						String paramDescription = StringUtils.trim(paramElement.getAttribute("description"));
+						String parameter = StringUtils.trim(paramElement.getTextContent());
 						paramMap.put(paramName, new BotParam(paramName, parameter, paramDescription));
 					}
 				}

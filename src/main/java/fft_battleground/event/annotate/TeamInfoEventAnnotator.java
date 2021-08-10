@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -22,7 +21,7 @@ import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.model.Tournament;
-
+import fft_battleground.util.GambleUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +56,8 @@ public class TeamInfoEventAnnotator implements BattleGroundEventAnnotator<TeamIn
 			} else {
 				matchingPlayer = this.findClosestMatchingName(playerName, currentTournament.getEntrants());
 			}
-			Optional<PlayerRecord> record = this.playerRecordRepo.findById(matchingPlayer);
+			String cleanedName = GambleUtil.cleanString(matchingPlayer);
+			Optional<PlayerRecord> record = this.playerRecordRepo.findById(cleanedName);
 			
 			if(record != null && record.isPresent()) {
 				metadata.setPlayer(record.get().getPlayer());

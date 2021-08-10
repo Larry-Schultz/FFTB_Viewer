@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.botland.bot.BetterBetBot;
@@ -129,7 +130,11 @@ public class RepoManager extends Thread {
 			} catch(IncorrectTypeException e) {
 				log.error("A value in the repo was incorrectly typed with error: {}", e.getMessage(), e);
 				errorWebhookManager.sendException(e);
-			} catch(Exception e) {
+			} catch(DataIntegrityViolationException e) {
+				String errorMessage = "A soft deleted value was not properly updated, and is still soft deleted despite attempting to undelete it";
+				log.error(errorMessage, e);
+				errorWebhookManager.sendException(e, errorMessage);;
+			}catch(Exception e) {
 				log.error("error in RepoManager", e);
 			} 
 		}

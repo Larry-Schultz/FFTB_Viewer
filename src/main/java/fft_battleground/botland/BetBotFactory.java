@@ -27,7 +27,9 @@ import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.bot.BraveFaithBot;
 import fft_battleground.botland.bot.OddsBot;
 import fft_battleground.botland.bot.TeamValueBot;
+import fft_battleground.botland.bot.UnitAwareBot;
 import fft_battleground.botland.model.BotData;
+import fft_battleground.botland.model.BotNames;
 import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
 import fft_battleground.event.BattleGroundEventBackPropagation;
@@ -174,8 +176,6 @@ public class BetBotFactory {
 	}
 	
 	private BetterBetBot createBot(List<BetEvent> otherPlayerBets, BettingBeginsEvent beginEvent, BotData botData, String botDateString) throws BotConfigException {
-		BetterBetBot betBot = null;
-		
 		Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(botDateString, botData.getName());
 		if(botDataFromDatabase == null) {
 			botDataFromDatabase = this.botsRepo.addNewBotForToday(botData.getName(), this.isBotSubscriber);
@@ -184,23 +184,7 @@ public class BetBotFactory {
 		
 		Integer currentAmountToBetWith = botDataFromDatabase.getBalance();
 		
-		if(StringUtils.equalsIgnoreCase(botData.getClassname(), "betcountbot")) {
-			betBot = new BetCountBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
-		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "databetbot")) {
-			betBot = new DataBetBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
-		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "oddsbot")) {
-			betBot = new OddsBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
-		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "arbitrarybot")) {
-			betBot = new ArbitraryBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
-		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "genebot")) {
-			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
-		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "bravefaithbot")) {
-			betBot = new BraveFaithBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
-		} else if(StringUtils.equalsIgnoreCase(botData.getClassname(), "teamvalue")) { 
-			betBot = new TeamValueBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
-		} else {
-			log.error("botData with data: {} failed", botData);
-		}
+		BetterBetBot betBot = this.findBestFitBot(currentAmountToBetWith, beginEvent, botData);
 		
 		if(betBot != null) {
 			try {
@@ -224,6 +208,42 @@ public class BetBotFactory {
 		
 		return betBot;
 		
+	}
+	
+	private BetterBetBot findBestFitBot(Integer currentAmountToBetWith, BettingBeginsEvent beginEvent, BotData botData) {
+		BetterBetBot betBot = null;
+		BotNames currentBot = BotNames.parseBotname(botData.getClassname());
+		switch(currentBot) {
+		case BETCOUNT:
+			betBot = new BetCountBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			break;
+		case DATA:
+			betBot = new DataBetBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			break;
+		case ODDS:
+			betBot = new OddsBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			break;
+		case ARBITRARY:
+			betBot = new ArbitraryBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			break;
+		case GENE:
+			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
+			break;
+		case BRAVEFAITH:
+			betBot = new BraveFaithBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			break;
+		case TEAMVALUE:
+			betBot = new TeamValueBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
+			break;
+		case UNIT:
+			betBot = new UnitAwareBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
+			break;
+		default:
+			log.error("botData with data: {} failed", botData);
+			break;
+		}
+		
+		return betBot;
 	}
 
 }

@@ -8,6 +8,7 @@ import fft_battleground.repo.model.PlayerRecord;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,21 +25,24 @@ public interface PlayerRecordRepo extends JpaRepository<PlayerRecord, String> {
     public List<PlayerRecord> findAllPlayerNames();
 	
 	//SELECT player_record FROM PlayerRecord player WHERE player.player LIKE :username
-	@Query("SELECT player_record FROM PlayerRecord player_record WHERE player_record.player LIKE %:username% AND player_record.isActive IS NULL OR player_record.isActive = 'Y'")
+	@Query("SELECT player_record FROM PlayerRecord player_record WHERE player_record.player LIKE %:username% AND (player_record.isActive IS NULL OR player_record.isActive = 'Y')")
 	public List<PlayerRecord> findLikePlayer(String username);
 	
-	@Query("SELECT player_record.player AS playerName FROM PlayerRecord player_record WHERE player_record.player LIKE %:username% AND player_record.isActive IS NULL OR player_record.isActive = 'Y'")
+	@Query("SELECT player_record.player AS playerName FROM PlayerRecord player_record WHERE player_record.player LIKE %:username% AND (player_record.isActive IS NULL OR player_record.isActive = 'Y')")
 	public List<String> findPlayerNameByLike(String username);
 	
-	@Query("SELECT playerRecord FROM PlayerRecord playerRecord where playerRecord.player IN :playerNames AND playerRecord.isActive IS NULL OR playerRecord.isActive = 'Y'") 
+	@Query("SELECT playerRecord FROM PlayerRecord playerRecord WHERE (playerRecord.isActive IS NULL OR playerRecord.isActive = 'Y') AND (playerRecord.player IN :playerNames)") 
 	public List<PersonRecordAllegianceDataProjection> getPlayerDataNeededForAllegianceLeaderboard(@Param("playerNames") Collection<String> playerNames);
 	
-	@Modifying
-	@Query("UPDATE PlayerRecord player_record SET player_record.isActive = 'N' WHERE player_record.player = :player")
+	@Query(nativeQuery=true, value="SELECT playerRecord.player AS playerName From player_record playerRecord WHERE playerRecord.is_active = 'N'") 
+	public List<String> findSoftDeletedPlayers();
+	
+	@Modifying()
+	@Query(nativeQuery=true, value="UPDATE player_record SET is_active = 'N' WHERE player = :player")
 	public void softDeletePlayer(@Param("player") String player);
 	
-	@Modifying
-	@Query("UPDATE PlayerRecord player_record SET player_record.isActive = 'Y' WHERE player_record.player = :player")
+	@Modifying()
+	@Query(nativeQuery=true, value="UPDATE player_record SET is_active = 'Y' WHERE player = :player")
 	public void unDeletePlayer(@Param("player") String player);
 	
 	@Transactional

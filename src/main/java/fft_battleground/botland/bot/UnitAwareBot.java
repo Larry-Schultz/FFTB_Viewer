@@ -1,9 +1,12 @@
 package fft_battleground.botland.bot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 
@@ -12,13 +15,16 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
+import fft_battleground.botland.GeneFileCache;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GambleUtil;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class UnitAwareBot extends BetterBetBot {
 
 	private static final String BRAVE_MULTIPLIER_PARAMETER = "bravemultiplier";
@@ -29,10 +35,11 @@ public class UnitAwareBot extends BetterBetBot {
 	private float braveMultiplier = 0f;
 	private float faithMultiplier = 0f;
 	private Map<String, Float> unitParameters = new HashMap<>();
+	private GeneFileCache geneFileCache;
 	
-	public UnitAwareBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right) {
+	public UnitAwareBot(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, GeneFileCache geneFileCache) {
 		super(currentAmountToBetWith, left, right);
-		// TODO Auto-generated constructor stub
+		this.geneFileCache = geneFileCache;
 	}
 
 	@Override
@@ -59,12 +66,18 @@ public class UnitAwareBot extends BetterBetBot {
 				.filter(key -> !usedParameters.contains(key))
 				.filter(key -> StringUtils.isNumeric(map.get(key).getValue()))
 				.collect(Collectors.toMap(keyFunction, key -> Float.valueOf(map.get(key).getValue())));
+		
+		
 	}
 
 	@Override
 	public void init() {
-		// TODO Auto-generated method stub
-
+		UnitAwareBotConfigVerifier verifier = new UnitAwareBotConfigVerifier(this.geneFileCache);
+		Optional<List<String>> invalidAttributes = verifier.checkForInvalidAttributes(this.unitParameters.keySet());
+		if(invalidAttributes.isPresent()) {
+			String invalidAttributeString = StringUtils.join(invalidAttributes.get(), ", ");
+			log.warn("UnitAwareBot {} has the invalid attributes: {}", this.getName(), invalidAttributeString);
+		}
 	}
 
 	@Override
@@ -107,9 +120,15 @@ public class UnitAwareBot extends BetterBetBot {
 		Float score = 0f;
 		score+= this.braveMultiplier * unit.getBrave();
 		score += this.faithMultiplier * unit.getFaith();
-		Integer attributeScore = unit.getUnitGeneAbilityElements().stream()
-				.filter(ability -> this.unitParameters.containsKey(ability))
-				.mapToInt(ability -> this.unitParameters.get(ability).intValue())
+		List<String> geneAbilities = unit.getUnitGeneAbilityElements().stream().map(ability -> StringUtils.lowerCase(ability)).collect(Collectors.toList());
+		Map<String, Float> relevantGeneAbilities = new HashMap<>();
+		for(String ability: geneAbilities) {
+			if(this.unitParameters.containsKey(ability)) {
+				relevantGeneAbilities.put(ability, this.unitParameters.get(ability));
+			}
+		}
+		Double attributeScore = relevantGeneAbilities.keySet().stream()
+				.mapToDouble(ability -> relevantGeneAbilities.get(ability))
 				.sum();
 		score += attributeScore.floatValue();
 		
@@ -132,4 +151,33 @@ public class UnitAwareBot extends BetterBetBot {
 		return result;
 	}
 
+}
+
+class UnitAwareBotConfigVerifier {
+	
+	private List<String> validAttributes;
+	
+	public UnitAwareBotConfigVerifier() {}
+	
+	public UnitAwareBotConfigVerifier(GeneFileCache cache) {
+		this.validAttributes = cache.getLatestFile().getGeneticAttributes().stream()
+		.map(geneticAttribute -> StringUtils.lowerCase(geneticAttribute.getKey()))
+		.collect(Collectors.toList());
+	}
+	
+	public Optional<List<String>> checkForInvalidAttributes(Collection<String> attributes) {
+		List<String> invalidAttributes = new ArrayList<>();
+		for(String attribute: attributes) {
+			if(!this.validAttributes.contains(StringUtils.lowerCase(attribute))) {
+				invalidAttributes.add(attribute);
+			}
+		}
+		
+		Optional<List<String>> result = Optional.of(invalidAttributes);
+		if(invalidAttributes.size() == 0) {
+			result = Optional.empty();
+		}
+		
+		return result;
+	}
 }

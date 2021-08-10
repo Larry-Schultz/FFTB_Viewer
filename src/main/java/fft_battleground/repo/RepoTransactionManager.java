@@ -109,10 +109,24 @@ public class RepoTransactionManager {
 	@Transactional
 	public void reportAsLoss(List<BetEvent> bets, Float teamBettingOdds) {
 		for(BetEvent bet : bets) {
+			String cleanedName = this.cleanString(bet.getPlayer());
 			PlayerRecord player = null;
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(bet.getPlayer()));
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(!maybeRecord.isPresent()) {
+				log.info("creating new account {}", cleanedName);
 				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 0, 1, bet.getIsSubscriber(), UpdateSource.REPORT_AS_LOSS);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) { 
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					player = maybeRecord.get();
+					player.setLosses(player.getLosses() + 1);
+					player.setUpdateSource(UpdateSource.REPORT_AS_LOSS);
+					player.setIsSubscriber(bet.getIsSubscriber());
+					
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
 			} else {
 				player = maybeRecord.get();
 				player.setLosses(player.getLosses() + 1);
@@ -130,7 +144,8 @@ public class RepoTransactionManager {
 	@Transactional
 	public void reportAsFightLoss(TeamInfoEvent team) {
 		for(Pair<String, String> teamMemberInfo: team.getPlayerUnitPairs()) {
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(teamMemberInfo.getLeft()));
+			String cleanedName = this.cleanString(teamMemberInfo.getLeft());
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				PlayerRecord record = maybeRecord.get();
 				Integer currentFightLosses = record.getFightLosses();
@@ -139,11 +154,25 @@ public class RepoTransactionManager {
 				record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_LOSS);
 				
 				this.playerRecordRepo.saveAndFlush(record);
-			} else {
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) { 
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					PlayerRecord record = maybeRecord.get();
+					Integer currentFightLosses = record.getFightLosses();
+					currentFightLosses = currentFightLosses + 1;
+					record.setFightLosses(currentFightLosses);
+					record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_LOSS);
+					this.playerRecordRepo.saveAndFlush(record);
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			}else {
 				PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_LOSS);
 				record.setFightLosses(1);
 				record.setFightWins(0);
 				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
 		}
 	}
@@ -152,9 +181,23 @@ public class RepoTransactionManager {
 	public void reportAsWin(List<BetEvent> bets, Float teamBettingOdds) {
 		for(BetEvent bet : bets) {
 			PlayerRecord player = null;
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(bet.getPlayer()));
+			String cleanedName = this.cleanString(bet.getPlayer());
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(!maybeRecord.isPresent()) {
 				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 1, 0, bet.getIsSubscriber(), UpdateSource.REPORT_AS_WIN);
+				log.info("creating new account {}", cleanedName);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					player = maybeRecord.get();
+					player.setWins(player.getWins() + 1);
+					player.setUpdateSource(UpdateSource.REPORT_AS_WIN);
+					player.setIsSubscriber(bet.getIsSubscriber());
+					
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
 			} else {
 				player = maybeRecord.get();
 				player.setWins(player.getWins() + 1);
@@ -173,7 +216,8 @@ public class RepoTransactionManager {
 	@Transactional
 	public void reportAsFightWin(TeamInfoEvent team) {
 		for(Pair<String, String> teamMemberInfo: team.getPlayerUnitPairs()) {
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(teamMemberInfo.getLeft()));
+			String cleanedName = this.cleanString(teamMemberInfo.getLeft());
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				PlayerRecord record = maybeRecord.get();
 				Integer currentFightWins = record.getFightWins();
@@ -182,11 +226,26 @@ public class RepoTransactionManager {
 				record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_WIN);
 				
 				this.playerRecordRepo.saveAndFlush(record);
-			} else {
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					PlayerRecord record = maybeRecord.get();
+					Integer currentFightWins = record.getFightWins();
+					currentFightWins = currentFightWins + 1;
+					record.setFightWins(currentFightWins);
+					record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_WIN);
+					
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+					this.playerRecordRepo.saveAndFlush(record);
+				}
+			}  else {
 				PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_WIN);
 				record.setFightWins(1);
 				record.setFightLosses(0);
 				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
 		}
 	}
@@ -253,25 +312,39 @@ public class RepoTransactionManager {
 	
 	@Transactional
 	public void updatePlayerPortrait(PortraitEvent event) throws IncorrectTypeException {
+		String cleanedName = this.cleanString(event.getPlayer());
 		if(StringUtils.isNumeric(event.getPortrait())) {
 			throw new IncorrectTypeException("The portrait " + event.getPortrait() + " for player " + event.getPlayer() + " is actually a number");
 		}
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(event.getPlayer()));
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 		if(maybeRecord.isPresent()) {
 			PlayerRecord record = maybeRecord.get();
 			record.setPortrait(event.getPortrait());
 			record.setUpdateSource(UpdateSource.PORTRAIT);
 			this.playerRecordRepo.saveAndFlush(record);
-		} else {
+		} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)){
+			this.dumpService.getPlayerRecordRepo().unDeletePlayer(cleanedName);
+			maybeRecord = this.playerRecordRepo.findById(cleanedName);
+			if(maybeRecord.isPresent()) {
+				PlayerRecord record = maybeRecord.get();
+				record.setPortrait(event.getPortrait());
+				record.setUpdateSource(UpdateSource.PORTRAIT);
+				this.playerRecordRepo.saveAndFlush(record);
+				this.dumpService.getSoftDeleteCache().remove(cleanedName);
+				log.info("undeleting account {}", cleanedName);
+			}
+		}else {
 			event.setPlayer(this.cleanString(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.PORTRAIT);
 			this.playerRecordRepo.saveAndFlush(record);
+			log.info("creating new account {}", cleanedName);
 		}
 	}
 	
 	@Transactional
 	public void updatePlayerAmount(BalanceEvent event) {
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(this.cleanString(event.getPlayer()));
+		String cleanedName = this.cleanString(event.getPlayer());
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 		if(maybeRecord.isPresent()) {
 			PlayerRecord record = maybeRecord.get();
 			record.setLastKnownAmount(event.getAmount());
@@ -280,10 +353,25 @@ public class RepoTransactionManager {
 				record.setHighestKnownAmount(event.getAmount());
 			}
 			this.playerRecordRepo.saveAndFlush(record);
-		} else {
+		} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+			this.playerRecordRepo.unDeletePlayer(cleanedName);
+			maybeRecord = this.playerRecordRepo.findById(cleanedName);
+			if(maybeRecord.isPresent()) {
+				PlayerRecord record = maybeRecord.get();
+				record.setLastKnownAmount(event.getAmount());
+				record.setUpdateSource(UpdateSource.PLAYER_AMOUNT);
+				if(record.getHighestKnownAmount() == null || event.getAmount() > record.getHighestKnownAmount()) {
+					record.setHighestKnownAmount(event.getAmount());
+				}
+				this.playerRecordRepo.saveAndFlush(record);
+				this.dumpService.getSoftDeleteCache().remove(cleanedName);
+				log.info("undeleting account {}", cleanedName);
+			}
+		}else {
 			event.setPlayer(this.cleanString(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.PLAYER_AMOUNT);
 			this.playerRecordRepo.saveAndFlush(record);
+			log.info("creating new account {}", cleanedName);
 		}
 	}
 	
@@ -303,6 +391,23 @@ public class RepoTransactionManager {
 				maybeRecord.get().setUpdateSource(UpdateSource.PLAYER_LEVEL);
 			}
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
+			this.playerRecordRepo.unDeletePlayer(id);
+			maybeRecord = this.playerRecordRepo.findById(id);
+			if(maybeRecord.isPresent()) {
+				maybeRecord.get().setLastKnownLevel(event.getLevel());
+				if(event instanceof ExpEvent) {
+					Short remainingExp = ((ExpEvent)event).getRemainingExp();
+					maybeRecord.get().setLastKnownRemainingExp(remainingExp);
+					maybeRecord.get().setUpdateSource(UpdateSource.EXP);
+				} else {
+					maybeRecord.get().setLastKnownRemainingExp(GambleUtil.DEFAULT_REMAINING_EXP);
+					maybeRecord.get().setUpdateSource(UpdateSource.PLAYER_LEVEL);
+				}
+				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+				this.dumpService.getSoftDeleteCache().remove(id);
+				log.info("undeleting account {}", id);
+			}
 		} else {
 			PlayerRecord record = null;
 			if(event instanceof ExpEvent) {
@@ -311,6 +416,7 @@ public class RepoTransactionManager {
 			} else {
 				record = new PlayerRecord(event, UpdateSource.PLAYER_LEVEL);
 			}
+			log.info("creating new account {}", id);
 			
 			this.playerRecordRepo.saveAndFlush(record);
 		}
@@ -324,10 +430,21 @@ public class RepoTransactionManager {
 			maybeRecord.get().setAllegiance(event.getTeam());
 			maybeRecord.get().setUpdateSource(UpdateSource.ALLEGIANCE);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else {
+		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
+			this.playerRecordRepo.unDeletePlayer(id);
+			maybeRecord = this.playerRecordRepo.findById(id);
+			if(maybeRecord.isPresent()) {
+				maybeRecord.get().setAllegiance(event.getTeam());
+				maybeRecord.get().setUpdateSource(UpdateSource.ALLEGIANCE);
+				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+				this.dumpService.getSoftDeleteCache().remove(id);
+				log.info("undeleting account {}", id);
+			}
+		}else {
 			event.setPlayer(this.cleanString(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.ALLEGIANCE);
 			this.playerRecordRepo.saveAndFlush(record);
+			log.info("creating new account {}", id);
 		}
 	}
 	
@@ -342,6 +459,7 @@ public class RepoTransactionManager {
 	public void softDeletePlayerAccount(List<String> badAccounts) {
 		for(String account : badAccounts) {
 			this.dumpService.getPlayerRecordRepo().softDeletePlayer(account);
+			this.dumpService.getSoftDeleteCache().add(account);		
 		}
 	}
 	
@@ -349,6 +467,7 @@ public class RepoTransactionManager {
 	public void undeletePlayerAccounts(List<String> falselyFlaggedAccounts) {
 		for(String account: falselyFlaggedAccounts) {
 			this.dumpService.getPlayerRecordRepo().unDeletePlayer(account);
+			this.dumpService.getSoftDeleteCache().remove(account);
 		}
 	}
 	
@@ -409,10 +528,21 @@ public class RepoTransactionManager {
 			maybeRecord.get().setLastActive(event.getLastActive());
 			maybeRecord.get().setUpdateSource(UpdateSource.LAST_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else {
+		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
+			this.playerRecordRepo.unDeletePlayer(id);
+			maybeRecord = this.playerRecordRepo.findById(id);
+			if(maybeRecord.isPresent()) {
+				maybeRecord.get().setLastActive(event.getLastActive());
+				maybeRecord.get().setUpdateSource(UpdateSource.LAST_ACTIVE);
+				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+				this.dumpService.getSoftDeleteCache().remove(id);
+				log.info("undeleting account {}", id);
+			}
+		}else {
 			event.setPlayer(this.cleanString(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(record);
+			log.info("creating new account {}", id);
 		}
 	}
 	
@@ -441,10 +571,20 @@ public class RepoTransactionManager {
 			maybeRecord.get().setLastFightActive(event.getEventTime());
 			maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else {
+		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
+			maybeRecord = this.playerRecordRepo.findById(id);
+			if(maybeRecord.isPresent()) {
+				maybeRecord.get().setLastFightActive(event.getEventTime());
+				maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
+				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+				this.dumpService.getSoftDeleteCache().remove(id);
+				log.info("undeleting account {}", id);
+			}
+		}else {
 			event.setPlayer(this.cleanString(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_FIGHT_ACTIVE);
 			this.playerRecordRepo.saveAndFlush(record);
+			log.info("creating new account {}", id);
 		}
 	}
 	
@@ -468,10 +608,20 @@ public class RepoTransactionManager {
 			maybeRecord.get().setSnubStreak(event.getSnub());
 			maybeRecord.get().setUpdateSource(UpdateSource.SNUB);
 			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
+			maybeRecord = this.playerRecordRepo.findById(id);
+			if(maybeRecord.isPresent()) {
+				maybeRecord.get().setSnubStreak(event.getSnub());
+				maybeRecord.get().setUpdateSource(UpdateSource.SNUB);
+				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+				this.dumpService.getSoftDeleteCache().remove(id);
+				log.info("undeleting account {}", id);
+			}
 		} else {
 			event.setPlayer(this.cleanString(event.getPlayer()));
 			PlayerRecord record = new PlayerRecord(event, UpdateSource.SNUB);
 			this.playerRecordRepo.saveAndFlush(record);
+			log.info("creating new account {}", id);
 		}
 	}
 	
