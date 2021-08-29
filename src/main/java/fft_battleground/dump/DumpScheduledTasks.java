@@ -40,7 +40,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.scheduled.AscensionRefreshRetry;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
@@ -81,9 +80,6 @@ public class DumpScheduledTasks {
 	
 	@Autowired
 	@Getter private MonsterUtils monsterUtils;
-	
-	@Autowired
-	private AscensionRefreshRetry ascensionRefreshRetry;
 	
 	@Autowired
 	private Router<DatabaseResultsData> betResultsRouter;
