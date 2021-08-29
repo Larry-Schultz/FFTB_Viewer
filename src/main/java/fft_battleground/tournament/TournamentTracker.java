@@ -66,10 +66,17 @@ public class TournamentTracker {
 		//annotate events
 		this.teamInfoEventAnnotator.setCurrentTournament(currentTournamentDetails);
 		this.unitInfoEventAnnotator.setCurrentTournament(currentTournamentDetails);
-		teamInfoMap.keySet().parallelStream().filter(team -> team != BattleGroundTeam.CHAMPION).map(key -> teamInfoMap.get(key)).forEach(event -> this.teamInfoEventAnnotator.annotateEvent(event));
-		unitInfoMap.keySet().parallelStream().filter(team -> team != BattleGroundTeam.CHAMPION).map(key -> unitInfoMap.get(key)).forEach(
-			unitInfoEventList -> unitInfoEventList.parallelStream().forEach(event -> this.unitInfoEventAnnotator.annotateEvent(event))
-		);
+		teamInfoMap.keySet().parallelStream()
+			//.filter(team -> team != BattleGroundTeam.CHAMPION)
+			.map(key -> teamInfoMap.get(key))
+			.forEach(event -> this.teamInfoEventAnnotator.annotateEvent(event));
+		
+		unitInfoMap.keySet().parallelStream()
+			.filter(team -> team != BattleGroundTeam.CHAMPION)
+			.map(key -> unitInfoMap.get(key))
+			.forEach(
+				unitInfoEventList -> unitInfoEventList.parallelStream().forEach(event -> this.unitInfoEventAnnotator.annotateEvent(event))
+			);
 		
 		tournamentStatus = new TournamentStatusUpdateEvent(aliveTeamMap, teamInfoMap, unitInfoMap);
 		
