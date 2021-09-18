@@ -1,6 +1,7 @@
 package fft_battleground.dump.reports;
 
 import java.util.Map;
+import java.util.Timer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -12,7 +13,6 @@ import com.google.common.math.Quantiles;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.exception.CacheBuildException;
-import fft_battleground.exception.CacheMissException;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class FightPercentileReportGenerator extends ReportGenerator<Map<Integer, Double>> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.FIGHT_PERCENTILES;
+	private static final String reportName = "Fight Percentiles";
 	
 	@Autowired
 	private DumpReportsService dumpReportsService;
@@ -29,42 +30,9 @@ public class FightPercentileReportGenerator extends ReportGenerator<Map<Integer,
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
-	@Autowired
-	private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
-	
-	@Autowired
-	private WebhookManager errorWebhookManager;
-	
-	public FightPercentileReportGenerator() {
-		super(key);
-	}
-
-	@Override
-	public Map<Integer, Double> getReport() throws CacheMissException {
-		Map<Integer, Double> fightPercentiles = null;
-		fightPercentiles = this.readCache(this.cache, key.getKey());
-		if (fightPercentiles == null) {
-			throw new CacheMissException(key);
-		}
-
-		return fightPercentiles;
-	}
-
-	@Override
-	public Map<Integer, Double> writeReport() {
-		log.warn("The Fight Percentiles cache was busted.  Rebuilding");
-		Map<Integer, Double> fightPercentiles = null;
-		try {
-			fightPercentiles = this.generateReport();
-			this.writeToCache(this.cache, key.getKey(), fightPercentiles);
-			this.battleGroundCacheEntryRepo.writeCacheEntry(fightPercentiles, key.getKey());
-			log.warn("Fight Percentiles rebuild complete");
-		} catch(Exception e) {
-			log.error("Error in building fight percentiles", e);
-			this.errorWebhookManager.sendException(e, "Error in building fight percentiles");
-		}
-		
-		return fightPercentiles;
+	public FightPercentileReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
+			Timer battlegroundCacheTimer ) {
+		super(key, reportName, battleGroundCacheEntryRepo, errorWebhookManager, battlegroundCacheTimer);
 	}
 
 	@Override
@@ -81,6 +49,11 @@ public class FightPercentileReportGenerator extends ReportGenerator<Map<Integer,
 								/ ((double) playerRecord.getFightWins() + playerRecord.getFightLosses() + 1))
 						.collect(Collectors.toList()));
 		return percentiles;
+	}
+
+	@Override
+	public Map<Integer, Double> deserializeJson(String json) {
+		return this.deserializeMapIntegerDouble(json);
 	}
 
 }

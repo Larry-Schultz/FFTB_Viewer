@@ -1,6 +1,7 @@
 package fft_battleground.irc;
 
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
 
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -27,6 +28,8 @@ public class IrcInitialConnectManager {
         if(!startupSuccessful) {
         	log.error("Error starting connection to IRC");
         	throw new IrcConnectionException("twitch irc connection permanently closed");
+        } else {
+        	log.warn("IRC Connection Successful");
         }
         
         return startupSuccessful;

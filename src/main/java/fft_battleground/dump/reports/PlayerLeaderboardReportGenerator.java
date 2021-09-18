@@ -7,10 +7,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
@@ -18,7 +21,6 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheBuildException;
-import fft_battleground.exception.CacheMissException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class PlayerLeaderboardReportGenerator extends ReportGenerator<PlayerLeaderboard> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.LEADERBOARD;
+	private static final String reportName = "Player Leaderboard";
 	
 	@Autowired
 	private DumpService dumpService;
@@ -36,38 +39,9 @@ public class PlayerLeaderboardReportGenerator extends ReportGenerator<PlayerLead
 	@Autowired
 	private DumpReportsService dumpReportsService;
 	
-	@Autowired
-	private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
-	
-	@Autowired
-	private WebhookManager errorWebhookManager;
-	
-	public PlayerLeaderboardReportGenerator() {
-		super(key);
-	}
-
-	@Override
-	public PlayerLeaderboard getReport() throws CacheMissException {
-		PlayerLeaderboard leaderboard = this.readCache(this.cache, BattleGroundCacheEntryKey.LEADERBOARD.getKey());
-		if (leaderboard == null) {
-			throw new CacheMissException(BattleGroundCacheEntryKey.LEADERBOARD);
-		}
-		return leaderboard;
-	}
-
-	@Override
-	public PlayerLeaderboard writeReport() {
-		log.warn("Leaderboard cache was busted, creating new value");
-		PlayerLeaderboard leaderboard = null;
-		try {
-			leaderboard = this.generateReport();
-			this.writeToCache(this.cache, key.getKey(), leaderboard);
-			this.battleGroundCacheEntryRepo.writeCacheEntry(leaderboard, key.getKey());
-		} catch(Exception e) {
-			log.error("Error writing to bot cache", e);
-			this.errorWebhookManager.sendException(e, "exception generating new player leaderboard");
-		}
-		return leaderboard;
+	public PlayerLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
+			Timer battlegroundCacheTimer ) {
+		super(key, reportName, battleGroundCacheEntryRepo, errorWebhookManager, battlegroundCacheTimer);
 	}
 
 	@Override
@@ -116,5 +90,17 @@ public class PlayerLeaderboardReportGenerator extends ReportGenerator<PlayerLead
 
 		return data;
 	}
+
+	@Override
+	@SneakyThrows
+	public PlayerLeaderboard deserializeJson(String json) {
+		ObjectMapper mapper = new ObjectMapper();
+		PlayerLeaderboard leaderboard;
+		leaderboard = mapper.readValue(json, PlayerLeaderboard.class);
+		
+		return leaderboard;
+	}
+
+
 
 }

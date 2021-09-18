@@ -9,12 +9,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.model.BetResults;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.AllegianceEvent;
@@ -33,6 +35,7 @@ import fft_battleground.event.detector.model.SnubEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.fake.ClassBonusEvent;
 import fft_battleground.event.detector.model.fake.SkillBonusEvent;
+import fft_battleground.exception.BattleGroundDataIntegrityViolationException;
 import fft_battleground.exception.IncorrectTypeException;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.BotHourlyData;
@@ -86,6 +89,9 @@ public class RepoTransactionManager {
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
 	
 	@Autowired
+	private WebhookManager errorWebhookManager;
+	
+	@Autowired
 	private DumpService dumpService;
 	
 	public RepoTransactionManager() {}
@@ -111,33 +117,39 @@ public class RepoTransactionManager {
 		for(BetEvent bet : bets) {
 			String cleanedName = this.cleanString(bet.getPlayer());
 			PlayerRecord player = null;
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-			if(!maybeRecord.isPresent()) {
-				log.info("creating new account {}", cleanedName);
-				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 0, 1, bet.getIsSubscriber(), UpdateSource.REPORT_AS_LOSS);
-			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) { 
-				this.playerRecordRepo.unDeletePlayer(cleanedName);
-				maybeRecord = this.playerRecordRepo.findById(cleanedName);
-				if(maybeRecord.isPresent()) {
+			try {
+				Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(!maybeRecord.isPresent()) {
+					log.info("creating new account {}", cleanedName);
+					player = new PlayerRecord(this.cleanString(bet.getPlayer()), 0, 1, bet.getIsSubscriber(), UpdateSource.REPORT_AS_LOSS);
+				} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) { 
+					this.playerRecordRepo.unDeletePlayer(cleanedName);
+					maybeRecord = this.playerRecordRepo.findById(cleanedName);
+					if(maybeRecord.isPresent()) {
+						player = maybeRecord.get();
+						player.setLosses(player.getLosses() + 1);
+						player.setUpdateSource(UpdateSource.REPORT_AS_LOSS);
+						player.setIsSubscriber(bet.getIsSubscriber());
+						
+						this.dumpService.getSoftDeleteCache().remove(cleanedName);
+						log.info("undeleting account {}", cleanedName);
+					}
+				} else {
 					player = maybeRecord.get();
 					player.setLosses(player.getLosses() + 1);
 					player.setUpdateSource(UpdateSource.REPORT_AS_LOSS);
 					player.setIsSubscriber(bet.getIsSubscriber());
-					
-					this.dumpService.getSoftDeleteCache().remove(cleanedName);
-					log.info("undeleting account {}", cleanedName);
 				}
-			} else {
-				player = maybeRecord.get();
-				player.setLosses(player.getLosses() + 1);
-				player.setUpdateSource(UpdateSource.REPORT_AS_LOSS);
-				player.setIsSubscriber(bet.getIsSubscriber());
+				this.playerRecordRepo.saveAndFlush(player);
+				
+				//now let's backpropagate some simulated balance updates
+				sendBalanceBackpropagation(bet, teamBettingOdds, false);
+			} catch(DataIntegrityViolationException dive) {
+				String errorMessage = "data integrity exception found for player " + cleanedName;
+				log.warn(errorMessage, dive);
+				this.errorWebhookManager.sendException(dive, errorMessage);
 			}
-			this.playerRecordRepo.saveAndFlush(player);
-			
-			//now let's backpropagate some simulated balance updates
-			sendBalanceBackpropagation(bet, teamBettingOdds, false);
-		}
+		} 
 		
 	}
 	
@@ -145,34 +157,40 @@ public class RepoTransactionManager {
 	public void reportAsFightLoss(TeamInfoEvent team) {
 		for(Pair<String, String> teamMemberInfo: team.getPlayerUnitPairs()) {
 			String cleanedName = this.cleanString(teamMemberInfo.getLeft());
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-			if(maybeRecord.isPresent()) {
-				PlayerRecord record = maybeRecord.get();
-				Integer currentFightLosses = record.getFightLosses();
-				currentFightLosses = currentFightLosses + 1;
-				record.setFightLosses(currentFightLosses);
-				record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_LOSS);
-				
-				this.playerRecordRepo.saveAndFlush(record);
-			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) { 
-				this.playerRecordRepo.unDeletePlayer(cleanedName);
-				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+			try {
+				Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 				if(maybeRecord.isPresent()) {
 					PlayerRecord record = maybeRecord.get();
 					Integer currentFightLosses = record.getFightLosses();
 					currentFightLosses = currentFightLosses + 1;
 					record.setFightLosses(currentFightLosses);
 					record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_LOSS);
+					
 					this.playerRecordRepo.saveAndFlush(record);
-					this.dumpService.getSoftDeleteCache().remove(cleanedName);
-					log.info("undeleting account {}", cleanedName);
+				} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) { 
+					this.playerRecordRepo.unDeletePlayer(cleanedName);
+					maybeRecord = this.playerRecordRepo.findById(cleanedName);
+					if(maybeRecord.isPresent()) {
+						PlayerRecord record = maybeRecord.get();
+						Integer currentFightLosses = record.getFightLosses();
+						currentFightLosses = currentFightLosses + 1;
+						record.setFightLosses(currentFightLosses);
+						record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_LOSS);
+						this.playerRecordRepo.saveAndFlush(record);
+						this.dumpService.getSoftDeleteCache().remove(cleanedName);
+						log.info("undeleting account {}", cleanedName);
+					}
+				}else {
+					PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_LOSS);
+					record.setFightLosses(1);
+					record.setFightWins(0);
+					this.playerRecordRepo.saveAndFlush(record);
+					log.info("creating new account {}", cleanedName);
 				}
-			}else {
-				PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_LOSS);
-				record.setFightLosses(1);
-				record.setFightWins(0);
-				this.playerRecordRepo.saveAndFlush(record);
-				log.info("creating new account {}", cleanedName);
+			} catch(DataIntegrityViolationException dive) {
+				String errorMessage = "data integrity exception found for player " + cleanedName;
+				log.warn(errorMessage, dive);
+				this.errorWebhookManager.sendException(dive, errorMessage);
 			}
 		}
 	}
@@ -182,33 +200,39 @@ public class RepoTransactionManager {
 		for(BetEvent bet : bets) {
 			PlayerRecord player = null;
 			String cleanedName = this.cleanString(bet.getPlayer());
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-			if(!maybeRecord.isPresent()) {
-				player = new PlayerRecord(this.cleanString(bet.getPlayer()), 1, 0, bet.getIsSubscriber(), UpdateSource.REPORT_AS_WIN);
-				log.info("creating new account {}", cleanedName);
-			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
-				this.playerRecordRepo.unDeletePlayer(cleanedName);
-				maybeRecord = this.playerRecordRepo.findById(cleanedName);
-				if(maybeRecord.isPresent()) {
+			try {
+				Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(!maybeRecord.isPresent()) {
+					player = new PlayerRecord(this.cleanString(bet.getPlayer()), 1, 0, bet.getIsSubscriber(), UpdateSource.REPORT_AS_WIN);
+					log.info("creating new account {}", cleanedName);
+				} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+					this.playerRecordRepo.unDeletePlayer(cleanedName);
+					maybeRecord = this.playerRecordRepo.findById(cleanedName);
+					if(maybeRecord.isPresent()) {
+						player = maybeRecord.get();
+						player.setWins(player.getWins() + 1);
+						player.setUpdateSource(UpdateSource.REPORT_AS_WIN);
+						player.setIsSubscriber(bet.getIsSubscriber());
+						
+						this.dumpService.getSoftDeleteCache().remove(cleanedName);
+						log.info("undeleting account {}", cleanedName);
+					}
+				} else {
 					player = maybeRecord.get();
 					player.setWins(player.getWins() + 1);
 					player.setUpdateSource(UpdateSource.REPORT_AS_WIN);
 					player.setIsSubscriber(bet.getIsSubscriber());
-					
-					this.dumpService.getSoftDeleteCache().remove(cleanedName);
-					log.info("undeleting account {}", cleanedName);
 				}
-			} else {
-				player = maybeRecord.get();
-				player.setWins(player.getWins() + 1);
-				player.setUpdateSource(UpdateSource.REPORT_AS_WIN);
-				player.setIsSubscriber(bet.getIsSubscriber());
+				
+				this.playerRecordRepo.saveAndFlush(player);
+				
+				//now let's backpropagate some simulated balance updates
+				sendBalanceBackpropagation(bet, teamBettingOdds, true);
+			} catch(DataIntegrityViolationException dive) {
+				String errorMessage = "data integrity exception found for player " + cleanedName;
+				log.warn(errorMessage, dive);
+				this.errorWebhookManager.sendException(dive, errorMessage);
 			}
-			
-			this.playerRecordRepo.saveAndFlush(player);
-			
-			//now let's backpropagate some simulated balance updates
-			sendBalanceBackpropagation(bet, teamBettingOdds, true);
 		}
 		
 	}
@@ -217,18 +241,9 @@ public class RepoTransactionManager {
 	public void reportAsFightWin(TeamInfoEvent team) {
 		for(Pair<String, String> teamMemberInfo: team.getPlayerUnitPairs()) {
 			String cleanedName = this.cleanString(teamMemberInfo.getLeft());
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-			if(maybeRecord.isPresent()) {
-				PlayerRecord record = maybeRecord.get();
-				Integer currentFightWins = record.getFightWins();
-				currentFightWins = currentFightWins + 1;
-				record.setFightWins(currentFightWins);
-				record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_WIN);
+			try {
 				
-				this.playerRecordRepo.saveAndFlush(record);
-			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
-				this.playerRecordRepo.unDeletePlayer(cleanedName);
-				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 				if(maybeRecord.isPresent()) {
 					PlayerRecord record = maybeRecord.get();
 					Integer currentFightWins = record.getFightWins();
@@ -236,16 +251,32 @@ public class RepoTransactionManager {
 					record.setFightWins(currentFightWins);
 					record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_WIN);
 					
-					this.dumpService.getSoftDeleteCache().remove(cleanedName);
-					log.info("undeleting account {}", cleanedName);
 					this.playerRecordRepo.saveAndFlush(record);
+				} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+					this.playerRecordRepo.unDeletePlayer(cleanedName);
+					maybeRecord = this.playerRecordRepo.findById(cleanedName);
+					if(maybeRecord.isPresent()) {
+						PlayerRecord record = maybeRecord.get();
+						Integer currentFightWins = record.getFightWins();
+						currentFightWins = currentFightWins + 1;
+						record.setFightWins(currentFightWins);
+						record.setUpdateSource(UpdateSource.REPORT_AS_FIGHT_WIN);
+						
+						this.dumpService.getSoftDeleteCache().remove(cleanedName);
+						log.info("undeleting account {}", cleanedName);
+						this.playerRecordRepo.saveAndFlush(record);
+					}
+				}  else {
+					PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_WIN);
+					record.setFightWins(1);
+					record.setFightLosses(0);
+					this.playerRecordRepo.saveAndFlush(record);
+					log.info("creating new account {}", cleanedName);
 				}
-			}  else {
-				PlayerRecord record = new PlayerRecord(this.cleanString(teamMemberInfo.getLeft()), UpdateSource.REPORT_AS_FIGHT_WIN);
-				record.setFightWins(1);
-				record.setFightLosses(0);
-				this.playerRecordRepo.saveAndFlush(record);
-				log.info("creating new account {}", cleanedName);
+			} catch(DataIntegrityViolationException dive) {
+				String errorMessage = "data integrity exception found for player " + cleanedName;
+				log.warn(errorMessage, dive);
+				this.errorWebhookManager.sendException(dive, errorMessage);
 			}
 		}
 	}
@@ -311,51 +342,45 @@ public class RepoTransactionManager {
 	}
 	
 	@Transactional
-	public void updatePlayerPortrait(PortraitEvent event) throws IncorrectTypeException {
+	public void updatePlayerPortrait(PortraitEvent event) throws IncorrectTypeException, BattleGroundDataIntegrityViolationException {
 		String cleanedName = this.cleanString(event.getPlayer());
 		if(StringUtils.isNumeric(event.getPortrait())) {
 			throw new IncorrectTypeException("The portrait " + event.getPortrait() + " for player " + event.getPlayer() + " is actually a number");
 		}
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-		if(maybeRecord.isPresent()) {
-			PlayerRecord record = maybeRecord.get();
-			record.setPortrait(event.getPortrait());
-			record.setUpdateSource(UpdateSource.PORTRAIT);
-			this.playerRecordRepo.saveAndFlush(record);
-		} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)){
-			this.dumpService.getPlayerRecordRepo().unDeletePlayer(cleanedName);
-			maybeRecord = this.playerRecordRepo.findById(cleanedName);
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				PlayerRecord record = maybeRecord.get();
 				record.setPortrait(event.getPortrait());
 				record.setUpdateSource(UpdateSource.PORTRAIT);
 				this.playerRecordRepo.saveAndFlush(record);
-				this.dumpService.getSoftDeleteCache().remove(cleanedName);
-				log.info("undeleting account {}", cleanedName);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)){
+				this.dumpService.getPlayerRecordRepo().unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					PlayerRecord record = maybeRecord.get();
+					record.setPortrait(event.getPortrait());
+					record.setUpdateSource(UpdateSource.PORTRAIT);
+					this.playerRecordRepo.saveAndFlush(record);
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			}else {
+				event.setPlayer(this.cleanString(event.getPlayer()));
+				PlayerRecord record = new PlayerRecord(event, UpdateSource.PORTRAIT);
+				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
-		}else {
-			event.setPlayer(this.cleanString(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event, UpdateSource.PORTRAIT);
-			this.playerRecordRepo.saveAndFlush(record);
-			log.info("creating new account {}", cleanedName);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
 	@Transactional
-	public void updatePlayerAmount(BalanceEvent event) {
+	public void updatePlayerAmount(BalanceEvent event) throws BattleGroundDataIntegrityViolationException {
 		String cleanedName = this.cleanString(event.getPlayer());
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-		if(maybeRecord.isPresent()) {
-			PlayerRecord record = maybeRecord.get();
-			record.setLastKnownAmount(event.getAmount());
-			record.setUpdateSource(UpdateSource.PLAYER_AMOUNT);
-			if(record.getHighestKnownAmount() == null || event.getAmount() > record.getHighestKnownAmount()) {
-				record.setHighestKnownAmount(event.getAmount());
-			}
-			this.playerRecordRepo.saveAndFlush(record);
-		} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
-			this.playerRecordRepo.unDeletePlayer(cleanedName);
-			maybeRecord = this.playerRecordRepo.findById(cleanedName);
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				PlayerRecord record = maybeRecord.get();
 				record.setLastKnownAmount(event.getAmount());
@@ -364,36 +389,37 @@ public class RepoTransactionManager {
 					record.setHighestKnownAmount(event.getAmount());
 				}
 				this.playerRecordRepo.saveAndFlush(record);
-				this.dumpService.getSoftDeleteCache().remove(cleanedName);
-				log.info("undeleting account {}", cleanedName);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					PlayerRecord record = maybeRecord.get();
+					record.setLastKnownAmount(event.getAmount());
+					record.setUpdateSource(UpdateSource.PLAYER_AMOUNT);
+					if(record.getHighestKnownAmount() == null || event.getAmount() > record.getHighestKnownAmount()) {
+						record.setHighestKnownAmount(event.getAmount());
+					}
+					this.playerRecordRepo.saveAndFlush(record);
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			}else {
+				event.setPlayer(this.cleanString(event.getPlayer()));
+				PlayerRecord record = new PlayerRecord(event, UpdateSource.PLAYER_AMOUNT);
+				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
-		}else {
-			event.setPlayer(this.cleanString(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event, UpdateSource.PLAYER_AMOUNT);
-			this.playerRecordRepo.saveAndFlush(record);
-			log.info("creating new account {}", cleanedName);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
 	@Transactional
-	public void updatePlayerLevel(LevelUpEvent event) {
-		String id = this.cleanString(event.getPlayer());
-		event.setPlayer(id);
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
-		if(maybeRecord.isPresent()) {
-			maybeRecord.get().setLastKnownLevel(event.getLevel());
-			if(event instanceof ExpEvent) {
-				Short remainingExp = ((ExpEvent)event).getRemainingExp();
-				maybeRecord.get().setLastKnownRemainingExp(remainingExp);
-				maybeRecord.get().setUpdateSource(UpdateSource.EXP);
-			} else {
-				maybeRecord.get().setLastKnownRemainingExp(GambleUtil.DEFAULT_REMAINING_EXP);
-				maybeRecord.get().setUpdateSource(UpdateSource.PLAYER_LEVEL);
-			}
-			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
-			this.playerRecordRepo.unDeletePlayer(id);
-			maybeRecord = this.playerRecordRepo.findById(id);
+	public void updatePlayerLevel(LevelUpEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		event.setPlayer(cleanedName);
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				maybeRecord.get().setLastKnownLevel(event.getLevel());
 				if(event instanceof ExpEvent) {
@@ -405,46 +431,67 @@ public class RepoTransactionManager {
 					maybeRecord.get().setUpdateSource(UpdateSource.PLAYER_LEVEL);
 				}
 				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-				this.dumpService.getSoftDeleteCache().remove(id);
-				log.info("undeleting account {}", id);
-			}
-		} else {
-			PlayerRecord record = null;
-			if(event instanceof ExpEvent) {
-				ExpEvent expEvent = (ExpEvent) event;
-				record = new PlayerRecord(expEvent, UpdateSource.EXP);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					maybeRecord.get().setLastKnownLevel(event.getLevel());
+					if(event instanceof ExpEvent) {
+						Short remainingExp = ((ExpEvent)event).getRemainingExp();
+						maybeRecord.get().setLastKnownRemainingExp(remainingExp);
+						maybeRecord.get().setUpdateSource(UpdateSource.EXP);
+					} else {
+						maybeRecord.get().setLastKnownRemainingExp(GambleUtil.DEFAULT_REMAINING_EXP);
+						maybeRecord.get().setUpdateSource(UpdateSource.PLAYER_LEVEL);
+					}
+					this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
 			} else {
-				record = new PlayerRecord(event, UpdateSource.PLAYER_LEVEL);
+				PlayerRecord record = null;
+				if(event instanceof ExpEvent) {
+					ExpEvent expEvent = (ExpEvent) event;
+					record = new PlayerRecord(expEvent, UpdateSource.EXP);
+				} else {
+					record = new PlayerRecord(event, UpdateSource.PLAYER_LEVEL);
+				}
+				log.info("creating new account {}", cleanedName);
+				
+				this.playerRecordRepo.saveAndFlush(record);
 			}
-			log.info("creating new account {}", id);
-			
-			this.playerRecordRepo.saveAndFlush(record);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
 	@Transactional
-	public void updatePlayerAllegiance(AllegianceEvent event) {
-		String id = this.cleanString(event.getPlayer());
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
-		if(maybeRecord.isPresent()) {
-			maybeRecord.get().setAllegiance(event.getTeam());
-			maybeRecord.get().setUpdateSource(UpdateSource.ALLEGIANCE);
-			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
-			this.playerRecordRepo.unDeletePlayer(id);
-			maybeRecord = this.playerRecordRepo.findById(id);
+	public void updatePlayerAllegiance(AllegianceEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				maybeRecord.get().setAllegiance(event.getTeam());
 				maybeRecord.get().setUpdateSource(UpdateSource.ALLEGIANCE);
 				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-				this.dumpService.getSoftDeleteCache().remove(id);
-				log.info("undeleting account {}", id);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					maybeRecord.get().setAllegiance(event.getTeam());
+					maybeRecord.get().setUpdateSource(UpdateSource.ALLEGIANCE);
+					this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			}else {
+				event.setPlayer(this.cleanString(event.getPlayer()));
+				PlayerRecord record = new PlayerRecord(event, UpdateSource.ALLEGIANCE);
+				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
-		}else {
-			event.setPlayer(this.cleanString(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event, UpdateSource.ALLEGIANCE);
-			this.playerRecordRepo.saveAndFlush(record);
-			log.info("creating new account {}", id);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
@@ -472,77 +519,85 @@ public class RepoTransactionManager {
 	}
 	
 	@Transactional(propagation=Propagation.REQUIRED)
-	public void updatePlayerSkills(PlayerSkillEvent event) {
-		String id = this.cleanString(event.getPlayer());
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
-		if(maybeRecord.isPresent()) {
-			Hibernate.initialize(maybeRecord.get().getPlayerSkills());
-			List<PlayerSkills> currentSkills = maybeRecord.get().getPlayerSkills();
-			List<String> currentSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
-			//add skills to player
-			for(PlayerSkills possibleNewSkill: event.getPlayerSkills()) {
-				if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
-					if(event instanceof PrestigeSkillsEvent) {
-						maybeRecord.get().addPlayerSkill(possibleNewSkill.getSkill(), SkillType.PRESTIGE);
-						this.playerRecordRepo.save(maybeRecord.get());
+	public void updatePlayerSkills(PlayerSkillEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
+			if(maybeRecord.isPresent()) {
+				Hibernate.initialize(maybeRecord.get().getPlayerSkills());
+				List<PlayerSkills> currentSkills = maybeRecord.get().getPlayerSkills();
+				List<String> currentSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+				//add skills to player
+				for(PlayerSkills possibleNewSkill: event.getPlayerSkills()) {
+					if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
+						if(event instanceof PrestigeSkillsEvent) {
+							maybeRecord.get().addPlayerSkill(possibleNewSkill.getSkill(), SkillType.PRESTIGE);
+							this.playerRecordRepo.save(maybeRecord.get());
+						} else {
+							maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
+							this.playerRecordRepo.save(maybeRecord.get());
+						}
+					} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
+						if(!(event instanceof PrestigeSkillsEvent)) {
+							List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
+							if(matchingSkills.size() > 0) {
+								PlayerSkills currentSkill = matchingSkills.get(0);
+								if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
+									currentSkill.setCooldown(possibleNewSkill.getCooldown());
+									currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
+									this.playerSkillRepo.save(currentSkill);
+								}
+							}
+						}
 					} else {
-						maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
-						this.playerRecordRepo.save(maybeRecord.get());
-					}
-				} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
-					if(!(event instanceof PrestigeSkillsEvent)) {
-						List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
-						if(matchingSkills.size() > 0) {
-							PlayerSkills currentSkill = matchingSkills.get(0);
-							if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
-								currentSkill.setCooldown(possibleNewSkill.getCooldown());
-								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
-								this.playerSkillRepo.save(currentSkill);
+						if(event instanceof PrestigeSkillsEvent) {
+							for(String skillName : event.getSkills()) {
+								PlayerSkills playerSkill = this.playerSkillRepo.getSkillsByPlayerAndSkillName(cleanedName, skillName);
+								if(playerSkill != null) {
+									playerSkill.setSkillType(SkillType.PRESTIGE);
+									this.playerSkillRepo.save(playerSkill);
+								}
 							}
+							
 						}
-					}
-				} else {
-					if(event instanceof PrestigeSkillsEvent) {
-						for(String skillName : event.getSkills()) {
-							PlayerSkills playerSkill = this.playerSkillRepo.getSkillsByPlayerAndSkillName(id, skillName);
-							if(playerSkill != null) {
-								playerSkill.setSkillType(SkillType.PRESTIGE);
-								this.playerSkillRepo.save(playerSkill);
-							}
-						}
-						
 					}
 				}
+				
+				this.playerRecordRepo.flush();
+				this.playerSkillRepo.flush();
 			}
-			
-			this.playerRecordRepo.flush();
-			this.playerSkillRepo.flush();
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
 	@Transactional
-	public void updatePlayerLastActive(LastActiveEvent event) {
-		String id = this.cleanString(event.getPlayer());
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
-		if(maybeRecord.isPresent()) {
-			maybeRecord.get().setLastActive(event.getLastActive());
-			maybeRecord.get().setUpdateSource(UpdateSource.LAST_ACTIVE);
-			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
-			this.playerRecordRepo.unDeletePlayer(id);
-			maybeRecord = this.playerRecordRepo.findById(id);
+	public void updatePlayerLastActive(LastActiveEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				maybeRecord.get().setLastActive(event.getLastActive());
 				maybeRecord.get().setUpdateSource(UpdateSource.LAST_ACTIVE);
 				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-				this.dumpService.getSoftDeleteCache().remove(id);
-				log.info("undeleting account {}", id);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				this.playerRecordRepo.unDeletePlayer(cleanedName);
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					maybeRecord.get().setLastActive(event.getLastActive());
+					maybeRecord.get().setUpdateSource(UpdateSource.LAST_ACTIVE);
+					this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			}else {
+				event.setPlayer(this.cleanString(event.getPlayer()));
+				PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_ACTIVE);
+				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
-		}else {
-			event.setPlayer(this.cleanString(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_ACTIVE);
-			this.playerRecordRepo.saveAndFlush(record);
-			log.info("creating new account {}", id);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
@@ -564,27 +619,31 @@ public class RepoTransactionManager {
 	}
 	
 	@Transactional
-	public void updateLastFightActive(FightEntryEvent event) {
-		String id = this.cleanString(event.getPlayer());
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
-		if(maybeRecord.isPresent()) {
-			maybeRecord.get().setLastFightActive(event.getEventTime());
-			maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
-			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
-			maybeRecord = this.playerRecordRepo.findById(id);
+	public void updateLastFightActive(FightEntryEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				maybeRecord.get().setLastFightActive(event.getEventTime());
 				maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
 				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-				this.dumpService.getSoftDeleteCache().remove(id);
-				log.info("undeleting account {}", id);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					maybeRecord.get().setLastFightActive(event.getEventTime());
+					maybeRecord.get().setUpdateSource(UpdateSource.LAST_FIGHT_ACTIVE);
+					this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			}else {
+				event.setPlayer(this.cleanString(event.getPlayer()));
+				PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_FIGHT_ACTIVE);
+				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
-		}else {
-			event.setPlayer(this.cleanString(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event, UpdateSource.LAST_FIGHT_ACTIVE);
-			this.playerRecordRepo.saveAndFlush(record);
-			log.info("creating new account {}", id);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	
@@ -601,27 +660,31 @@ public class RepoTransactionManager {
 	}
 	
 	@Transactional
-	public void updateSnub(SnubEvent event) {
-		String id = this.cleanString(event.getPlayer());
-		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(id);
-		if(maybeRecord.isPresent()) {
-			maybeRecord.get().setSnubStreak(event.getSnub());
-			maybeRecord.get().setUpdateSource(UpdateSource.SNUB);
-			this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-		} else if(this.dumpService.getSoftDeleteCache().contains(id)) {
-			maybeRecord = this.playerRecordRepo.findById(id);
+	public void updateSnub(SnubEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {
 				maybeRecord.get().setSnubStreak(event.getSnub());
 				maybeRecord.get().setUpdateSource(UpdateSource.SNUB);
 				this.playerRecordRepo.saveAndFlush(maybeRecord.get());
-				this.dumpService.getSoftDeleteCache().remove(id);
-				log.info("undeleting account {}", id);
+			} else if(this.dumpService.getSoftDeleteCache().contains(cleanedName)) {
+				maybeRecord = this.playerRecordRepo.findById(cleanedName);
+				if(maybeRecord.isPresent()) {
+					maybeRecord.get().setSnubStreak(event.getSnub());
+					maybeRecord.get().setUpdateSource(UpdateSource.SNUB);
+					this.playerRecordRepo.saveAndFlush(maybeRecord.get());
+					this.dumpService.getSoftDeleteCache().remove(cleanedName);
+					log.info("undeleting account {}", cleanedName);
+				}
+			} else {
+				event.setPlayer(this.cleanString(event.getPlayer()));
+				PlayerRecord record = new PlayerRecord(event, UpdateSource.SNUB);
+				this.playerRecordRepo.saveAndFlush(record);
+				log.info("creating new account {}", cleanedName);
 			}
-		} else {
-			event.setPlayer(this.cleanString(event.getPlayer()));
-			PlayerRecord record = new PlayerRecord(event, UpdateSource.SNUB);
-			this.playerRecordRepo.saveAndFlush(record);
-			log.info("creating new account {}", id);
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
 		}
 	}
 	

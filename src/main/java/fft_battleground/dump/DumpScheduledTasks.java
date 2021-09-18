@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Callable;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -40,6 +39,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.scheduled.DumpScheduledTask;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
@@ -62,7 +62,6 @@ import fft_battleground.tournament.MonsterUtils;
 import fft_battleground.util.Router;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -90,34 +89,11 @@ public class DumpScheduledTasks {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
-	@Autowired
-	private WebhookManager ascensionWebhookManager;
-	
 	@Value("${server.ssl.key-store-password}")
 	private String keyStorePass;
 	
 	private Timer batchTimer = new Timer();
-	private Timer cacheTimer = new Timer();
 	private Timer forceTimer = new Timer();
-	
-	//every 3 hours, with an initial delay of 5 minutes
-	@Scheduled(fixedDelay = 10800000, initialDelay=500000)
-	public void runCacheUpdates() {
-		DumpScheduledTask task = new DumpScheduledTask(this) {
-			@Override
-			protected void task() {
-				DumpReportsService dumpReportsService = this.dumpScheduledTasksRef.getDumpService().getDumpReportsService();
-				dumpReportsService.writeBetPercentile();
-				dumpReportsService.writeFightPercentile();
-				dumpReportsService.writeBotLeaderboardToCaches();
-				dumpReportsService.writeLeaderboard();
-				dumpReportsService.writeAllegianceWrapper();
-				dumpReportsService.writeExpLeaderboard();
-			}
-			
-		};
-		this.cacheTimer.schedule(task, 0);
-	}
 	
 	@Scheduled(cron = "0 0 1 * * ?")
 	public void runAllUpdates() {
@@ -244,7 +220,7 @@ public class DumpScheduledTasks {
 		BatchDataEntry allegiancePreviousBatchDataEntry = this.batchDataEntryRepo.getLastestBatchDataEntryForBatchEntryType(BatchDataEntryType.ALLEGIANCE);
 		int numberOfPlayersUpdated = 0;
 		final AtomicInteger numberOfPlayersAnalyzed = new AtomicInteger(0);
-		Map<String, BattleGroundTeam> allegiancesFromDump = new HashMap<>();
+		Map<String, BattleGroundTeam> allegiancesFromDump = new TreeMap<>();
 		Set<String> playerNamesSet = this.dumpDataProvider.getPlayersForAllegianceDump();
 		playerNamesSet = this.filterPlayerListToActiveUsers(playerNamesSet, allegiancePreviousBatchDataEntry);
 		numberOfPlayersAnalyzed.set(playerNamesSet.size());
@@ -533,7 +509,7 @@ public class DumpScheduledTasks {
 		this.batchDataEntryRepo.saveAndFlush(batchDataEntry);
 	}
 	
-	protected Set<String> filterPlayerListToActiveUsers(Set<String> players, BatchDataEntry batchDataEntry) {
+	public Set<String> filterPlayerListToActiveUsers(Set<String> players, BatchDataEntry batchDataEntry) {
 		Date previousUpdateComplete = batchDataEntry != null && (batchDataEntry.getSuccessfulRun() != null && batchDataEntry.getSuccessfulRun()) ? batchDataEntry.getUpdateStarted() : null;
 		Set<String> result;
 		
@@ -594,20 +570,6 @@ public class DumpScheduledTasks {
 
 }
 
-abstract class DumpScheduledTask extends TimerTask {
-	protected DumpScheduledTasks dumpScheduledTasksRef;
-	
-	public DumpScheduledTask(DumpScheduledTasks dumpScheduledTasks) {
-		this.dumpScheduledTasksRef = dumpScheduledTasks;
-	}
-	
-	public void run() {
-		this.task();
-	}
-	
-	protected abstract void task();
-}
-
 class BadAccountsTask extends DumpScheduledTask {
 	public BadAccountsTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks); }
 	protected void task() {this.dumpScheduledTasksRef.generateOutOfSyncPlayerRecordsFile();}
@@ -646,20 +608,4 @@ class ClassBonusTask extends DumpScheduledTask {
 class SkillBonusTask extends DumpScheduledTask {
 	public SkillBonusTask(DumpScheduledTasks dumpScheduledTasks) {super(dumpScheduledTasks);}
 	protected void task() {this.dumpScheduledTasksRef.updateAllSkillBonuses();}
-}
-
-class CacheScheduledTask<T> extends DumpScheduledTask {
-
-	private Callable<T> cacheGeneratorFunction;
-	
-	public CacheScheduledTask(DumpScheduledTasks dumpScheduledTasks, Callable<T> cacheGeneratorFunction) {
-		super(dumpScheduledTasks);
-		this.cacheGeneratorFunction = cacheGeneratorFunction;
-	}
-	
-	@SneakyThrows
-	protected void task() {
-		this.cacheGeneratorFunction.call();
-	}
-	
 }

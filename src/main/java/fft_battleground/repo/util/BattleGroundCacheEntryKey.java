@@ -2,41 +2,68 @@ package fft_battleground.repo.util;
 
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
+import java.time.temporal.ChronoUnit;
 
 public enum BattleGroundCacheEntryKey {
-	LEADERBOARD("leaderboard", TimeUnit.HOURS, Calendar.HOUR, 8),
-	BOT_LEADERBOARD("botleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8),
-	BET_PERCENTILES("betpercentiles", TimeUnit.HOURS, Calendar.HOUR, 8),
-	FIGHT_PERCENTILES("fightpercentiles", TimeUnit.HOURS, Calendar.HOUR, 8),
-	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", TimeUnit.HOURS, Calendar.HOUR, 8), 
-	EXPERIENCE_LEADERBOARD("experienceLeaderboard", TimeUnit.HOURS, Calendar.HOUR, 8);
+	LEADERBOARD("leaderboard", ChronoUnit.HOURS, 8),
+	BOT_LEADERBOARD("botleaderboard", ChronoUnit.HOURS, 8),
+	BET_PERCENTILES("betpercentiles", ChronoUnit.HOURS, 8),
+	FIGHT_PERCENTILES("fightpercentiles", ChronoUnit.HOURS, 8),
+	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", ChronoUnit.HOURS, 8), 
+	EXPERIENCE_LEADERBOARD("experienceLeaderboard", ChronoUnit.HOURS, 1),
+	PRESTIGE_TABLE("prestigetable", ChronoUnit.MINUTES, 5),
+	BOTLAND_LEADERBOARD("botlandleaderboard", ChronoUnit.HOURS, 8);
 	
-	BattleGroundCacheEntryKey(String key, TimeUnit timeUnit, Integer calendarUnit, Integer timeValue) {
+	BattleGroundCacheEntryKey(String key, TemporalUnit timeUnit, Integer timeValue) {
 		this.key = key;
 		this.timeUnit = timeUnit;
-		this.calendarUnit = calendarUnit;
 		this.timeValue = timeValue;
 	}
 
 	private String key;
-	private TimeUnit timeUnit;
-	private Integer calendarUnit;
+	private TemporalUnit timeUnit;
 	private Integer timeValue;
 	
 	public String getKey() {
 		return this.key;
 	}
-	public TimeUnit getTimeUnit() {
+	public TemporalUnit getTemporalUnit() {
 		return this.timeUnit;
 	}
-	public Integer getCalendarUnit() {
-		return this.calendarUnit;
-	}
+	
 	public Integer getTimeValue() {
 		return this.timeValue;
 	}
 	
-	public String getCronString() {
-		return null;
+	public int getCalendarUnit() {
+		ChronoUnit chronoUnit = (ChronoUnit) this.getTemporalUnit();
+		switch(chronoUnit) {
+		case HOURS:
+			return Calendar.HOUR;
+		case MINUTES:
+			return Calendar.MINUTE;
+		default:
+			return Calendar.HOUR;
+		}
+	}
+	
+	public TimeUnit getTimeUnit() {
+		ChronoUnit chronoUnit = (ChronoUnit) this.getTemporalUnit();
+		switch(chronoUnit) {
+		case HOURS:
+			return TimeUnit.HOURS;
+		case MINUTES:
+			return TimeUnit.MINUTES;
+		default:
+			return TimeUnit.HOURS;
+		}
+	}
+	
+	public long millis() {
+		Duration time = Duration.of(this.getTimeValue(), this.getTemporalUnit());
+		long millis = time.toMillis();
+		return millis;
 	}
 }

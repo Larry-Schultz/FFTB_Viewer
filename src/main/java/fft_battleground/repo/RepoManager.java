@@ -39,6 +39,8 @@ import fft_battleground.event.detector.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.event.detector.model.fake.SkillBonusEvent;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.event.model.PlayerSkillRefresh;
+import fft_battleground.exception.AscensionException;
+import fft_battleground.exception.BattleGroundDataIntegrityViolationException;
 import fft_battleground.exception.IncorrectTypeException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.util.BalanceUpdateSource;
@@ -130,11 +132,17 @@ public class RepoManager extends Thread {
 			} catch(IncorrectTypeException e) {
 				log.error("A value in the repo was incorrectly typed with error: {}", e.getMessage(), e);
 				errorWebhookManager.sendException(e);
+			} catch(BattleGroundDataIntegrityViolationException bgdive) {
+				log.warn(bgdive.getMessage(), bgdive);
+				errorWebhookManager.sendException(bgdive, bgdive.getMessage());
 			} catch(DataIntegrityViolationException e) {
 				String errorMessage = "A soft deleted value was not properly updated, and is still soft deleted despite attempting to undelete it";
 				log.error(errorMessage, e);
 				errorWebhookManager.sendException(e, errorMessage);;
-			}catch(Exception e) {
+			} catch(AscensionException ae) { 
+				log.error(ae.getMessage(), ae);
+				this.errorWebhookManager.sendException(ae);
+			} catch(Exception e) {
 				log.error("error in RepoManager", e);
 			} 
 		}
@@ -162,17 +170,17 @@ public class RepoManager extends Thread {
 		}
 	}
 	
-	protected void handlePortraitEvent(PortraitEvent event) throws IncorrectTypeException {
+	protected void handlePortraitEvent(PortraitEvent event) throws IncorrectTypeException, BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updatePlayerPortrait(event);
 	}
 	
-	protected void handleSkillWinEvent(SkillWinEvent event) {
+	protected void handleSkillWinEvent(SkillWinEvent event) throws BattleGroundDataIntegrityViolationException {
 		for(PlayerSkillEvent skillEvent: event.getSkillEvents()) {
 			this.repoTransactionManager.updatePlayerSkills(skillEvent);
 		}
 	}
 	
-	protected void handleOtherPlayerBalanceEvent(OtherPlayerBalanceEvent event) {
+	protected void handleOtherPlayerBalanceEvent(OtherPlayerBalanceEvent event) throws BattleGroundDataIntegrityViolationException {
 		if(event != null && event.getOtherPlayerBalanceEvents() != null) {
 			for(BalanceEvent balanceEvent : event.getOtherPlayerBalanceEvents()) {
 				this.repoTransactionManager.updatePlayerAmount(balanceEvent);
@@ -182,30 +190,30 @@ public class RepoManager extends Thread {
 		}
 	}
 	
-	protected void handleLevelUpEvent(LevelUpEvent event) {
+	protected void handleLevelUpEvent(LevelUpEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updatePlayerLevel(event);
 		if(event.getSkill() != null && event.getSkill().getSkills().size() > 0) {
 			this.repoTransactionManager.updatePlayerSkills(event.getSkill());
 		}
 	}
 	
-	protected void handleOtherPlayerExpEvent(OtherPlayerExpEvent event) {
+	protected void handleOtherPlayerExpEvent(OtherPlayerExpEvent event) throws BattleGroundDataIntegrityViolationException {
 		for(ExpEvent expEvent : event.getExpEvents()) {
 			this.repoTransactionManager.updatePlayerLevel((LevelUpEvent) expEvent);
 		}
 	}
 	
-	protected void handleAllegianceEvent(AllegianceEvent event) {
+	protected void handleAllegianceEvent(AllegianceEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updatePlayerAllegiance(event);
 		String player = GambleUtil.cleanString(event.getPlayer());
 		this.dumpService.getAllegianceCache().put(player, event.getTeam());
 	}
 	
-	protected void handlePrestigeSkillsEvent(PrestigeSkillsEvent event) {
+	protected void handlePrestigeSkillsEvent(PrestigeSkillsEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.handlePlayerSkillEvent((PlayerSkillEvent) event);
 	}
 	
-	protected void handlePlayerSkillEvent(PlayerSkillEvent event) {
+	protected void handlePlayerSkillEvent(PlayerSkillEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updatePlayerSkills(event);
 	}
 	
@@ -226,14 +234,15 @@ public class RepoManager extends Thread {
 		this.repoTransactionManager.updateGlobalGilHistory(newResults.getGlobalGilHistory());
 	}
 	
-	protected void handlePrestigeAscensionEvent(final PrestigeAscensionEvent event) {
+	protected void handlePrestigeAscensionEvent(final PrestigeAscensionEvent event) throws AscensionException {
 		String id = GambleUtil.cleanString(event.getPrestigeSkillsEvent().getPlayer());
 		if(event.getCurrentBalance() != null) {
 			this.repoTransactionManager.generateSimulatedBalanceEvent(event.getPrestigeSkillsEvent().getPlayer(), (-1) * event.getCurrentBalance(), BalanceUpdateSource.PRESTIGE);
 		}
-		this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
+		
 		//use Timer to force update player skill.  May delay events behind this propagation
 		try {
+			this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
 			int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(id) != null ? this.dumpService.getPrestigeSkillsCache().get(id).size() : 0;
 			this.ascensionWebhookManager.sendAscensionMessage(id, prestigeBefore, prestigeBefore + 1);
 			List<String> userSkills = new ArrayList<>();
@@ -250,8 +259,7 @@ public class RepoManager extends Thread {
 			PlayerSkillRefresh refresh = new PlayerSkillRefresh(id, userSkills, uniquePrestigeSkillList, event);
 			this.handlePlayerSkillRefresh(refresh);
 		} catch (Exception e) {
-			log.error("Error processing Ascension refresh for player {}", id);
-			this.errorWebhookManager.sendException(e);
+			throw new AscensionException(e, id);
 		}
 	}
 	
@@ -275,18 +283,23 @@ public class RepoManager extends Thread {
 		}
 	}
 	
-	protected void handleLastActiveSkillEvent(LastActiveEvent event) {
+	protected void handleLastActiveSkillEvent(LastActiveEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updatePlayerLastActive(event);
 	}
 	
-	private void handleFightEntryEvent(FightEntryEvent newResults) {
+	private void handleFightEntryEvent(FightEntryEvent newResults) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updateLastFightActive(newResults);
 	}
 	
 	private void handleGiftSkillEvent(GiftSkillEvent newResults) {
 		for(int i = 0; i < newResults.getGiftSkills().size(); i++) {
-			this.repoTransactionManager.updatePlayerSkills(newResults.getGiftSkills().get(i).getPlayerSkillEvent());
-			this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGiftSkills().get(i).getGivingPlayer(), newResults.getCost(), BalanceUpdateSource.GIFTSKILL);
+			try {
+				this.repoTransactionManager.updatePlayerSkills(newResults.getGiftSkills().get(i).getPlayerSkillEvent());
+				this.repoTransactionManager.generateSimulatedBalanceEvent(newResults.getGiftSkills().get(i).getGivingPlayer(), newResults.getCost(), BalanceUpdateSource.GIFTSKILL);
+			} catch(BattleGroundDataIntegrityViolationException bgdive) {
+				log.warn(bgdive.getMessage(), bgdive);
+				errorWebhookManager.sendException(bgdive, bgdive.getMessage());
+			}
 		}
 	}
 	
@@ -299,13 +312,18 @@ public class RepoManager extends Thread {
 		this.repoTransactionManager.updateSkillBonus(newResults);
 	}
 	
-	private void handleSnubEvent(SnubEvent newResults) {
+	private void handleSnubEvent(SnubEvent newResults) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updateSnub(newResults);
 	}
 	
 	private void handleOtherPlayerSnubEvent(OtherPlayerSnubEvent newResults) {
 		for(SnubEvent event: newResults.getSnubEvents()) {
-			this.repoTransactionManager.updateSnub(event);
+			try {
+				this.repoTransactionManager.updateSnub(event);
+			} catch(BattleGroundDataIntegrityViolationException bgdive) {
+				log.warn(bgdive.getMessage(), bgdive);
+				errorWebhookManager.sendException(bgdive, bgdive.getMessage());
+			}
 		}
 	}
 

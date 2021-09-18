@@ -2,6 +2,7 @@ package fft_battleground.config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Timer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +37,7 @@ import fft_battleground.event.detector.OtherPlayerBalanceDetector;
 import fft_battleground.event.detector.OtherPlayerExpDetector;
 import fft_battleground.event.detector.OtherPlayerInvalidFightCombinationDetector;
 import fft_battleground.event.detector.OtherPlayerInvalidFightEntryClassDetector;
+import fft_battleground.event.detector.OtherPlayerInvalidFightEntrySexDetector;
 import fft_battleground.event.detector.OtherPlayerSkillOnCooldownDetector;
 import fft_battleground.event.detector.OtherPlayerUnownedSkillDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
@@ -96,7 +98,8 @@ public class Config {
 			new BettingBeginsDetector(), new AllegianceDetector(), new BetInfoEventDetector(), new SkillDropDetector(), new DontFightDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(), new OtherPlayerSkillOnCooldownDetector(),
 			new FightEntryDetector(), new FightBeginsDetector(), new OtherPlayerInvalidFightCombinationDetector(), new OtherPlayerInvalidFightEntryClassDetector(),
-			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector(), new OtherPlayerSnubEventDetector()
+			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector(), new OtherPlayerSnubEventDetector(),
+			new OtherPlayerInvalidFightEntrySexDetector()
 		});
 	}
 	
@@ -116,5 +119,10 @@ public class Config {
 	public WebhookManager noisyWebhookManager(@Value("${noisyWebhookUrl}")  String webhookUrl, @Value("${hostnameUrl}") String hostname, @Autowired ErrorMessageEntryRepo errorMessageEntryRepo) {
 		WebhookManager noisyWebhookManager = new WebhookManager(webhookUrl, hostname, errorMessageEntryRepo);
 		return noisyWebhookManager;
+	}
+	
+	@Bean
+	public Timer battlegroundCacheTimer() {
+		return new Timer();
 	}
 }

@@ -1,5 +1,8 @@
 package fft_battleground.irc;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import com.gikk.twirk.Twirk;
 import fft_battleground.CoreApplication;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.exception.IrcConnectionException;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +39,10 @@ public class IrcChatbotThread extends Thread {
     
     @Autowired
     private CoreApplication coreApplication;
+    
+    //should remain locked if IRC connection fails
+    @Getter 
+    private Lock ircConnectionSuccessfulLock = new ReentrantLock();
     
     @PostConstruct
     private void setup() {

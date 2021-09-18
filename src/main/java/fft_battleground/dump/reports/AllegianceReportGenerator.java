@@ -2,7 +2,6 @@ package fft_battleground.dump.reports;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -12,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
@@ -26,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
@@ -46,13 +47,15 @@ import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import fft_battleground.tournament.ChampionService;
-
+import fft_battleground.util.FunctionCallableListResult;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderboardWrapper> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD;
+	private static final String reportName = "Allegiance Leaderboard";
 	
 	@Autowired
 	private DumpReportsService dumpReportsService;
@@ -73,43 +76,11 @@ public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderb
 	private MatchRepo matchRepo;
 	
 	@Autowired
-	private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
-	
-	@Autowired
 	private Images images;
-	
-	@Autowired
-	private WebhookManager errorWebhookManager;
 		
-	public AllegianceReportGenerator() {
-		super(key);
-	}
-
-	@Override
-	public AllegianceLeaderboardWrapper getReport() throws CacheMissException {
-		AllegianceLeaderboardWrapper wrapper = this.readCache(this.cache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
-		if (wrapper == null) {
-			throw new CacheMissException(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD);
-		}
-
-		return wrapper;
-	}
-
-	@Override
-	public AllegianceLeaderboardWrapper writeReport() {
-		log.warn("Allegiance Leaderboard cache busted.  Rebuilding.");
-		AllegianceLeaderboardWrapper wrapper = null;
-		try {
-			wrapper = this.generateReport();
-
-			this.writeToCache(this.cache, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
-			this.battleGroundCacheEntryRepo.writeCacheEntry(wrapper, BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey());
-			log.warn("Allegiance Leaderboard cache rebuild complete");
-		} catch(Exception e) {
-			
-		}
-		
-		return wrapper;
+	public AllegianceReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
+			Timer battlegroundCacheTimer) {
+		super(key, reportName, battleGroundCacheEntryRepo, errorWebhookManager, battlegroundCacheTimer);
 	}
 
 	@Override
@@ -416,6 +387,14 @@ public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderb
 		return data;
 	}
 
+	@Override
+	@SneakyThrows
+	public AllegianceLeaderboardWrapper deserializeJson(String json) {
+		ObjectMapper mapper = new ObjectMapper();
+		AllegianceLeaderboardWrapper leaderboard = mapper.readValue(json, AllegianceLeaderboardWrapper.class);
+		return leaderboard;
+	}
+
 }
 
 class CountingCallable<T> implements Callable<Integer> {
@@ -430,22 +409,6 @@ class CountingCallable<T> implements Callable<Integer> {
 	@Override
 	public Integer call() {
 		Integer result = this.iteratedObject.parallelStream().mapToInt(this.countingFunction).sum();
-		return result;
-	}
-}
-
-class FunctionCallableListResult<T, S> implements Callable<List<S>> {
-	private Function<T, S> callingFunction;
-	private Collection<T> iteratedObject;
-
-	public FunctionCallableListResult(Collection<T> obj, Function<T, S> callingFunction) {
-		this.iteratedObject = obj;
-		this.callingFunction = callingFunction;
-	}
-
-	@Override
-	public List<S> call() throws Exception {
-		List<S> result = this.iteratedObject.parallelStream().map(this.callingFunction).collect(Collectors.toList());
 		return result;
 	}
 }

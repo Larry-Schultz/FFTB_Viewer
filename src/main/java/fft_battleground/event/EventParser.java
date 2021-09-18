@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import fft_battleground.event.detector.model.GiftSkillEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.OtherPlayerInvalidFightCombinationEvent;
 import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntrySexEvent;
 import fft_battleground.event.detector.model.OtherPlayerSkillOnCooldownEvent;
 import fft_battleground.event.detector.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.detector.model.PrestigeAscensionEvent;
@@ -44,7 +46,7 @@ import fft_battleground.tournament.TournamentService;
 import fft_battleground.tournament.TournamentTracker;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.util.Router;
-
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -115,12 +117,13 @@ public class EventParser extends Thread {
 	private BattleGroundEventAnnotator<FightEntryEvent> fightEntryEventAnnotator;
 	
 	private Timer eventTimer = new Timer();
+	private Timer tournamentTrackerTimer = new Timer();
 	
 	public EventParser() {
 		this.setName("EvntParsrThrd");
 	}
 	
-	private Tournament currentTournament = null;
+	@Getter private Tournament currentTournament = null;
 	private MatchInfoEvent previousMatchEvent = null;
 	
 	@Override
@@ -210,6 +213,10 @@ public class EventParser extends Thread {
 					OtherPlayerSkillOnCooldownEvent otherPlayerSkillOnCooldownEvent = (OtherPlayerSkillOnCooldownEvent) event;
 					this.sendAllEventsToEventRouter(otherPlayerSkillOnCooldownEvent.getEvents());
 					break;
+				case OTHER_PLAYER_INVALID_SEX_EVENT:
+					OtherPlayerInvalidFightEntrySexEvent invalidFightEntrySexEvent = (OtherPlayerInvalidFightEntrySexEvent) event;
+					this.sendAllEventsToEventRouter(invalidFightEntrySexEvent.getInvalidSexEvents());;
+					break;
 				case PRESTIGE_ASCENSION:
 					this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);
 					this.eventRouter.sendDataToQueues(event);
@@ -297,6 +304,7 @@ public class EventParser extends Thread {
 		if( (bettingBeginsEvent.getTeam1() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam2() == BattleGroundTeam.BLUE)
 			|| (bettingBeginsEvent.getTeam2() == BattleGroundTeam.RED && bettingBeginsEvent.getTeam1() == BattleGroundTeam.BLUE)
 			|| (currentTournament == null) 
+			|| (currentTournament.getWinnersCount() == null)
 			|| (currentTournament.getWinnersCount() >= 7) ) {
 			this.currentTournament = this.tournamentService.getcurrentTournament();
 			this.startEventUpdate();
@@ -315,8 +323,7 @@ public class EventParser extends Thread {
 			log.error("Contacting the tournament Service has failed!");
 		}
 		
-		TournamentStatusUpdateEvent tournamentStatusEvent = this.tournamentTracker.generateTournamentStatus(bettingBeginsEvent, this.currentTournament);
-		this.eventRouter.sendDataToQueues(tournamentStatusEvent);
+		this.createAndSendTournamentTracker(bettingBeginsEvent, currentTournament);		
 	}
 	
 	@SneakyThrows
@@ -370,6 +377,23 @@ public class EventParser extends Thread {
 	
 	protected void startEventUpdate() {
 		this.eventTimer.schedule(this.dumpService.getDataUpdateTask(), BattleGroundEventBackPropagation.delayIncrement);
+	}
+	
+	protected void createAndSendTournamentTracker(BettingBeginsEvent bettingBeginsEvent, Tournament currentTournament) {
+		EventParser eventParser = this;
+		this.tournamentTrackerTimer.schedule(new TimerTask() {;
+			@Override
+			public void run() {
+				TournamentStatusUpdateEvent tournamentStatusEvent;
+				try {
+					tournamentStatusEvent = eventParser.tournamentTracker.generateTournamentStatus(bettingBeginsEvent, eventParser.getCurrentTournament());
+					eventParser.eventRouter.sendDataToQueues(tournamentStatusEvent);
+				} catch (DumpException e) {
+					log.error("Error generating tournament tracker", e);
+					eventParser.errorWebhookManager.sendException(e);
+				}
+			}
+		}, 0);
 	}
 	
 	protected <T extends BattleGroundEvent> void sendAllEventsToEventRouter(Collection<T> events) {

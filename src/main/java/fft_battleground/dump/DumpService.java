@@ -165,9 +165,8 @@ public class DumpService {
 	
 	public DumpService() {}
 	
-	@PostConstruct 
 	@Transactional
-	private void setUpCaches() throws CacheBuildException {
+	public void setUpCaches() throws CacheBuildException {
 		if (this.isCacheEnabled) {
 			this.loadCache();
 		}

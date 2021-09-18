@@ -26,6 +26,7 @@ import fft_battleground.dump.reports.ReportGenerator;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.AscensionData;
 import fft_battleground.dump.reports.model.BotLeaderboard;
+import fft_battleground.dump.reports.model.BotlandLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
@@ -77,6 +78,20 @@ public class DumpReportsService {
 	
 	@Autowired
 	@Getter private ReportGenerator<ExpLeaderboard> expLeaderboardGenerator;
+	
+	@Autowired
+	@Getter private ReportGenerator<AscensionData> prestigeTableReportGenerator;
+	
+	@Autowired
+	@Getter private ReportGenerator<BotlandLeaderboard> botlandLeaderboardReportGenerator;
+	
+	public List<ReportGenerator<?>> allReportGenerators() {
+		List<ReportGenerator<?>> generators = List.of(this.playerLeaderboardReportGenerator, 
+				this.botLeaderboardReportGenerator, this.betPercentileReportGenerator, this.fightPercentileReportGenerator, 
+				this.allegianceReportGenerator, this.expLeaderboardGenerator, this.prestigeTableReportGenerator,
+				this.botlandLeaderboardReportGenerator);
+		return generators;
+	}
 
 	public GlobalGilPageData getGlobalGilData() {
 		GlobalGilPageData data = null;
@@ -163,24 +178,15 @@ public class DumpReportsService {
 		return leaderboard;
 	}
 
-	@SneakyThrows
 	public AscensionData generatePrestigeTable() {
-		List<PrestigeTableEntry> results = this.dumpService.getPrestigeSkillsCache().keySet().parallelStream()
-				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player) != null)
-				.filter(player -> !this.dumpService.getPrestigeSkillsCache().get(player).isEmpty()) 
-				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player).size() != 417)
-				.map(player -> new PrestigeTableEntry(player,
-						this.dumpService.getPrestigeSkillsCache().get(player).size(), 
-						this.dumpService.getAllegianceCache().get(player)))
-				.collect(Collectors.toList());
-		SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
-		results.stream().forEach(prestigeTableEntry -> prestigeTableEntry
-				.setLastActive(format.format(this.dumpService.getLastActiveCache().get(prestigeTableEntry.getName()))));
-		Collections.sort(results);
-
-		AscensionData data = new AscensionData(results);
-		
-		return data;
+		AscensionData ascensionData;
+		try {
+			ascensionData = this.prestigeTableReportGenerator.getReport();
+		} catch (CacheMissException e) {
+			log.warn("cache miss for prestige table", e);
+			ascensionData = this.prestigeTableReportGenerator.writeReport();
+		}
+		return ascensionData;
 	}
 
 	public Integer getBetPercentile(Double ratio) throws CacheMissException {

@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,48 @@ public interface BotsRepo extends JpaRepository<Bots, Long> {
 	
 	@Query("SELECT Bot FROM Bots Bot WHERE Bot.dateString = :dateString")
 	public List<Bots> getBotByDateString(@Param("dateString") String dateString);
+	
+	@Query(value=" SELECT Bot.bot_entry_id AS bot_entry_id, Bot.balance AS balance, Bot.create_date_time AS date_time, "
+			+ "	Bot.date_string AS date_string, Bot.highest_known_value AS highest_known_value, Bot.losses as losses, "
+			+ "	Bot.player AS player, Bot.update_date_time AS update_date_time, Bot.wins AS wins, "
+			+ " Bot.create_date_time AS create_date_time "
+			+ " FROM bot_record Bot JOIN ( "
+			+ "	SELECT player AS player, MAX(highest_known_value) AS highest_known_value "
+			+ "	FROM bot_record "
+			+ "	GROUP BY player) maxBot "
+			+ " ON Bot.player = maxBot.player and Bot.highest_known_value = maxBot.highest_known_value "
+			+ " ORDER BY update_date_time DESC ", nativeQuery=true)
+	public List<Bots> highestKnownValueHistorical();
+	
+	@Query(value=" SELECT Bot.bot_entry_id AS bot_entry_id, Bot.balance AS balance, Bot.create_date_time AS date_time, "
+			+ "	Bot.date_string AS date_string, Bot.highest_known_value AS highest_known_value, Bot.losses as losses, "
+			+ "	Bot.player AS player, Bot.update_date_time AS update_date_time, Bot.wins AS wins, "
+			+ " Bot.create_date_time AS create_date_time "
+			+ " FROM bot_record Bot JOIN ( "
+			+ "	SELECT date_string AS date_string, MAX(balance) AS balance "
+			+ "	FROM bot_record "
+			+ "	GROUP BY date_string) maxBot\r\n"
+			+ " ON Bot.date_string = maxBot.date_string and Bot.balance = maxBot.balance "
+			+ " ORDER BY update_date_time DESC ", nativeQuery=true)
+	public List<Bots> highestBalancePerDay();
+	
+	@Query(value=" SELECT Bot.bot_entry_id AS bot_entry_id, Bot.balance AS balance, Bot.create_date_time AS date_time, "
+			+ "	Bot.date_string AS date_string, Bot.highest_known_value AS highest_known_value, Bot.losses as losses, "
+			+ "	Bot.player AS player, Bot.update_date_time AS update_date_time, Bot.wins AS wins, "
+			+ " Bot.create_date_time AS create_date_time "
+			+ " FROM bot_record Bot JOIN ( "
+			+ "	SELECT player, MIN(update_date_time) AS update_date_time "
+			+ "	FROM bot_record "
+			+ "	GROUP BY player) maxBot "
+			+ " ON Bot.player = maxBot.player and Bot.update_date_time = maxBot.update_date_time "
+			+ " ORDER BY Bot.player DESC ", nativeQuery=true)
+	public List<Bots> getOldestEntries();
+	
+	@Query("Select new fft_battleground.repo.repository.PairWrapper(Bot.player, SUM(Bot.wins)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Long>> getWinsPerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.PairWrapper(Bot.player, SUM(Bot.losses)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Long>> getLossesPerBot();
 	
 	public default List<Bots> getBotsForToday() {
 		String currentDateString = this.currentDateString();
@@ -42,4 +86,21 @@ public interface BotsRepo extends JpaRepository<Bots, Long> {
 		
 		return newBot;
 	}
+}
+
+class PairWrapper extends MutablePair<String, Long> {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2999516029914886724L;
+	
+	public PairWrapper() {
+		super();
+	}
+	
+	public PairWrapper(String left, Long right) {
+		super(left, right);
+	}
+	
 }

@@ -1,9 +1,7 @@
 package fft_battleground.repo.repository;
 
-import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,12 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.repo.model.BattleGroundCacheEntry;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 public interface BattleGroundCacheEntryRepo extends JpaRepository<BattleGroundCacheEntry, String> {
 	

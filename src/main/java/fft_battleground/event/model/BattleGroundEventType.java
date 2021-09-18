@@ -51,7 +51,9 @@ public enum BattleGroundEventType {
 	CLASS_BONUS("Class bonus"), 
 	SKILL_BONUS("Skill bonus"), 
 	SNUB("Failed attempts to join !fight"), 
-	OTHER_PLAYER_SNUB("snub event list");
+	OTHER_PLAYER_SNUB("snub event list"), 
+	INVALID_FIGHT_ENTRY_SEX("Invalid Sex Fight Entry Event"), 
+	OTHER_PLAYER_INVALID_SEX_EVENT("Composite Invalid Sex Fight Entry Event");
 	
 	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;

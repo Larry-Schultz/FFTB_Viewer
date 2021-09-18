@@ -1,23 +1,19 @@
 package fft_battleground.dump;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.Function;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fft_battleground.dump.cache.AllegianceCacheTask;
 import fft_battleground.dump.cache.BalanceCacheTask;
 import fft_battleground.dump.cache.ClassBonusCacheTask;
 import fft_battleground.dump.cache.ExpCacheTask;
 import fft_battleground.dump.cache.LastActiveCacheTask;
 import fft_battleground.dump.cache.LastFightActiveCacheTask;
+import fft_battleground.dump.cache.LeaderboardBuilder;
 import fft_battleground.dump.cache.MusicBuilder;
 import fft_battleground.dump.cache.PortraitCacheTask;
 import fft_battleground.dump.cache.PrestigeSkillsCacheTask;
@@ -25,16 +21,9 @@ import fft_battleground.dump.cache.SkillBonusCacheTask;
 import fft_battleground.dump.cache.SnubCacheTask;
 import fft_battleground.dump.cache.SoftDeleteBuilder;
 import fft_battleground.dump.cache.UserSkillsCacheTask;
-import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
-import fft_battleground.dump.reports.model.BotLeaderboard;
-import fft_battleground.dump.reports.model.ExpLeaderboard;
-import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.event.detector.model.ExpEvent;
-import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.util.BattleGroundCacheEntryKey;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,162 +84,5 @@ public class DumpCacheBuilder {
 		this.threadPool.submit(new MusicBuilder(this.dumpService));
 	}
 	
-}
-
-@Slf4j
-class LeaderboardBuilder
-implements Runnable {
-	
-	private DumpService dumpServiceRef;
-	
-	public LeaderboardBuilder(DumpService dumpService) {
-		this.dumpServiceRef = dumpService;
-	}
-	
-	@Override
-	public void run() {
-		// run this at startup so leaderboard data works properly
-		log.info("pre-cache leaderboard data");
-		try {
-			this.dumpServiceRef.getDumpDataProvider().getHighScoreDump();
-			this.dumpServiceRef.getDumpDataProvider().getHighExpDump();
-		} catch(DumpException e) {
-			log.error("error getting high score dump", e);
-		}
-
-		this.loadDatabaseData();
-		
-		this.runCacheRebuildFunctions();
-		
-		log.info("leaderboard data cache complete");
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected void loadDatabaseData() {
-		log.info("Searching for player leaderboard data from database cache");
-		PlayerLeaderboard leaderboardCacheData = new PlayerLeaderboard();
-		leaderboardCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.LEADERBOARD, this::deserializePlayerLeaderboard) ;
-		if(leaderboardCacheData != null) {
-			log.info("Loading player leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getPlayerLeaderboardReportGenerator().getCache().put(BattleGroundCacheEntryKey.LEADERBOARD.getKey(), leaderboardCacheData);
-		} else {
-			log.info("Player leaderboard data from database cache not found");
-		}
-		
-		log.info("Searching for bot leaderboard data from database cache");
-		BotLeaderboard botLeaderboardCacheData = new BotLeaderboard();
-		botLeaderboardCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.BOT_LEADERBOARD, this::deserializeBotLeaderboard);
-		if(botLeaderboardCacheData != null) {
-			log.info("Loading bot leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getBotLeaderboardReportGenerator().getCache().put(BattleGroundCacheEntryKey.BOT_LEADERBOARD.getKey(), botLeaderboardCacheData);
-		} else {
-			log.info("bot leaderboard data from database cache not found");
-		}
-		
-		log.info("Searching for bet percentiles data from database cache");
-		Map<Integer, Double> betPercentilesCacheData = new HashMap<Integer, Double>();
-		betPercentilesCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.BET_PERCENTILES, this::deserializeMapIntegerDouble);
-		if(betPercentilesCacheData != null) {
-			log.info("Loading bet percentiles data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getBetPercentileReportGenerator().getCache().put(BattleGroundCacheEntryKey.BET_PERCENTILES.getKey(), betPercentilesCacheData);
-		} else {
-			log.info("bet percentiles data from database cache not found");
-		}
-		
-		log.info("Searching for fight percentiles data from database cache");
-		Map<Integer, Double> fightPercentilesCacheData = new HashMap<Integer, Double>();
-		fightPercentilesCacheData = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.FIGHT_PERCENTILES, this::deserializeMapIntegerDouble);
-		if(fightPercentilesCacheData != null) {
-			log.info("Loading fight percentiles data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getFightPercentileReportGenerator().getCache().put(BattleGroundCacheEntryKey.FIGHT_PERCENTILES.getKey(), fightPercentilesCacheData);
-		} else {
-			log.info("fight percentiles data from database cache not found");
-		}
-		
-		log.info("Searching for allegiance leaderboard data from database cache");
-		AllegianceLeaderboardWrapper wrapper = new AllegianceLeaderboardWrapper();
-		wrapper = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD, this::deserializeAllegianceLeaderboard);
-		if(wrapper != null) {
-			log.info("Loading allegiance leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getAllegianceReportGenerator().getCache().put(BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD.getKey(), wrapper);
-		} else {
-			log.info("allegiance ledaerboard data from database cache not found");
-		}
-		
-		log.info("Searching for exp leaderboard data from database cache");
-		ExpLeaderboard expLeaderboard = new ExpLeaderboard();
-		expLeaderboard = this.readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey.EXPERIENCE_LEADERBOARD, this::deserializeExpLeaderboard);
-		if(expLeaderboard != null) {
-			log.info("Loading exp leaderboard data from database cache");
-			this.dumpServiceRef.getDumpReportsService().getExpLeaderboardGenerator().getCache().put(BattleGroundCacheEntryKey.EXPERIENCE_LEADERBOARD.getKey(), expLeaderboard);
-		} else {
-			log.info("exp leaderboard data from database cache not found");
-		}
-		
-		return;
-	}
-	
-	protected void runCacheRebuildFunctions() {
-		this.dumpServiceRef.getDumpScheduledTasks().runCacheUpdates();
-	}
-	
-	protected <T> T readBattleGroundCacheEntryRepo(BattleGroundCacheEntryKey key, Function<String, T> deserializer) {
-		T result = null;
-		try {
-			result = this.dumpServiceRef.getBattleGroundCacheEntryRepo().readCacheEntry(key, deserializer);
-		} catch(Exception e) {
-			log.error(e.getMessage(), e);
-		}
-		
-		return result;
-	}
-	
-	@SneakyThrows
-	protected PlayerLeaderboard deserializePlayerLeaderboard(String str) {
-		ObjectMapper mapper = new ObjectMapper();
-		PlayerLeaderboard leaderboard = mapper.readValue(str, PlayerLeaderboard.class);
-		return leaderboard;
-	}
-	
-	@SneakyThrows
-	protected BotLeaderboard deserializeBotLeaderboard(String str) {
-		ObjectMapper mapper = new ObjectMapper();
-		BotLeaderboard leaderboard = mapper.readValue(str,  BotLeaderboard.class);
-		return leaderboard;
-	}
-	
-	@SneakyThrows
-	protected Map<String, Integer> deserializeMapStringInteger(String str) {
-		ObjectMapper mapper = new ObjectMapper();
-		Map<String, Integer> result = mapper.readValue(str, Map.class);
-		return result;
-	}
-	
-	@SneakyThrows
-	protected Map<Integer, Double> deserializeMapIntegerDouble(String str) {
-		ObjectMapper mapper = new ObjectMapper();
-		Map<String, Double> stringDoubleMap = mapper.readValue(str,  Map.class);
-		
-		Map<Integer, Double> result = new HashMap<>();
-		for(Map.Entry<String, Double> stringDoubleMapEntry: stringDoubleMap.entrySet()) {
-			Integer intKey = Integer.valueOf(stringDoubleMapEntry.getKey());
-			result.put(intKey, stringDoubleMapEntry.getValue());
-		}
-		return result;
-	}
-	
-	@SneakyThrows
-	protected AllegianceLeaderboardWrapper deserializeAllegianceLeaderboard(String str) {
-		ObjectMapper mapper = new ObjectMapper();
-		AllegianceLeaderboardWrapper leaderboard = mapper.readValue(str, AllegianceLeaderboardWrapper.class);
-		return leaderboard;
-	}
-	
-	@SneakyThrows
-	protected ExpLeaderboard deserializeExpLeaderboard(String str) {
-		ObjectMapper mapper = new ObjectMapper();
-		ExpLeaderboard leaderboard = mapper.readValue(str, ExpLeaderboard.class);
-		return leaderboard;
-	}
 }
 

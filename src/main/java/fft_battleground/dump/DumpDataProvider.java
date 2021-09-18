@@ -115,7 +115,7 @@ public class DumpDataProvider {
 			while((line = highScoreReader.readLine()) != null) {
 				Integer position = Integer.valueOf(StringUtils.substringBefore(line, "."));
 				String username = StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":"));
-				Short level = Short.valueOf(StringUtils.substringBetween(line, "Level ", " (EXP:"));
+				Short level = Short.valueOf(StringUtils.substringBetween(StringUtils.replace(line, ",", ""), "Level ", " (EXP:"));
 				Short currentExp = Short.valueOf(StringUtils.substringBetween(line, "(EXP: ", ")"));
 				Short remainingExp = (short) (100 - currentExp);
 				data.put(username, new ExpEvent(username, level, remainingExp));

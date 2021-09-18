@@ -4,9 +4,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Timer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
@@ -14,18 +17,19 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
 import fft_battleground.exception.CacheBuildException;
-import fft_battleground.exception.CacheMissException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 public class ExperienceLeaderboardReportGenerator extends ReportGenerator<ExpLeaderboard> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.EXPERIENCE_LEADERBOARD;
+	private static final String reportName = "Experience Leaderboard";
 	
 	@Autowired
 	private DumpService dumpService;
@@ -36,42 +40,9 @@ public class ExperienceLeaderboardReportGenerator extends ReportGenerator<ExpLea
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
-	@Autowired
-	private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
-	
-	@Autowired
-	private WebhookManager errorWebhookManager;
-	
-	public ExperienceLeaderboardReportGenerator() {
-		super(key);
-	}
-
-	@Override
-	public ExpLeaderboard getReport() throws CacheMissException {
-		ExpLeaderboard result = this.readCache(this.getCache(), key.getKey());
-		if(result == null) {
-			throw new CacheMissException(key);
-		}
-		
-		return result;
-	}
-
-	@Override
-	public ExpLeaderboard writeReport() {
-		log.warn("Exp Leaderboard cache was busted, creating new value");
-		ExpLeaderboard leaderboard = null;
-		try {
-			leaderboard = this.generateReport();
-			this.writeToCache(this.cache, key.getKey(), leaderboard);
-			this.battleGroundCacheEntryRepo.writeCacheEntry(leaderboard, key.getKey());
-		} catch(Exception e) {
-			log.error("Error writing to bot cache", e);
-			this.errorWebhookManager.sendException(e, "exception generating new player leaderboard");
-		}
-		
-		log.warn("Exp Leaderboard rebuild complete");
-		
-		return leaderboard;
+	public ExperienceLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
+			Timer battlegroundCacheTimer ) {
+		super(key, reportName, battleGroundCacheEntryRepo, errorWebhookManager, battlegroundCacheTimer);
 	}
 
 	@Override
@@ -106,5 +77,15 @@ public class ExperienceLeaderboardReportGenerator extends ReportGenerator<ExpLea
 
 		return leaderboard;
 	}
+
+	@Override
+	@SneakyThrows
+	public ExpLeaderboard deserializeJson(String json) {
+		ObjectMapper mapper = new ObjectMapper();
+		ExpLeaderboard leaderboard = mapper.readValue(json, ExpLeaderboard.class);
+		return leaderboard;
+	}
+
+
 
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.controller.WebsocketThread;
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.DumpService;
 import fft_battleground.event.EventManager;
 import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
@@ -47,6 +48,9 @@ public class CoreApplication implements ApplicationContextAware {
 	@Autowired
 	private AccessTracker accessTracker;
 	
+	@Autowired
+	private DumpService dumpService;
+	
 	@Value("${fft_battleground.interactive}") 
 	private String interactiveMode;
 	
@@ -58,10 +62,20 @@ public class CoreApplication implements ApplicationContextAware {
 	
 	private ApplicationContext context;
 	
+	/**
+	 * 
+	 */
 	@EventListener(ApplicationReadyEvent.class)
 	@SneakyThrows
 	public void run() {
 		log.error("Starting application");
+		
+		if(useIrc.equalsIgnoreCase("true")) {
+			ircChatMessenger.start();
+			ircChatbotThread.start();
+		}
+		
+		this.dumpService.setUpCaches();
 		
 		parser.start();
 		eventManager.start();
@@ -69,20 +83,7 @@ public class CoreApplication implements ApplicationContextAware {
 		websocketThread.start();
 		accessTracker.start();
 		
-		if(useIrc.equalsIgnoreCase("true")) {
-			ircChatMessenger.start();
-			ircChatbotThread.start();
-		}
-		
 		this.errorWebhookManager.sendMessage("Restarting Server");
-		
-		/*
-		 * if(interactiveMode.equals("true")) { while(true) { BufferedReader reader =
-		 * new BufferedReader(new InputStreamReader(System.in));
-		 * 
-		 * // Reading data using readLine String message = reader.readLine();
-		 * eventManager.sendMessage(message); } }
-		 */
 	}
 	
 	public void shutdownServer(Exception e) {
