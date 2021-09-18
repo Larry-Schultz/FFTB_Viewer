@@ -16,7 +16,6 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
 import fft_battleground.event.annotate.TeamInfoEventAnnotator;
 import fft_battleground.event.annotate.UnitInfoEventAnnotator;
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BetInfoEvent;
 import fft_battleground.event.detector.model.BettingBeginsEvent;
@@ -26,17 +25,19 @@ import fft_battleground.event.detector.model.FightBeginsEvent;
 import fft_battleground.event.detector.model.FightEntryEvent;
 import fft_battleground.event.detector.model.GiftSkillEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
-import fft_battleground.event.detector.model.OtherPlayerInvalidFightCombinationEvent;
-import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntryClassEvent;
-import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntrySexEvent;
-import fft_battleground.event.detector.model.OtherPlayerSkillOnCooldownEvent;
-import fft_battleground.event.detector.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.detector.model.PrestigeAscensionEvent;
 import fft_battleground.event.detector.model.SkillDropEvent;
 import fft_battleground.event.detector.model.SkillWinEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightCombinationEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightEntrySexEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightEntryTournamentStartedEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerSkillOnCooldownEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.detector.model.fake.TournamentStatusUpdateEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.MissingEventTypeException;
 import fft_battleground.exception.TournamentApiException;
@@ -216,6 +217,10 @@ public class EventParser extends Thread {
 				case OTHER_PLAYER_INVALID_SEX_EVENT:
 					OtherPlayerInvalidFightEntrySexEvent invalidFightEntrySexEvent = (OtherPlayerInvalidFightEntrySexEvent) event;
 					this.sendAllEventsToEventRouter(invalidFightEntrySexEvent.getInvalidSexEvents());;
+					break;
+				case OTHER_PLAYER_INVALID_FIGHT_ENTRY_TOURNAMENT_STARTED:
+					OtherPlayerInvalidFightEntryTournamentStartedEvent tournamentStartedEvent = (OtherPlayerInvalidFightEntryTournamentStartedEvent) event;
+					this.sendAllEventsToEventRouter(tournamentStartedEvent.getEvents());
 					break;
 				case PRESTIGE_ASCENSION:
 					this.prestigeAscensionEventAnnotator.annotateEvent((PrestigeAscensionEvent) event);

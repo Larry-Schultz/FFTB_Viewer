@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.detector.model.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.detector.model.UnownedSkillEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerUnownedSkillEvent;
 import fft_battleground.model.ChatMessage;
 
 public class OtherPlayerUnownedSkillDetector implements EventDetector<OtherPlayerUnownedSkillEvent> {

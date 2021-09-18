@@ -1,15 +1,19 @@
-package fft_battleground.event.detector.model;
+package fft_battleground.event.detector.model.composite;
 
 import java.util.Arrays;
 import java.util.List;
 
+import fft_battleground.event.detector.model.BalanceEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class OtherPlayerBalanceEvent extends BattleGroundEvent implements DatabaseResultsData {
 
 	private List<BalanceEvent> otherPlayerBalanceEvents;

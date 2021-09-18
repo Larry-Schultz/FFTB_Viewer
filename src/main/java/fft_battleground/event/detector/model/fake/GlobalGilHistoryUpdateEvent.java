@@ -1,6 +1,6 @@
 package fft_battleground.event.detector.model.fake;
 
-import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.repo.model.GlobalGilHistory;

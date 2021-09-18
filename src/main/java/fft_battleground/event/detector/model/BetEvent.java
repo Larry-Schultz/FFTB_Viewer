@@ -1,13 +1,16 @@
 package fft_battleground.event.detector.model;
 
 import fft_battleground.botland.model.BetType;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class BetEvent extends BattleGroundEvent {
 	
 	private static final BattleGroundEventType event = BattleGroundEventType.BET;

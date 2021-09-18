@@ -2,7 +2,7 @@ package fft_battleground.event.detector.model.fake;
 
 import java.util.Set;
 
-import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import lombok.AllArgsConstructor;

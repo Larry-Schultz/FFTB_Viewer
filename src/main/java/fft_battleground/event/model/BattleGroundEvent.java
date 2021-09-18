@@ -1,11 +1,8 @@
-package fft_battleground.event.detector.model;
+package fft_battleground.event.model;
 
 import java.util.Date;
 
-import fft_battleground.event.model.BattleGroundEventType;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public abstract class BattleGroundEvent {

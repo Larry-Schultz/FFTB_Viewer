@@ -1,7 +1,12 @@
 package fft_battleground.event.detector.model;
 
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@Data
+@EqualsAndHashCode(callSuper=false)
 public class FightBeginsEvent extends BattleGroundEvent {
 	private static final BattleGroundEventType event = BattleGroundEventType.FIGHT_BEGINS;
 	

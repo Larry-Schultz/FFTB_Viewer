@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
 import fft_battleground.event.detector.model.AllegianceEvent;
-import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 

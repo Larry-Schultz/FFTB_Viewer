@@ -44,6 +44,7 @@ import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.util.Router;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -87,7 +88,8 @@ public class BetBotFactory {
 	
 	private Timer botlandTimer = new Timer();
 	private Cache<String, Map<String, BotData>> botDataCache;
-	private GeneFileCache geneFileCache;
+	
+	@Getter private GeneFileCache geneFileCache;
 	
 	public BetBotFactory(@Value("${botlandCacheDuration}") long botlandCacheDuration) {
 		this.botDataCache = Caffeine.newBuilder()

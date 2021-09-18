@@ -1,7 +1,9 @@
-package fft_battleground.event.detector.model;
+package fft_battleground.event.detector.model.composite;
 
 import java.util.List;
 
+import fft_battleground.event.detector.model.InvalidFightEntrySexEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

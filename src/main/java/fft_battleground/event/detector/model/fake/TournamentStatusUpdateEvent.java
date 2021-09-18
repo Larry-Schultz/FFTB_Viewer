@@ -3,9 +3,9 @@ package fft_battleground.event.detector.model.fake;
 import java.util.List;
 import java.util.Map;
 
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GenericPairing;

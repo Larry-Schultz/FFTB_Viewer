@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.detector.model.OtherPlayerSnubEvent;
 import fft_battleground.event.detector.model.SnubEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerSnubEvent;
 import fft_battleground.model.ChatMessage;
 
 import lombok.extern.slf4j.Slf4j;

@@ -3,8 +3,8 @@ package fft_battleground.event.detector;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.MusicEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 

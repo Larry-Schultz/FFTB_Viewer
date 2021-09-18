@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
 import fft_battleground.event.detector.model.InvalidFightEntryClassEvent;
-import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntryClassEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightEntryClassEvent;
 import fft_battleground.model.ChatMessage;
 
 public class OtherPlayerInvalidFightEntryClassDetector implements EventDetector<OtherPlayerInvalidFightEntryClassEvent> {

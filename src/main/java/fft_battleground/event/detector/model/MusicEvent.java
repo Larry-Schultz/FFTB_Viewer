@@ -1,9 +1,12 @@
 package fft_battleground.event.detector.model;
 
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class MusicEvent  extends BattleGroundEvent {
 	private static final BattleGroundEventType EVENT_TYPE = BattleGroundEventType.MUSIC;
 	

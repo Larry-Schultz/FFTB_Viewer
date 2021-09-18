@@ -49,12 +49,14 @@ public class BotlandLeaderboard {
 		for(Bots bot : todaysBots) {
 			String botName = bot.getPlayer();
 			long duration = ChronoUnit.DAYS.between(new Timestamp(oldestEntriesPerBot.get(botName).getCreateDateTime().getTime()).toLocalDateTime(), LocalDateTime.now());
-			BotlandLeaderboardEntry entry = new BotlandLeaderboardEntry(botName, botWinCountMap.get(botName), duration, oldestEntriesPerBot.get(botName).getCreateDateTime(), 
+			long endoOfDayVictoryCount = botWinCountMap.get(botName) != null ? botWinCountMap.get(botName) : 0;
+			BotlandLeaderboardEntry entry = new BotlandLeaderboardEntry(botName, endoOfDayVictoryCount, duration, oldestEntriesPerBot.get(botName).getCreateDateTime(), 
 					winCountsPerBot.get(botName), lossCountsPerBot.get(botName), botHighestOfAllTimeMap.get(botName));
 			entryList.add(entry);
 		}
 		
-		List<GenericElementOrdering<BotlandLeaderboardEntry>> genericOrderedEntryList = GenericElementOrdering.convertToOrderedList(entryList, Comparator.comparing(BotlandLeaderboardEntry::getEndOfDayHighScoreVictoryCount));
+		List<GenericElementOrdering<BotlandLeaderboardEntry>> genericOrderedEntryList = GenericElementOrdering.convertToOrderedList(entryList, 
+				Comparator.comparing(BotlandLeaderboardEntry::getEndOfDayHighScoreVictoryCount).reversed());
 		return genericOrderedEntryList;
 	}
 	
@@ -69,7 +71,7 @@ public class BotlandLeaderboard {
 				Date o2Date = sdf.parse(o2.getDateString());
 				return o1Date.compareTo(o2Date);
 			}
-		});
+		}.reversed());
 		
 		return botlandWinners;
 	}

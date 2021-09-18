@@ -46,14 +46,17 @@ public enum BattleGroundEventType {
 	OTHER_PLAYER_INVALID_FIGHT_COMBINATION("Composite Invalid Fight Combination"), 
 	OTHER_PLAYER_INVALID_FIGHT_CLASS("Compositive Invalid Fight Class"), 
 	OTHER_PLAYER_SKILL_ON_COOLDOWN("Composite Skill On Cooldown"),
+	OTHER_PLAYER_INVALID_SEX_EVENT("Composite Invalid Sex Fight Entry Event"),
+	OTHER_PLAYER_INVALID_FIGHT_ENTRY_TOURNAMENT_STARTED("Composite Invalid Fight Entry Tournament Started Event"),
 	DONT_FIGHT("Don't Fight"), 
 	BUY_SKILL_RANDOM("Buy Skill Random"), 
 	CLASS_BONUS("Class bonus"), 
 	SKILL_BONUS("Skill bonus"), 
 	SNUB("Failed attempts to join !fight"), 
 	OTHER_PLAYER_SNUB("snub event list"), 
-	INVALID_FIGHT_ENTRY_SEX("Invalid Sex Fight Entry Event"), 
-	OTHER_PLAYER_INVALID_SEX_EVENT("Composite Invalid Sex Fight Entry Event");
+	INVALID_FIGHT_ENTRY_SEX("Invalid Fight Entry Sex Event"), 
+	INVALID_FIGHT_ENTRY_TOURNAMENT_STARTED("Invalid Fight Entry Tournament Started Event"), 
+	;
 	
 	private BattleGroundEventType(String eventStringName) {
 		this.eventStringName = eventStringName;

@@ -3,8 +3,10 @@ package fft_battleground.event.detector.model;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class RiserSkillWinEvent 
 extends SkillWinEvent 
 implements DatabaseResultsData {

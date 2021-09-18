@@ -2,8 +2,10 @@ package fft_battleground.event.detector.model;
 
 import fft_battleground.event.model.BattleGroundEventType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class ExpEvent extends LevelUpEvent {
 	public static final BattleGroundEventType type = BattleGroundEventType.EXP;
 	

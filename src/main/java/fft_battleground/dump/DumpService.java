@@ -48,12 +48,12 @@ import fft_battleground.dump.model.Music;
 import fft_battleground.dump.scheduled.GenerateDataUpdateFromDump;
 import fft_battleground.dump.scheduled.UpdateGlobalGilCount;
 import fft_battleground.event.detector.model.BalanceEvent;
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.event.detector.model.LastActiveEvent;
-import fft_battleground.event.detector.model.OtherPlayerBalanceEvent;
-import fft_battleground.event.detector.model.OtherPlayerExpEvent;
 import fft_battleground.event.detector.model.SnubEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerBalanceEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerExpEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
@@ -175,7 +175,9 @@ public class DumpService {
 	
 	private void loadCache() throws CacheBuildException {
 		log.info("loading player data cache");
-
+		
+		this.dumpReportsService.getBotlandLeaderboardReportGenerator().writeReport();
+		
 		List<PlayerRecord> playerRecords = this.playerRecordRepo.findAll();
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownAmount() == null)
 				.forEach(playerRecord -> playerRecord.setLastKnownAmount(GambleUtil.MINIMUM_BET));

@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.event.detector.model.BattleGroundEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.MissingEventTypeException;
 import fft_battleground.util.Router;
 

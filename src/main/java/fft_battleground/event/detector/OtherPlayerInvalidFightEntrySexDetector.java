@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.event.EventDetector;
 import fft_battleground.event.detector.model.InvalidFightEntrySexEvent;
-import fft_battleground.event.detector.model.OtherPlayerInvalidFightEntrySexEvent;
+import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightEntrySexEvent;
 import fft_battleground.model.ChatMessage;
 
 public class OtherPlayerInvalidFightEntrySexDetector implements EventDetector<OtherPlayerInvalidFightEntrySexEvent> {

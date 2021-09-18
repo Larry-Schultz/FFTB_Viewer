@@ -12,11 +12,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.SkillDropEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 

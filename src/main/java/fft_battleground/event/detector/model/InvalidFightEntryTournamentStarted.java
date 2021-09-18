@@ -8,20 +8,19 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
-public class InvalidFightEntryCombinationEvent 
+public class InvalidFightEntryTournamentStarted 
 extends BattleGroundEvent
 implements FightEvent {
-	private static final BattleGroundEventType type = BattleGroundEventType.INVALID_FIGHT_ENTRY_COMBINATION;
+	private static final BattleGroundEventType type = BattleGroundEventType.INVALID_FIGHT_ENTRY_TOURNAMENT_STARTED;
 	
 	private String player;
-	
-	public InvalidFightEntryCombinationEvent() {
+
+	public InvalidFightEntryTournamentStarted() {
 		super(type);
 	}
-
-	public InvalidFightEntryCombinationEvent(String player) {
+	
+	public InvalidFightEntryTournamentStarted(String player) {
 		super(type);
 		this.player = player;
 	}
-
 }

@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fft_battleground.dump.DumpService;
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.fake.GlobalGilHistoryUpdateEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.util.Router;

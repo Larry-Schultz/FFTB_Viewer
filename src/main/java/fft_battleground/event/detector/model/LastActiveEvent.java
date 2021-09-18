@@ -2,11 +2,14 @@ package fft_battleground.event.detector.model;
 
 import java.util.Date;
 
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class LastActiveEvent 
 extends BattleGroundEvent
 implements DatabaseResultsData {

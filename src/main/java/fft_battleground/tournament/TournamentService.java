@@ -27,10 +27,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.dump.DumpDataProvider;
 import fft_battleground.dump.DumpResourceManager;
-import fft_battleground.event.detector.model.BattleGroundEvent;
 import fft_battleground.event.detector.model.BetInfoEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;

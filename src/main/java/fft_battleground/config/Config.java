@@ -38,6 +38,7 @@ import fft_battleground.event.detector.OtherPlayerExpDetector;
 import fft_battleground.event.detector.OtherPlayerInvalidFightCombinationDetector;
 import fft_battleground.event.detector.OtherPlayerInvalidFightEntryClassDetector;
 import fft_battleground.event.detector.OtherPlayerInvalidFightEntrySexDetector;
+import fft_battleground.event.detector.OtherPlayerInvalidFightEntryTournamentStartedDetector;
 import fft_battleground.event.detector.OtherPlayerSkillOnCooldownDetector;
 import fft_battleground.event.detector.OtherPlayerUnownedSkillDetector;
 import fft_battleground.event.detector.PlayerSkillDetector;
@@ -99,7 +100,7 @@ public class Config {
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(), new OtherPlayerSkillOnCooldownDetector(),
 			new FightEntryDetector(), new FightBeginsDetector(), new OtherPlayerInvalidFightCombinationDetector(), new OtherPlayerInvalidFightEntryClassDetector(),
 			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector(), new OtherPlayerSnubEventDetector(),
-			new OtherPlayerInvalidFightEntrySexDetector()
+			new OtherPlayerInvalidFightEntrySexDetector(), new OtherPlayerInvalidFightEntryTournamentStartedDetector()
 		});
 	}
 	

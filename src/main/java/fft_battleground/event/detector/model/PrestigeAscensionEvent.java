@@ -1,10 +1,13 @@
 package fft_battleground.event.detector.model;
 
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class PrestigeAscensionEvent 
 extends BattleGroundEvent
 implements DatabaseResultsData {

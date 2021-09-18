@@ -2,11 +2,14 @@ package fft_battleground.event.detector.model;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class MatchInfoEvent extends BattleGroundEvent {
 
 	private static final BattleGroundEventType type = BattleGroundEventType.MATCH_INFO;
