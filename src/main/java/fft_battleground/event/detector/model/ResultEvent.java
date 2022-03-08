@@ -11,12 +11,17 @@ import lombok.EqualsAndHashCode;
 public class ResultEvent extends BattleGroundEvent {
 	private static final BattleGroundEventType event = BattleGroundEventType.RESULT;
 	
-	private BattleGroundTeam winner;
+	protected BattleGroundTeam winner;
 	
 	public ResultEvent() {}
 	
 	public ResultEvent(BattleGroundTeam winner) {
 		super(event);
+		this.winner = winner;
+	}
+
+	public ResultEvent(BattleGroundEventType type, BattleGroundTeam winner) {
+		super(type);
 		this.winner = winner;
 	}
 

@@ -19,8 +19,8 @@ public class LevelUpDetector implements EventDetector<LevelUpEvent> {
 		if(StringUtils.equals(StringUtils.lowerCase(message.getUsername()), StringUtils.lowerCase("FFTBattleground")) &&
 				StringUtils.contains(message.getMessage(), findString)) {
 			String username = StringUtils.substringBefore(message.getMessage(), ",");
-			Short level = Short.valueOf(StringUtils.substringBetween(message.getMessage(), findString, endCharacter));
-			
+			String levelString = StringUtils.replace(StringUtils.substringBetween(message.getMessage(), findString, endCharacter), ",", "");
+			Short level = Short.valueOf(levelString);
 			PlayerSkillEvent skillEvent = null;
 			if(StringUtils.contains(message.getMessage(), findString_2)) {
 				String skill = StringUtils.trim(StringUtils.substringBetween(message.getMessage(), findString_2, endCharacter));

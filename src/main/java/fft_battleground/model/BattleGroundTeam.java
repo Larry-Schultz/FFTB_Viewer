@@ -85,7 +85,7 @@ public enum BattleGroundTeam {
 	
 	public static String getTeamName(BattleGroundTeam team) {
 		if(team != null) {
-			return team.getTeamName();
+			return team.getProperName();
 		} else {
 			return null;
 		}

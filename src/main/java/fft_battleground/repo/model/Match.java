@@ -31,8 +31,7 @@ import fft_battleground.botland.model.BetResults;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.util.BattleGroundTeamConverter;
-
+import fft_battleground.util.hibernate.BattleGroundTeamConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

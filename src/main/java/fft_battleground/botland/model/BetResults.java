@@ -8,14 +8,15 @@ import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
-import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @AllArgsConstructor
+@Slf4j
 public class BetResults implements DatabaseResultsData {
 
 	private Pair<List<BetEvent>, List<BetEvent>> bets;
@@ -50,5 +51,16 @@ public class BetResults implements DatabaseResultsData {
 	public Integer getRightTeamBetAmount() {
 		Integer sum = this.bets.getRight().stream().mapToInt(BetEvent::getBetAmountInteger).sum();
 		return sum;
+	}
+	
+	public BattleGroundTeam getLosingTeam() {
+		if(leftTeam == winningTeam) {
+			return rightTeam;
+		} else if(rightTeam == winningTeam) {
+			return leftTeam;
+		} else {
+			log.warn("losing team is null, this shouldn't have happened");
+			return null;
+		}
 	}
 }

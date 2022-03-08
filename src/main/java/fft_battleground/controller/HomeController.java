@@ -14,8 +14,6 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.websocket.server.PathParam;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,13 +31,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
-import fft_battleground.controller.model.BotLeaderboardData;
-import fft_battleground.controller.model.BotResponseData;
-import fft_battleground.controller.model.BotlandData;
-import fft_battleground.controller.model.ExpLeaderboardData;
-import fft_battleground.controller.model.MusicData;
-import fft_battleground.controller.model.PlayerData;
-import fft_battleground.controller.model.PlayerLeaderboardData;
+import fft_battleground.controller.response.model.ExpLeaderboardData;
+import fft_battleground.controller.response.model.MusicData;
+import fft_battleground.controller.response.model.PlayerData;
+import fft_battleground.controller.response.model.PlayerLeaderboardData;
+import fft_battleground.controller.response.model.botland.BotLeaderboardData;
+import fft_battleground.controller.response.model.botland.BotResponseData;
+import fft_battleground.controller.response.model.botland.BotlandData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.GlobalGilPageData;
@@ -60,9 +58,10 @@ import fft_battleground.repo.repository.BotsHourlyDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
 import fft_battleground.util.GenericElementOrdering;
 import fft_battleground.util.GenericResponse;
-
+import io.swagger.annotations.ApiOperation;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
 @RequestMapping("/")
@@ -93,6 +92,7 @@ public class HomeController {
 	@Autowired
 	private AccessTracker accessTracker;
 	
+	@ApiIgnore
 	@GetMapping(value = "/images/characters/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
 		byte[] data = this.imageCache.getCharacterImage(characterName);
@@ -103,6 +103,7 @@ public class HomeController {
 	    }
 	}
 	
+	@ApiIgnore
 	@GetMapping(value = "/images/portraits/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getPortraitImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
 		byte[] data = this.imageCache.getPortaitImage(characterName);
@@ -113,18 +114,21 @@ public class HomeController {
 	    }
 	}
 	
+	@ApiIgnore
 	@GetMapping("/")
 	public String homePage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("index page", userAgent, request);
 		return "index.html";
 	}
 	
+	@ApiIgnore
 	@GetMapping("/apidocs")
 	public String apiDocsPage(@RequestHeader(value = "User-Agent") String userAgent, Model Model, HttpServletRequest request) {
 		this.logAccess("apidocs", userAgent, request);
 		return "api.html";
 	}
 	
+	@ApiIgnore
 	@GetMapping({"/player", "/player/"})
 	public @ResponseBody ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("player search page", userAgent, request);
@@ -132,9 +136,12 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity("No player provided", data);
 	}
 
+	@ApiOperation(value="gets all data tied to a player in the Viewer database")
 	@GetMapping({"/player/{playerName}"})
-	public @ResponseBody ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@PathVariable(name="playerName") String playerName, @RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
-			@RequestHeader(value = "User-Agent") String userAgent, Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
+	public @ResponseBody ResponseEntity<GenericResponse<PlayerData>> playerDataPage(@PathVariable(name="playerName") String playerName, 
+			@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
+			@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, 
+			Model model, TimeZone timezone, HttpServletRequest request) throws CacheMissException, TournamentApiException {
 		if(!refresh) {
 			this.logAccess(playerName + " search page ", userAgent, request);
 		}
@@ -143,8 +150,10 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(playerData);
 	}
 	
+	@ApiOperation(value="returns all songs in the stream's playlist")
 	@GetMapping("/music")
-	public @ResponseBody ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, 
+			Model model, HttpServletRequest request) {
 		this.logAccess("music search page", userAgent, request);
 		Collection<Music> music = this.dumpService.getPlaylist();
 		Collection<MusicData> data = music.parallelStream().map(musicEntry -> new MusicData(musicEntry)).collect(Collectors.toList());
@@ -152,6 +161,8 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiIgnore
+	@ApiOperation("returns bot leaderboard in json form")
 	@GetMapping("/botleaderboard")
 	public @ResponseBody ResponseEntity<GenericResponse<BotLeaderboardData>> botLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, 
 			HttpServletRequest request) throws CacheMissException {
@@ -182,6 +193,8 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiIgnore
+	@ApiOperation("returns player leaderboard in json form")
 	@GetMapping({"/playerLeaderboard", "/leaderboard"})
 	public @ResponseBody ResponseEntity<GenericResponse<PlayerLeaderboardData>> playerLeaderboardPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, 
 			HttpServletRequest request) throws CacheMissException {
@@ -195,6 +208,8 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiIgnore
+	@ApiOperation("returns experience leaderboard in json form")
 	@GetMapping("/expLeaderboard")
 	@SneakyThrows
 	public @ResponseBody ResponseEntity<GenericResponse<ExpLeaderboardData>> expLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
@@ -211,6 +226,8 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiIgnore
+	@ApiOperation("returns the list of ascended players and related data")
 	@GetMapping("/ascension")
 	@SneakyThrows
 	public @ResponseBody ResponseEntity<GenericResponse<AscensionData>> ascension(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
@@ -227,6 +244,7 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(prestigeEntries);
 	}
 	
+	@ApiIgnore
 	@GetMapping("/gilCount")
 	public @ResponseBody ResponseEntity<GenericResponse<GlobalGilPageData>> gilCountPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("global gil count", userAgent, request);
@@ -236,6 +254,7 @@ public class HomeController {
 		
 	}
 	
+	@ApiIgnore
 	@GetMapping("/botland")
 	public @ResponseBody ResponseEntity<GenericResponse<BotlandData>> botland(@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh, 
 			@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
@@ -255,10 +274,11 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiOperation("returns tracked data for the listed botland bot")
 	@GetMapping("/bot/{botName}")
 	public @ResponseBody ResponseEntity<GenericResponse<BotResponseData>> botData(@PathVariable("botName") String botName,
 			@RequestParam(name="refresh", required=false, defaultValue="false") Boolean refresh,
-			@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+			@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, Model model, HttpServletRequest request) {
 		if(refresh != null && !refresh) {
 			String botNameString = botName != null ? botName : "null bot name";
 			this.logAccess("bot page for " + botNameString, userAgent, request);
@@ -281,13 +301,16 @@ public class HomeController {
 		return GenericResponse.createGenericResponseEntity(response);
 	}
 	
+	@ApiIgnore
 	@GetMapping("/allegianceLeaderboard")
-	public @ResponseBody ResponseEntity<GenericResponse<AllegianceLeaderboardWrapper>> allegianceLeaderboard(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) throws CacheMissException {
+	public @ResponseBody ResponseEntity<GenericResponse<AllegianceLeaderboardWrapper>> allegianceLeaderboard(@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, 
+			HttpServletRequest request) throws CacheMissException {
 		this.logAccess("allegiance leaderboard", userAgent, request);
 		AllegianceLeaderboardWrapper leaderboard = this.dumpReportsService.getAllegianceData();
 		return GenericResponse.createGenericResponseEntity(leaderboard);
 	}
 	
+	@ApiIgnore
 	@GetMapping("/robots.txt")
 	public ResponseEntity<String> robots(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) {
 		this.logAccess("robots.txt", userAgent, request);

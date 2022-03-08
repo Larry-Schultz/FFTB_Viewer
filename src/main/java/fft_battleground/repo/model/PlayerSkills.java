@@ -30,8 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.repo.util.SkillCategory;
 import fft_battleground.repo.util.SkillType;
-import fft_battleground.util.BooleanConverter;
-
+import fft_battleground.util.hibernate.BooleanConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

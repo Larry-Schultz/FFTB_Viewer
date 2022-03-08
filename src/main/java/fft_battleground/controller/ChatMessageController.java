@@ -17,6 +17,7 @@ import fft_battleground.model.ChatMessage;
 import fft_battleground.util.GenericResponse;
 import fft_battleground.util.Router;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
 @RequestMapping("/chat")
@@ -29,7 +30,7 @@ public class ChatMessageController {
 	/*
 	 * @Value("${apiKey}") private String apiKey;
 	 */
-	
+	@ApiIgnore
 	@PostMapping("/messages/{key}")
 	public @ResponseBody ResponseEntity<GenericResponse<Integer>>
 	receiveChatMessages(@RequestBody List<ChatMessage> messages, @PathParam("key") String key) {

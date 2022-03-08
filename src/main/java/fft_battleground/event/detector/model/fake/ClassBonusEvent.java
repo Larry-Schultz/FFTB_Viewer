@@ -5,11 +5,11 @@ import java.util.Set;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class ClassBonusEvent 
 extends BattleGroundEvent
 implements DatabaseResultsData {

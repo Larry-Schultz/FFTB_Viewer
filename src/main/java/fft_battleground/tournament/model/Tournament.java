@@ -1,6 +1,7 @@
 package fft_battleground.tournament.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +19,7 @@ import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.tournament.tracker.model.TournamentWinData;
 import fft_battleground.util.GambleUtil;
 
 import lombok.Data;
@@ -50,6 +52,8 @@ public class Tournament {
 	private List<String> raidbosses;
 	private Set<String> allPlayers;
 	private Map<BattleGroundTeam, Integer> teamValue;
+	private Map<BattleGroundTeam, TournamentWinData> tournamentWinTracker = new HashMap<>();
+	private Integer championStreak = null;
 	
 	public Tournament() {}
 	
@@ -132,5 +136,17 @@ public class Tournament {
 		for(int i = 0; i < eventList.size(); i++) {
 			eventList.get(i).setPosition(i);
 		}
+	}
+	
+	public void addWinData(BattleGroundTeam winningTeam, BattleGroundTeam losingTeam) {
+		if(this.tournamentWinTracker.get(winningTeam) == null) {
+			this.tournamentWinTracker.put(winningTeam, new TournamentWinData());
+		}
+		this.tournamentWinTracker.get(winningTeam).getWins().add(losingTeam);
+		
+		if(this.tournamentWinTracker.get(losingTeam) == null) {
+			this.tournamentWinTracker.put(losingTeam, new TournamentWinData());
+		}
+		this.tournamentWinTracker.get(losingTeam).getLosses().add(winningTeam);
 	}
 }

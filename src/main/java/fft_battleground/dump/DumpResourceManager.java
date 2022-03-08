@@ -10,7 +10,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -86,10 +85,21 @@ public class DumpResourceManager {
 	}
 	
 	public Set<String> getRecentlyUpdatedPlayers(String url, Pair<Integer, Integer> initialTimeUnitTimeLengthPair, Pair<Integer, Integer> walkTimeUnitTimeLengthPair) throws DumpException {
-		List<PlayerListData> playerList = new LinkedList<>(this.getPlayerDataFromList(url));
-		Collections.sort(playerList, Collections.reverseOrder());
-		List<PlayerListData> recentPlayers = new ArrayList<>();
+		List<PlayerListData> entriesWithNullLastUpdated = new ArrayList<>();
+		List<PlayerListData> playerList = this.getPlayerDataFromList(url).stream()
+				.peek(playerListData -> {
+					if(playerListData.getLastUpdated() == null) {
+						entriesWithNullLastUpdated.add(playerListData);
+					}
+				}).filter(playerListData -> playerListData.getLastUpdated() != null)
+				.sorted(Collections.reverseOrder())
+				.collect(Collectors.toList());
 		
+		if(entriesWithNullLastUpdated.size() > 0) {
+			log.warn("There were {} players with null recently updated dates for url {}", entriesWithNullLastUpdated.size(), url);
+		}
+		
+		List<PlayerListData> recentPlayers = new ArrayList<>();
 		PlayerListData previous = null;
 		for(PlayerListData playerData: playerList) {
 			TimeZone etTimeZone = TimeZone.getTimeZone("America/New_York");

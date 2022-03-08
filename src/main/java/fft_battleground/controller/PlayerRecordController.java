@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fft_battleground.controller.model.GilDateGraphEntry;
+import fft_battleground.controller.response.model.GilDateGraphEntry;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.LeaderboardBalanceData;
@@ -44,13 +44,15 @@ import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GenericResponse;
-
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
 @RequestMapping("/api/players")
 @Slf4j
 @CacheConfig(cacheNames = {"botBalanceHistory", "playerBalanceHistory"})
+@ApiIgnore
 public class PlayerRecordController {
 
 	@Autowired
@@ -80,6 +82,7 @@ public class PlayerRecordController {
 	
 	private Map<String, LeaderboardBalanceData> playerLeaderboardData = new HashMap<>();
 	
+	@ApiIgnore
 	@GetMapping("/playerRecord/{playerName}")
 	public ResponseEntity<GenericResponse<PlayerRecord>> getPlayerData(@PathVariable("playerName") String playerName, HttpServletRequest request) throws TournamentApiException {
 		log.info("Player api called for player {}", playerName);
@@ -96,7 +99,7 @@ public class PlayerRecordController {
 			return GenericResponse.<PlayerRecord>createGenericResponseEntity(null, "Player could not be found", HttpStatus.NOT_FOUND);
 		}
 	}
-	
+	@ApiIgnore
 	@GetMapping("/balanceHistory")
 	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>>
 	getBalanceHistory(@RequestParam(name="player", required=true) String player, @RequestParam(name="count", required=true) Integer count) {
@@ -115,6 +118,7 @@ public class PlayerRecordController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiIgnore
 	@GetMapping("/botLeaderboardBalanceHistory")
 	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>> 
 	getBotBalanceHistory(@RequestParam(name="count", required=true) Integer count) {
@@ -138,6 +142,7 @@ public class PlayerRecordController {
 		return data;
 	}
 	
+	@ApiIgnore
 	@GetMapping("/playerLeaderboardBalanceHistory")
 	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>>
 	getPlayerBalanceHistories(@RequestParam(name="players", required=true) String players, @RequestParam(name="count", required=true) int count) {
@@ -154,6 +159,7 @@ public class PlayerRecordController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
+	@ApiOperation(value="Returns a list of all players recorded in the Viewer database")
 	@GetMapping("/playerList")
 	public ResponseEntity<GenericResponse<List<String>>> playerNames() {
 		List<String> playerNames = this.playerRecordRepo.findPlayerNames().stream().map(player -> StringUtils.trim(StringUtils.lowerCase(player)))
@@ -161,6 +167,7 @@ public class PlayerRecordController {
 		return GenericResponse.createGenericResponseEntity(playerNames);
 	}
 	
+	@ApiIgnore
 	@GetMapping("/globalGilHistoryGraphData")
 	public ResponseEntity<GenericResponse<List<GilDateGraphEntry>>> 
 	getGlobalGilHistoryGraphData(@RequestParam("timeUnit") String unit) {

@@ -21,7 +21,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.util.BattleGroundTeamConverter;
+import fft_battleground.util.hibernate.BattleGroundTeamConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

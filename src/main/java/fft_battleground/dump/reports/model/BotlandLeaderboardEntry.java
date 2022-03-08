@@ -17,4 +17,9 @@ public class BotlandLeaderboardEntry {
 	private Long totalBetWins;
 	private Long totalBetLosses;
 	private Integer highestRecordedBalance;
+	private Double averageBalance;
+	private Double averagePeakBalance;
+	private Double averageWinsPerDay;
+	private Double averageLossesPerDay;
+	private Double averageWinRatePerDay;
 }

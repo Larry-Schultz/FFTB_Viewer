@@ -9,15 +9,16 @@ import fft_battleground.model.ChatMessage;
 
 public class ResultEventDetector implements EventDetector<ResultEvent> {
 
-	private static final String SEARCH_STRING = " Team was victorious! Next match starting soon...";
+	private static final String SEARCH_STRING = " team was victorious!";
 	
 	@Override
 	public ResultEvent detect(ChatMessage message) {
 		ResultEvent event = null;
-		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(message.getMessage(), SEARCH_STRING)) {
-			for(String split : StringUtils.split(message.getMessage(), ";")) {
+		String cleanedMessage = StringUtils.lowerCase(message.getMessage());
+		if(StringUtils.equals(message.getUsername(), "fftbattleground") && StringUtils.contains(cleanedMessage, SEARCH_STRING)) {
+			for(String split : StringUtils.split(cleanedMessage, ";")) {
 				if(StringUtils.contains(split, SEARCH_STRING)) {
-					String teamString = StringUtils.substringBetween(split, "The ", SEARCH_STRING);
+					String teamString = StringUtils.substringBetween(split, "the ", SEARCH_STRING);
 					BattleGroundTeam team = BattleGroundTeam.parse(teamString);
 					event = new ResultEvent(team);
 					break;

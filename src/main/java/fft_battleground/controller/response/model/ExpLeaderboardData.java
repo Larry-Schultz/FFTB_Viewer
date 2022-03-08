@@ -1,4 +1,4 @@
-package fft_battleground.controller.model;
+package fft_battleground.controller.response.model;
 
 import fft_battleground.dump.reports.model.ExpLeaderboard;
 

@@ -26,11 +26,12 @@ import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.ResultEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.event.detector.model.fake.FightResultEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.DatabaseResultsData;
-import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
+import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.Router;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,10 +50,16 @@ public class EventManager extends Thread {
 	private Router<DatabaseResultsData> betResultsRouter;
 	
 	@Autowired
+	private Router<BattleGroundEvent> websocketEventRouter;
+	
+	@Autowired
 	private BetBotFactory betBotFactory;
 	
 	@Autowired
 	private DumpService dumpService;
+	
+	@Autowired
+	private TournamentService tournamentService;
 	
 	private Timer bettingTimer = new Timer();
 	protected long bettingDelay = 33 * 1000;
@@ -132,9 +139,16 @@ public class EventManager extends Thread {
 						}
 						break;
 					case RESULT:
+						ResultEvent resultEvent = (ResultEvent) event;
 						if(this.botLand != null && event instanceof ResultEvent) {
 							BetResults aftermathOfBotBet = this.botLand.createCollector().getResult((ResultEvent) event);
 							this.betResultsRouter.sendDataToQueues(aftermathOfBotBet);
+							this.updateCurrentTournamentWithWinnerDate(aftermathOfBotBet);
+							FightResultEvent fightResultEvent = new FightResultEvent(resultEvent, aftermathOfBotBet.getLosingTeam());
+							this.websocketEventRouter.sendDataToQueues(fightResultEvent);
+							if(fightResultEvent != null) {
+								log.info("Found event: {} with data: {}", fightResultEvent.getEventType().getEventStringName(), fightResultEvent.toString());
+							}
 						}
 						break;
 					case OTHER_PLAYER_BALANCE: case LEVEL_UP: case OTHER_PLAYER_EXP: case ALLEGIANCE:
@@ -169,6 +183,10 @@ public class EventManager extends Thread {
 				log.error("Error found handling event", e);
 			}
 		}
+	}
+	
+	private void updateCurrentTournamentWithWinnerDate(BetResults betResults) {
+		this.tournamentService.getCurrentTournament().addWinData(betResults.getWinningTeam(), betResults.getLosingTeam());
 	}
 	
 	public void sendScheduledMessage(String message, Long waitTime) {

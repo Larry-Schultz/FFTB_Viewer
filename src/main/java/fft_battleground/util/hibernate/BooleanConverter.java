@@ -1,4 +1,4 @@
-package fft_battleground.util;
+package fft_battleground.util.hibernate;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

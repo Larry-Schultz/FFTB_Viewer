@@ -31,8 +31,11 @@ public class BotlandLeaderboard {
 	private transient Map<String, BotlandLeaderboardEntry> botLeaderboardEntryMap;
 	
 	public BotlandLeaderboard(List<Bots> todaysBots, Map<String, BotlandWinner> dateStringWinnersMap, Map<String, Integer> botHighestOfAllTimeMap, 
-			Map<String, Long> botWinCountMap, Map<String, Bots> oldestBotEntryMap, Map<String, Long> winCountsPerBot, Map<String, Long> lossCountsPerBot) {
-		this.botlandEntries = this.calculateBotlandEntries(todaysBots, botHighestOfAllTimeMap, botWinCountMap, oldestBotEntryMap, winCountsPerBot, lossCountsPerBot);
+			Map<String, Long> botWinCountMap, Map<String, Bots> oldestBotEntryMap, Map<String, Long> winCountsPerBot, Map<String, Long> lossCountsPerBot, 
+			Map<String, Double> averageBalancePerBot, Map<String, Double> averagePeakBalancePerBotMap, Map<String, Double> averageWinsPerDay, 
+			Map<String, Double> averageLossesPerDay, Map<String, Double> averageWinRatePerDay, Map<String, Long> daysParticipatingPerBotMap) {
+		this.botlandEntries = this.calculateBotlandEntries(todaysBots, botHighestOfAllTimeMap, botWinCountMap, oldestBotEntryMap, winCountsPerBot, lossCountsPerBot,
+				averageBalancePerBot, averagePeakBalancePerBotMap, averageWinsPerDay, averageLossesPerDay, averageWinRatePerDay, daysParticipatingPerBotMap);
 		this.botlandWinners = this.calculateBotlandWinners(dateStringWinnersMap);
 		this.botLeaderboardEntryMap = this.botlandEntries.stream()
 				.map(GenericElementOrdering<BotlandLeaderboardEntry>::getElement)
@@ -44,14 +47,17 @@ public class BotlandLeaderboard {
 	}
 	
 	private List<GenericElementOrdering<BotlandLeaderboardEntry>> calculateBotlandEntries(List<Bots> todaysBots, Map<String, Integer> botHighestOfAllTimeMap, 
-			Map<String, Long> botWinCountMap, Map<String, Bots> oldestEntriesPerBot, Map<String, Long> winCountsPerBot, Map<String, Long> lossCountsPerBot) {
+			Map<String, Long> botWinCountMap, Map<String, Bots> oldestEntriesPerBot, Map<String, Long> winCountsPerBot, Map<String, Long> lossCountsPerBot, 
+			Map<String, Double> averageBalancePerBot,  Map<String, Double> averagePeakBalancePerBotMap, Map<String, Double> averageWinsPerDay, 
+			Map<String, Double> averageLossesPerDay, Map<String, Double> averageWinRatePerDay, Map<String, Long> daysParticipatingPerBotMap) {
 		List<BotlandLeaderboardEntry> entryList = new ArrayList<>();
 		for(Bots bot : todaysBots) {
 			String botName = bot.getPlayer();
-			long duration = ChronoUnit.DAYS.between(new Timestamp(oldestEntriesPerBot.get(botName).getCreateDateTime().getTime()).toLocalDateTime(), LocalDateTime.now());
 			long endoOfDayVictoryCount = botWinCountMap.get(botName) != null ? botWinCountMap.get(botName) : 0;
-			BotlandLeaderboardEntry entry = new BotlandLeaderboardEntry(botName, endoOfDayVictoryCount, duration, oldestEntriesPerBot.get(botName).getCreateDateTime(), 
-					winCountsPerBot.get(botName), lossCountsPerBot.get(botName), botHighestOfAllTimeMap.get(botName));
+			BotlandLeaderboardEntry entry = new BotlandLeaderboardEntry(botName, endoOfDayVictoryCount, daysParticipatingPerBotMap.get(botName), 
+					oldestEntriesPerBot.get(botName).getCreateDateTime(), winCountsPerBot.get(botName), lossCountsPerBot.get(botName), 
+					botHighestOfAllTimeMap.get(botName), averageBalancePerBot.get(botName),averagePeakBalancePerBotMap.get(botName), 
+					averageWinsPerDay.get(botName), averageLossesPerDay.get(botName), averageWinRatePerDay.get(botName));
 			entryList.add(entry);
 		}
 		

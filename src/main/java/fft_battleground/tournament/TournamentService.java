@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
 import fft_battleground.dump.DumpDataProvider;
 import fft_battleground.dump.DumpResourceManager;
 import fft_battleground.event.detector.model.BetInfoEvent;
@@ -34,7 +34,6 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.tournament.model.TournamentInfo;
 import fft_battleground.util.GambleUtil;
@@ -57,6 +56,7 @@ public class TournamentService {
 	private static final String entrantUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/entrants.txt";
 	private static final String winnersTxtUrlFormat = "http://www.fftbattleground.com/fftbg/tournament_%s/winner.txt";
 	private static final String teamValueUrlFormat =  "http://www.fftbattleground.com/fftbg/tournament_%s/teamvalue.txt";
+	private static final String streakUrlFormat =  "http://www.fftbattleground.com/fftbg/tournament_%s/streak.txt";
 	
 	@Autowired
 	private DumpResourceManager dumpResourceManager;
@@ -78,7 +78,13 @@ public class TournamentService {
 			  .build();
 	private Object prestigeSkillSetCacheLock = new Object();
 	
-	public Tournament getcurrentTournament() throws DumpException, TournamentApiException {
+	private AtomicReference<Tournament> currentTournamentReference = new AtomicReference<>();
+	
+	public Tournament getCurrentTournament() {
+		return this.currentTournamentReference.get();
+	}
+	
+	public Tournament createNewCurrentTournament() throws DumpException, TournamentApiException {
 		Tournament currentTournament = null;
 		
 		TournamentInfo latestTournament = this.getLatestTournamentInfo();
@@ -93,7 +99,12 @@ public class TournamentService {
 		Map<BattleGroundTeam, Integer> teamValue = this.parseTeamValueFile(latestTournament.getID());
 		currentTournament.setTeamValue(teamValue);
 		
-		return currentTournament;
+		Integer streak = this.getChampionStreak(latestTournament.getID());
+		currentTournament.setChampionStreak(streak);
+		
+		this.currentTournamentReference.set(currentTournament);
+		
+		return this.currentTournamentReference.get();
 	}
 	
 	@Cacheable("tips")
@@ -340,6 +351,28 @@ public class TournamentService {
 		
 		
 		return teamValues;
+	}
+	
+	protected Integer getChampionStreak(Long tournamentId) throws DumpException {
+		Integer streak = null;
+		Resource resource;
+		try {
+			resource = new UrlResource(String.format(TournamentService.streakUrlFormat, tournamentId.toString()));
+		} catch (MalformedURLException e1) {
+			throw new DumpException(e1);
+		}
+		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+			String line;
+			while((line = botReader.readLine()) != null) {
+				String cleanedString = line;
+				streak = Integer.valueOf(cleanedString);
+			}
+		} catch (IOException e) {
+			throw new DumpException(e);
+		}
+		
+		
+		return streak;
 	}
 	
 	private Set<String> getPrestigeSkillList() throws DumpException {

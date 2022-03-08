@@ -1,9 +1,11 @@
 package fft_battleground.dump.reports;
 
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -11,7 +13,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,24 +49,30 @@ public class BotlandLeaderboardReportGenerator extends ReportGenerator<BotlandLe
 
 	@Override
 	public BotlandLeaderboard generateReport() throws CacheBuildException {
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(6);
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
 		
 		BotlandLeaderboard leaderboard = null;
 		
-		Future<List<Bots>> botList = executor.submit(() -> this.botsRepo.getBotsForToday()); 
-		Future<List<Bots>> botEntriesWithHighestKnownValueAllTime = executor.submit(() -> this.botsRepo.highestKnownValueHistorical());
-		Future<List<Bots>> botEntriesThatAreWinnersForDay = executor.submit(() -> this.botsRepo.highestBalancePerDay());
-		Future<List<Bots>> oldestEntriesPerBot = executor.submit(() -> this.botsRepo.getOldestEntries());
-		Future<List<Pair<String, Long>>> winsPerBot = executor.submit(() -> this.botsRepo.getWinsPerBot());
-		Future<List<Pair<String, Long>>> lossesPerBot = executor.submit(() -> this.botsRepo.getLossesPerBot());
-		
+		Future<List<Bots>> botList = executor.submit(this.botsRepo::getBotsForToday); 
+		Future<List<Bots>> botEntriesWithHighestKnownValueAllTime = executor.submit(this.botsRepo::highestKnownValueHistorical);
+		Future<List<Bots>> botEntriesThatAreWinnersForDay = executor.submit(this.botsRepo::highestBalancePerDay);
+		Future<List<Bots>> oldestEntriesPerBot = executor.submit(this.botsRepo::getOldestEntries);
+		Future<List<Pair<String, Long>>> daysParticipatingPerBot = executor.submit(this.botsRepo::getDaysParticipatingPerBot);
+		Future<List<Pair<String, Long>>> winsPerBot = executor.submit(this.botsRepo::getWinsPerBot);
+		Future<List<Pair<String, Double>>> averageWinsPerDayPerBot = executor.submit(this.botsRepo::getAverageWinsPerDayPerBot);
+		Future<List<Pair<String, Long>>> lossesPerBot = executor.submit(this.botsRepo::getLossesPerBot);
+		Future<List<Pair<String, Double>>> averageLossesPerDayPerBot = executor.submit(this.botsRepo::getAverageLossesPerDayPerBot);
+		Future<List<Pair<String, Double>>> averageEndDayBalancePerBot = executor.submit(this.botsRepo::getAverageEndDayBalancePerBot);
+		Future<List<Pair<String, Double>>> averagePeakBalancePerBot = executor.submit(this.botsRepo::getAveragePeakBalancePerBot);
+		Future<List<Triple<String, Date, Integer>>> averageWinRatePerBotPerDay = executor.submit(this.botsRepo::getDailyWinRatePerBot);
 		try {
 			//winner for past 100 days
 			Map<String, List<Bots>> dateStringWinnerBotsMap = botEntriesThatAreWinnersForDay.get().stream()
 					.sorted(Comparator.comparing(Bots::getUpdateDateTime).reversed())
+					.filter(bot -> !StringUtils.equalsIgnoreCase(bot.getDateString(), this.botsRepo.currentDateString()))
 					.limit(100)
 					.collect(Collectors.groupingBy(Bots::getDateString));
-			Function<String, BotlandWinner> botlandWinnerFunction = (key) -> new BotlandWinner(key, dateStringWinnerBotsMap.get(key).stream().map(Bots::getPlayer).collect(Collectors.joining(", ")), 
+			Function<String, BotlandWinner> botlandWinnerFunction = (key) -> new BotlandWinner(key, dateStringWinnerBotsMap.get(key).stream().map(Bots::getPlayer).collect(Collectors.toList()), 
 					dateStringWinnerBotsMap.get(key).get(0).getBalance());
 			Map<String, BotlandWinner> dateStringWinnersMap = dateStringWinnerBotsMap.keySet().stream()
 					.filter(key -> !dateStringWinnerBotsMap.get(key).isEmpty())
@@ -81,9 +92,23 @@ public class BotlandLeaderboardReportGenerator extends ReportGenerator<BotlandLe
 			
 			Map<String, Long> winCountsPerBot = winsPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 			Map<String, Long> lossCountsPerBot = lossesPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			Map<String, Double> averageBalancePerBot = averageEndDayBalancePerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			Map<String, Double> averagePeakBalancePerBotMap = averagePeakBalancePerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			
+			Map<String, Double> averageWinsPerDay = averageWinsPerDayPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			Map<String, Double> averageLossesPerDay = averageLossesPerDayPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			
+			//days participating must be calculated by number of days the application was online and when the bot was online
+			Map<String, Long> daysParticipatingPerBotMap = daysParticipatingPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			
+			//gorgeous collector that first creates a Map<String, Pair<String, Double>> and reduces it with averagingDouble to Map<String, Double>
+			Map<String, Double> averageWinRatePerDay = averageWinRatePerBotPerDay.get().stream()
+					.map(triple -> new MutablePair<String, Integer>(triple.getLeft(), triple.getRight()))
+					.collect(Collectors.groupingBy(Pair<String, Integer>::getLeft, HashMap<String, Double>::new, 
+							Collectors.averagingInt(Pair<String, Integer>::getRight)));
 			
 			leaderboard = new BotlandLeaderboard(botList.get(), dateStringWinnersMap, botHighestOfAllTimeMap, botWinCountMap, oldestBotEntryMap, winCountsPerBot,
-					lossCountsPerBot);
+					lossCountsPerBot, averageBalancePerBot, averagePeakBalancePerBotMap, averageWinsPerDay, averageLossesPerDay, averageWinRatePerDay, daysParticipatingPerBotMap);
 		} catch (InterruptedException|ExecutionException e) {
 			String errorMessage = "Error building Botland Leaderboard cache";
 			log.error("Error building Botland Leaderboard cache", e);

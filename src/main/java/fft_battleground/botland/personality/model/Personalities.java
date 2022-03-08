@@ -11,7 +11,7 @@ import fft_battleground.botland.personality.InversePercentilePersonality;
 import fft_battleground.botland.personality.InversePersonality;
 import fft_battleground.botland.personality.NerdPersonality;
 import fft_battleground.botland.personality.PersonalityModule;
-import fft_battleground.botland.personality.PokemonPersonality;
+import fft_battleground.botland.personality.PokemonMasterPersonality;
 import fft_battleground.botland.personality.SidePersonality;
 import fft_battleground.botland.personality.TeamValuePersonality;
 import fft_battleground.botland.personality.YoloPersonality;
@@ -36,7 +36,7 @@ public enum Personalities {
 	INVERSETEAMVALUEPERSONALITY("inverseteamvalue", new TeamValuePersonality(true)),
 	CHEMICAL("chemical", new ChemicalPersonality()),
 	HEALING("healing", new HealingPersonality()),
-	POKEMON("pokemon", new PokemonPersonality());
+	POKEMON("pokemon", new PokemonMasterPersonality());
 	
 	Personalities(String name, PersonalityModule module) {
 		this.name = name;

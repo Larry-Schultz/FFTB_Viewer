@@ -2,31 +2,43 @@ package fft_battleground.dump;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import fft_battleground.dump.model.GlobalGilPageData;
-import fft_battleground.dump.model.PrestigeTableEntry;
+import fft_battleground.dump.reports.AllegianceReportGenerator;
+import fft_battleground.dump.reports.BetPercentileReportGenerator;
+import fft_battleground.dump.reports.BotLeaderboardReportGenerator;
+import fft_battleground.dump.reports.BotlandLeaderboardReportGenerator;
+import fft_battleground.dump.reports.ExperienceLeaderboardReportGenerator;
+import fft_battleground.dump.reports.FightPercentileReportGenerator;
+import fft_battleground.dump.reports.PlayerLeaderboardReportGenerator;
+import fft_battleground.dump.reports.PrestigeTableReportGenerator;
 import fft_battleground.dump.reports.ReportGenerator;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.AscensionData;
 import fft_battleground.dump.reports.model.BotLeaderboard;
-import fft_battleground.dump.reports.model.BotlandLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
@@ -62,28 +74,28 @@ public class DumpReportsService {
 	private GlobalGilHistoryRepo globalGilHistoryRepo;
 
 	@Autowired
-	@Getter private ReportGenerator<PlayerLeaderboard> playerLeaderboardReportGenerator;
+	@Getter private PlayerLeaderboardReportGenerator playerLeaderboardReportGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<BotLeaderboard> botLeaderboardReportGenerator;
+	@Getter private BotLeaderboardReportGenerator botLeaderboardReportGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<Map<Integer, Double>> betPercentileReportGenerator;
+	@Getter private BetPercentileReportGenerator betPercentileReportGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<Map<Integer, Double>> fightPercentileReportGenerator;
+	@Getter private FightPercentileReportGenerator fightPercentileReportGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<AllegianceLeaderboardWrapper> allegianceReportGenerator;
+	@Getter private AllegianceReportGenerator allegianceReportGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<ExpLeaderboard> expLeaderboardGenerator;
+	@Getter private ExperienceLeaderboardReportGenerator expLeaderboardGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<AscensionData> prestigeTableReportGenerator;
+	@Getter private PrestigeTableReportGenerator prestigeTableReportGenerator;
 	
 	@Autowired
-	@Getter private ReportGenerator<BotlandLeaderboard> botlandLeaderboardReportGenerator;
+	@Getter private BotlandLeaderboardReportGenerator botlandLeaderboardReportGenerator;
 	
 	public List<ReportGenerator<?>> allReportGenerators() {
 		List<ReportGenerator<?>> generators = List.of(this.playerLeaderboardReportGenerator, 
@@ -105,7 +117,23 @@ public class DumpReportsService {
 		List<GlobalGilHistory> historyByYear = this.globalGilHistoryRepo
 				.getGlobalGilHistoryByCalendarTimeType(ChronoUnit.YEARS);
 
-		data = new GlobalGilPageData(todaysData, historyByDay, historyByWeek, historyByMonth, historyByYear);
+		Median medianCalculator = new Median();
+		Date oneMonthAgo = Date.from(LocalDate.now().minus(30, ChronoUnit.DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		double[] activeSortedPlayerBalances=Stream.of(this.dumpService.getLastActiveCache().entrySet(), this.dumpService.getLastFightActiveCache().entrySet())
+										.flatMap(Set::stream)
+										.filter(entry -> entry.getValue().after(oneMonthAgo))
+										.filter(entry -> entry.getKey() != null)
+										.collect(Collectors.groupingBy(Entry<String, Date>::getKey))
+										.keySet().stream()
+										.mapToDouble(player -> {
+											Integer balance = this.dumpService.getBalanceFromCache(player);
+											return balance != null ? balance.doubleValue() : 0d;
+										})
+										.sorted().toArray();
+		int median = (int) Math.round(medianCalculator.evaluate(activeSortedPlayerBalances));
+		int todaysActiveGilCount = (int) Arrays.stream(activeSortedPlayerBalances).sum();
+		
+		data = new GlobalGilPageData(todaysData, historyByDay, historyByWeek, historyByMonth, historyByYear, median, todaysActiveGilCount);
 
 		return data;
 	}

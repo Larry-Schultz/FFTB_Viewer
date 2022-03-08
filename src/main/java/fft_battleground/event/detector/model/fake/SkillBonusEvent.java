@@ -6,8 +6,10 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class SkillBonusEvent 
 extends BattleGroundEvent 
 implements DatabaseResultsData {

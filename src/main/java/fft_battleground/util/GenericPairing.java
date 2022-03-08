@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +27,9 @@ public class GenericPairing<U, V> {
 	
 	public static <U,V> List<GenericPairing<U,V>> convertMapToGenericPairList(Map<U,V> map) {
 		List<GenericPairing<U,V>> result = map.keySet().parallelStream().map(key -> new GenericPairing<U,V>(key, map.get(key))).collect(Collectors.toList());
+		if(result == null) {
+			result = List.of();
+		}
 		return result;
 	}
 	
@@ -34,8 +39,18 @@ public class GenericPairing<U, V> {
 		} else if(genericPairingList.size() == 0) {
 			return Collections.emptyMap();
 		} else {
-			Map<U,V> map = genericPairingList.stream().collect(Collectors.toMap(genericPairing -> genericPairing.getKey(), genericPairing -> genericPairing.getValue()));
+			Map<U,V> map = genericPairingList.stream().collect(Collectors.toMap(GenericPairing::getKey, GenericPairing::getValue));
 			return map;
 		}
+	}
+	
+	@JsonIgnore
+	public U getLeft() {
+		return this.key;
+	}
+	
+	@JsonIgnore
+	public V getRight() {
+		return this.value;
 	}
 }

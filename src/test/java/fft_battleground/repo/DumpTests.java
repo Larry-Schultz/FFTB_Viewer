@@ -38,7 +38,7 @@ public class DumpTests {
 	@Test
 	public void testTournamentService() throws DumpException, TournamentApiException {
 		TournamentService tournamentService = new TournamentService();
-		Tournament currentTournament = tournamentService.getcurrentTournament();
+		Tournament currentTournament = tournamentService.createNewCurrentTournament();
 		assertTrue(currentTournament != null);
 	}
 	

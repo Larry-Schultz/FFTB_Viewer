@@ -270,6 +270,11 @@ public class DetectorTests {
 		assertTrue(event != null && event instanceof ResultEvent);
 		ResultEvent resultEvent = (ResultEvent) event;
 		assertTrue(resultEvent.getWinner() != null && resultEvent.getWinner() == BattleGroundTeam.GREEN);
+		String test2 = "The Champion Team was victorious!";
+		message.setMessage(test2);
+		resultEvent = detector.detect(message);
+		assertTrue(resultEvent != null);
+		assertTrue(resultEvent.getWinner() != null && resultEvent.getWinner() == BattleGroundTeam.CHAMPION);
 	}
 
 	@Test

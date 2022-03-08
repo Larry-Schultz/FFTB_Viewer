@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
-import fft_battleground.util.BattleGroundTeamConverter;
+import fft_battleground.util.hibernate.BattleGroundTeamConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

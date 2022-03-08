@@ -25,6 +25,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.event.detector.model.AllegianceEvent;
@@ -38,11 +39,10 @@ import fft_battleground.event.detector.model.SnubEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.util.SkillType;
 import fft_battleground.repo.util.UpdateSource;
-import fft_battleground.util.BattleGroundTeamConverter;
-import fft_battleground.util.BooleanConverter;
-import fft_battleground.util.BooleanConverterNullToTrue;
 import fft_battleground.util.GambleUtil;
-
+import fft_battleground.util.hibernate.BattleGroundTeamConverter;
+import fft_battleground.util.hibernate.BooleanConverter;
+import fft_battleground.util.hibernate.BooleanConverterNullToTrue;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -107,10 +107,12 @@ public class PlayerRecord {
     
     @Temporal(TemporalType.DATE)
     @Column(name="last_active", nullable=true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
     private Date lastActive;
     
     @Temporal(TemporalType.DATE)
     @Column(name="last_fight_active", nullable=true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
     private Date lastFightActive;
     
     @Column(name="is_subscriber", nullable=true)

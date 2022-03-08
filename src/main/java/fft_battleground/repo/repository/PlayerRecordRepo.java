@@ -3,13 +3,13 @@ package fft_battleground.repo.repository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import fft_battleground.controller.response.model.PlayerWinRatio;
 import fft_battleground.repo.model.PlayerRecord;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,6 +33,22 @@ public interface PlayerRecordRepo extends JpaRepository<PlayerRecord, String> {
 	
 	@Query("SELECT playerRecord FROM PlayerRecord playerRecord WHERE (playerRecord.isActive IS NULL OR playerRecord.isActive = 'Y') AND (playerRecord.player IN :playerNames)") 
 	public List<PersonRecordAllegianceDataProjection> getPlayerDataNeededForAllegianceLeaderboard(@Param("playerNames") Collection<String> playerNames);
+	
+	@Query("SELECT new fft_battleground.controller.response.model.PlayerWinRatio(playerRecord.player, playerRecord.wins, playerRecord.losses) " + 
+		   "FROM PlayerRecord playerRecord " +
+		   "WHERE playerRecord.lastActive >= :activeDate")
+	public List<PlayerWinRatio> getPlayerBetWinRatios(@Param("activeDate") Date activeDate);
+	
+	@Query("SELECT new fft_battleground.controller.response.model.PlayerWinRatio(playerRecord.player, playerRecord.fightWins, playerRecord.fightLosses) " + 
+			   "FROM PlayerRecord playerRecord " +
+			   "WHERE playerRecord.lastFightActive >= :activeDate")
+		public List<PlayerWinRatio> getPlayerFightWinRatios(@Param("activeDate") Date activeDate);
+	
+	@Query("Select player.player AS playerName "
+			+ "FROM PlayerRecord player_record "
+			+ "WHERE player_record.isSubscriber = 'Y'"
+			+ "AND (playerRecord.lastActive >= activeDate OR playerRecord.lastFightActive >= :activeDate")
+	public List<String> getSubscribers(@Param("activeDate") Date activeDate);
 	
 	@Query(nativeQuery=true, value="SELECT playerRecord.player AS playerName From player_record playerRecord WHERE playerRecord.is_active = 'N'") 
 	public List<String> findSoftDeletedPlayers();

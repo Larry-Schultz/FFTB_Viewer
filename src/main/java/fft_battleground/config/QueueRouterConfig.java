@@ -42,6 +42,11 @@ public class QueueRouterConfig {
 	}
 	
 	@Bean
+	public Router<BattleGroundEvent> websocketEventRouter(Queue<BattleGroundEvent> websocketThreadQueue) {
+		return new Router<BattleGroundEvent>(websocketThreadQueue);
+	}
+	
+	@Bean
 	public BlockingQueue<ChatMessage> ircChatMessengerQueue() {
 		return new LinkedBlockingQueue<ChatMessage>();
 	}

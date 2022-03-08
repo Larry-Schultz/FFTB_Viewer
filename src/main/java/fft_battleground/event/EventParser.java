@@ -44,8 +44,8 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.tournament.TournamentService;
-import fft_battleground.tournament.TournamentTracker;
 import fft_battleground.tournament.model.Tournament;
+import fft_battleground.tournament.tracker.TournamentTracker;
 import fft_battleground.util.Router;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -161,8 +161,15 @@ public class EventParser extends Thread {
 	
 	protected List<BattleGroundEvent> getEventsFromChatMessage(ChatMessage message) {
 		List<BattleGroundEvent> events = new LinkedList<>();
-		for(EventDetector<?> detector : this.detectors) {
-			BattleGroundEvent event = detector.detect(message);
+		for(EventDetector<? extends BattleGroundEvent> detector : this.detectors) {
+			BattleGroundEvent event = null;
+			try {
+				event = detector.detect(message);
+			} catch(Exception e) {
+				String errorMessage = "exception found while running detector " + detector.getClass().getCanonicalName();
+				log.warn(errorMessage, e);
+				this.errorWebhookManager.sendWarningException(e, errorMessage);
+			}
 			if(event != null) {
 				events.add(event);
 			}
@@ -311,7 +318,7 @@ public class EventParser extends Thread {
 			|| (currentTournament == null) 
 			|| (currentTournament.getWinnersCount() == null)
 			|| (currentTournament.getWinnersCount() >= 7) ) {
-			this.currentTournament = this.tournamentService.getcurrentTournament();
+			this.currentTournament = this.tournamentService.createNewCurrentTournament();
 			this.startEventUpdate();
 		} else {
 			if(currentTournament.getWinnersCount() < 7) {
@@ -319,7 +326,7 @@ public class EventParser extends Thread {
 			}
 		}
 		if(this.currentTournament == null) {
-			this.currentTournament = this.tournamentService.getcurrentTournament();
+			this.currentTournament = this.tournamentService.createNewCurrentTournament();
 		}
 		if(this.currentTournament != null) {
 			List<BattleGroundEvent> tournamentRelatedEvents = this.currentTournament.getEventsFromTournament(bettingBeginsEvent.getTeam1(), bettingBeginsEvent.getTeam2());

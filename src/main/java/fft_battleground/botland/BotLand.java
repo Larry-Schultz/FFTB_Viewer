@@ -1,6 +1,7 @@
 package fft_battleground.botland;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Timer;
@@ -23,20 +24,27 @@ import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
+import fft_battleground.repo.model.BotBetData;
 import fft_battleground.repo.model.Bots;
+import fft_battleground.repo.repository.BotBetDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.tournament.model.Tournament;
 import fft_battleground.util.Router;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 @Slf4j
 public class BotLand extends TimerTask {
-	private BotlandHelper helper;
+	@Getter private BotlandHelper helper;
 	private String ircName;
 	private boolean acceptingBets = true;
 	private boolean enableBetting = false;
@@ -46,6 +54,7 @@ public class BotLand extends TimerTask {
 	protected Router<ChatMessage> chatMessageRouterRef;
 	protected PlayerRecordRepo playerRecordRepo;
 	protected BotsRepo botsRepo;
+	protected BotBetDataRepo botBetDataRepo;
 	protected BattleGroundEventBackPropagation battleGroundEventBackPropagationRef;
 	protected PersonalityModuleFactory personalityModuleFactoryRef;
 	protected Timer botlandTimerRef;
@@ -54,9 +63,9 @@ public class BotLand extends TimerTask {
 	private BetterBetBot primaryBot;
 	private List<BetterBetBot> subordinateBots;
 	
-	public BotLand(Integer currentAmountToBetWith, BettingBeginsEvent beginEvent, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> unitInfoEvents) {
+	public BotLand(Integer currentAmountToBetWith, BettingBeginsEvent beginEvent, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> unitInfoEvents, Tournament currentTournament) {
 		List<BetEvent> bets = new Vector<BetEvent>(otherPlayerBets);
-		this.helper = new BotlandHelper(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), bets, unitInfoEvents);
+		this.helper = new BotlandHelper(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), bets, unitInfoEvents, currentTournament);
 	}
 
 	@Override
@@ -112,7 +121,7 @@ public class BotLand extends TimerTask {
 		}
 		
 		//send all data to repo manager
-		
+		this.saveBotBetData();
 	}
 	
 	public BetResultCollector createCollector() {
@@ -204,6 +213,23 @@ public class BotLand extends TimerTask {
 	protected void sendPersonalityMessage(String personalityMessage) {
 		if(personalityMessage != null) {
 			this.botlandTimerRef.schedule(new PersonalityMessageTimerTask(personalityMessage, this.chatMessageRouterRef), 5000);
+		}
+	}
+	
+	protected void saveBotBetData() {
+		Long currentTournamentId = helper.getCurrentTournamentId();
+		if(currentTournamentId != null) {
+			log.info("Recording bot betting data.");
+			BattleGroundTeam leftTeam = helper.getLeft();
+			BattleGroundTeam rightTeam = helper.getRight();
+			Integer leftSideTotal = helper.getLeftSideTotal();
+			Integer rightSideTotal = helper.getRightSideTotal();
+			Map<String, Integer> leftSideBets = helper.getLeftBetsMap();
+			Map<String, Integer> rightSideBets = helper.getRightBetsMap();
+			BotBetData botBetData = new BotBetData(currentTournamentId, leftTeam, rightTeam, leftSideTotal, rightSideTotal, leftSideBets, rightSideBets);
+			this.botBetDataRepo.saveAndFlush(botBetData);
+		} else {
+			log.warn("Tournament ID was null, not recording bet data.");;
 		}
 	}
 }

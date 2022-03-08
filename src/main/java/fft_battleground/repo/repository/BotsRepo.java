@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.MutableTriple;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -58,11 +60,29 @@ public interface BotsRepo extends JpaRepository<Bots, Long> {
 			+ " ORDER BY Bot.player DESC ", nativeQuery=true)
 	public List<Bots> getOldestEntries();
 	
-	@Query("Select new fft_battleground.repo.repository.PairWrapper(Bot.player, SUM(Bot.wins)) FROM Bots Bot GROUP BY Bot.player")
+	@Query("Select new fft_battleground.repo.repository.StringLongPairWrapper(Bot.player, SUM(Bot.wins)) FROM Bots Bot GROUP BY Bot.player")
 	public List<Pair<String, Long>> getWinsPerBot();
 	
-	@Query("Select new fft_battleground.repo.repository.PairWrapper(Bot.player, SUM(Bot.losses)) FROM Bots Bot GROUP BY Bot.player")
+	@Query("Select new fft_battleground.repo.repository.StringDoublePairWrapper(Bot.player, AVG(Bot.wins)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Double>> getAverageWinsPerDayPerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.StringLongPairWrapper(Bot.player, SUM(Bot.losses)) FROM Bots Bot GROUP BY Bot.player")
 	public List<Pair<String, Long>> getLossesPerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.StringDoublePairWrapper(Bot.player, AVG(Bot.losses)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Double>> getAverageLossesPerDayPerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.StringDoublePairWrapper(Bot.player, AVG(Bot.balance)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Double>> getAverageEndDayBalancePerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.StringDoublePairWrapper(Bot.player, AVG(Bot.highestKnownValue)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Double>> getAveragePeakBalancePerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.StringDateDoubleTriple(Bot.player, Bot.updateDateTime,  (Bot.wins + 1)/(Bot.wins + Bot.losses + 1)) FROM Bots Bot")
+	public List<Triple<String, Date, Integer>> getDailyWinRatePerBot();
+	
+	@Query("Select new fft_battleground.repo.repository.StringLongPairWrapper(Bot.player, COUNT(Bot.player)) FROM Bots Bot GROUP BY Bot.player")
+	public List<Pair<String, Long>> getDaysParticipatingPerBot();
 	
 	public default List<Bots> getBotsForToday() {
 		String currentDateString = this.currentDateString();
@@ -88,19 +108,51 @@ public interface BotsRepo extends JpaRepository<Bots, Long> {
 	}
 }
 
-class PairWrapper extends MutablePair<String, Long> {
+class StringLongPairWrapper extends MutablePair<String, Long> {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -2999516029914886724L;
 	
-	public PairWrapper() {
+	public StringLongPairWrapper() {
 		super();
 	}
 	
-	public PairWrapper(String left, Long right) {
+	public StringLongPairWrapper(String left, Long right) {
 		super(left, right);
 	}
 	
+}
+
+class StringDoublePairWrapper extends MutablePair<String, Double> {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6044857181796248713L;
+
+	public StringDoublePairWrapper() {
+		super();
+	}
+	
+	public StringDoublePairWrapper(String left, Double right) {
+		super(left, right);
+	}
+}
+
+class StringDateDoubleTriple extends MutableTriple<String, Date, Integer> {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4861697397280494630L;
+	
+	public StringDateDoubleTriple() {
+		super();
+	}
+	
+	public StringDateDoubleTriple(String left, Date center, Integer right) {
+		super(left, center, right);
+	}
 }

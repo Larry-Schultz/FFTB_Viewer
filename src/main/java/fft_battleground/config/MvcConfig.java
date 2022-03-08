@@ -14,12 +14,20 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import fft_battleground.config.interceptors.DomainHandlerInterceptor;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
 
 @Configuration
 @EnableWebMvc
+@EnableSwagger2
 public class MvcConfig implements WebMvcConfigurer {
 
 	@Autowired
@@ -32,10 +40,17 @@ public class MvcConfig implements WebMvcConfigurer {
 	public Integer securePort;
 	
 	@Override
+	public void addViewControllers(ViewControllerRegistry registry) {
+	    registry.addRedirectViewController("/api/v2/api-docs", "/v2/api-docs");
+	    registry.addRedirectViewController("/api/swagger-resources/configuration/ui", "/swagger-resources/configuration/ui");
+	    registry.addRedirectViewController("/api/swagger-resources/configuration/security", "/swagger-resources/configuration/security");
+	    registry.addRedirectViewController("/api/swagger-resources", "/swagger-resources");
+	}
+
+	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler("/webjars/**").addResourceLocations("/webjars/");
-		registry.addResourceHandler("/**")
-        .addResourceLocations("classpath:/static/");
+	    registry.addResourceHandler("/api/swagger-ui.html**").addResourceLocations("classpath:/META-INF/resources/swagger-ui.html");
+	    registry.addResourceHandler("/api/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
 	}
 	
 	@Override
@@ -68,6 +83,15 @@ public class MvcConfig implements WebMvcConfigurer {
 		connector.setRedirectPort(this.securePort);
 		return connector;
 	}
+	
+    @Bean
+    public Docket api() { 
+        return new Docket(DocumentationType.SWAGGER_2)  
+          .select()                                  
+          .apis(RequestHandlerSelectors.basePackage("fft_battleground.controller"))              
+          .paths(PathSelectors.any())                          
+          .build();                                           
+    }
 	
 	@Override
     public void addCorsMappings(CorsRegistry registry) {

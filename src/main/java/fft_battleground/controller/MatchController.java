@@ -28,9 +28,11 @@ import fft_battleground.util.GenericElementOrdering;
 import fft_battleground.util.GenericResponse;
 
 import lombok.SneakyThrows;
+import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
 @RequestMapping("/api/matches")
+@ApiIgnore
 public class MatchController {
 
 	@Autowired
@@ -46,6 +48,7 @@ public class MatchController {
 		return GenericResponse.createGenericResponseEntity(result);
 	}
 
+	@ApiIgnore
 	@RequestMapping(value = "/matches", method = RequestMethod.GET)
 	public ResponseEntity<GenericResponse<List<Match>>> getMatches(
 			@RequestParam(name = "first", required = false, defaultValue = "0") Integer firstMatchIndex) {
@@ -53,6 +56,7 @@ public class MatchController {
 		return GenericResponse.createGenericResponseEntity(matches, HttpStatus.OK);
 	}
 
+	@ApiIgnore
 	@RequestMapping(value = "/currentData", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<GenericResponse<List<GenericElementOrdering<BattleGroundEvent>>>> 
 	getCurrentMatch(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
@@ -60,7 +64,7 @@ public class MatchController {
 		return GenericResponse.createGenericResponseEntity(events);
 	}
 
-	
+	@ApiIgnore
 	@RequestMapping(value="/RetrieveEventById", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<GenericResponse<List<GenericElementOrdering<BattleGroundEvent>>>> 
 		getEventById(@RequestParam(name="ids", required=true) String ids) {

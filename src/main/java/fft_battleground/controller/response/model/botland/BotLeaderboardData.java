@@ -1,4 +1,4 @@
-package fft_battleground.controller.model;
+package fft_battleground.controller.response.model.botland;
 
 import java.util.List;
 

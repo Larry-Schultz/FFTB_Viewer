@@ -5,8 +5,10 @@ import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.repo.model.GlobalGilHistory;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class GlobalGilHistoryUpdateEvent 
 extends BattleGroundEvent 
 implements DatabaseResultsData {

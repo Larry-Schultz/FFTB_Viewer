@@ -17,8 +17,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.util.BattleGroundTeamConverter;
-import fft_battleground.util.BooleanConverter;
+import fft_battleground.util.hibernate.BattleGroundTeamConverter;
+import fft_battleground.util.hibernate.BooleanConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

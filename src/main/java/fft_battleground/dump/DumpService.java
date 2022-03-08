@@ -42,7 +42,7 @@ import org.xml.sax.InputSource;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
-import fft_battleground.controller.model.PlayerData;
+import fft_battleground.controller.response.model.PlayerData;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.model.Music;
 import fft_battleground.dump.scheduled.GenerateDataUpdateFromDump;

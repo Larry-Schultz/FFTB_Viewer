@@ -53,6 +53,10 @@ public class WebhookManager {
 		this.sendException(e, "");
 	}
 	
+	public void sendWarningException(Throwable e, String description) {
+		this.sendExceptionEmbed(e, description, EmbedColor.YELLOW.getColorCode());
+	}
+	
 	public void sendException(Throwable e, String description) {
 		this.sendExceptionEmbed(e, description, EmbedColor.BLUE.getColorCode());
 	}
@@ -97,7 +101,8 @@ public class WebhookManager {
 enum EmbedColor {
 	BLUE(0x166FF5),
 	RED(0xFF0000),
-	GREEN(0x00FF3C);
+	GREEN(0x00FF3C),
+	YELLOW(0xFFFF00);
 	
 	private int colorCode;
 	

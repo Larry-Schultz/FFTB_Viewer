@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -18,11 +19,14 @@ import fft_battleground.event.detector.model.TeamInfoEvent;
 import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
+import fft_battleground.tournament.model.Tournament;
 import fft_battleground.tournament.model.Unit;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@EqualsAndHashCode(callSuper=false)
 @Data
 public class BotlandHelper {
 
@@ -41,12 +45,15 @@ public class BotlandHelper {
 	protected Pair<List<Unit>, List<Unit>> unitsBySide;
 	protected Bet result;
 	
-	public BotlandHelper(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, List<BetEvent> bets, Set<UnitInfoEvent> unitInfoEvents) {
+	protected Tournament currentTournament;
+	
+	public BotlandHelper(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right, List<BetEvent> bets, Set<UnitInfoEvent> unitInfoEvents, Tournament currentTournament) {
 		this.otherPlayerBets = bets;
 		this.unitInfoEvents = unitInfoEvents;
 		this.currentAmountToBetWith = currentAmountToBetWith;
 		this.left = left;
 		this.right = right;
+		this.currentTournament = currentTournament;
 		
 		assert(this.currentAmountToBetWith.intValue() != 0);
 		this.teamData = new TeamData();
@@ -109,6 +116,31 @@ public class BotlandHelper {
 		if(event.getTeam() == this.left) {
 			
 		}
+	}
+	
+	public Integer getLeftSideTotal() {
+		return this.betsBySide.getLeft().stream().mapToInt(BetEvent::getBetAmountInteger).sum();
+	}
+	
+	public Integer getRightSideTotal() {
+		return this.betsBySide.getRight().stream().mapToInt(BetEvent::getBetAmountInteger).sum();
+	}
+	
+	public Map<String, Integer> getLeftBetsMap() {
+		return this.betsBySide.getLeft().stream().collect(Collectors.toMap(BetEvent::getPlayer, BetEvent::getBetAmountInteger));
+	}
+	
+	public Map<String, Integer> getRightBetsMap() {
+		return this.betsBySide.getRight().stream().collect(Collectors.toMap(BetEvent::getPlayer, BetEvent::getBetAmountInteger));
+	}
+	
+	public Long getCurrentTournamentId() {
+		Long result = null;
+		if(this.currentTournament != null) {
+			result = this.currentTournament.getID();
+		}
+		
+		return result;
 	}
 
 }

@@ -1,11 +1,14 @@
 package fft_battleground.controller;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,7 +18,7 @@ import fft_battleground.event.detector.model.MusicEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.util.GenericElementOrdering;
-
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -31,7 +34,7 @@ public class WebsocketThread extends Thread {
 	private long currentIndex = 0L; //set to 1 on first ++
 	
 	protected Map<Long, GenericElementOrdering<BattleGroundEvent>> currentEventIndexMapCache;
-	protected MusicEvent currentMusicEvent; //music events should transcend matches and fights
+	@Getter protected MusicEvent currentMusicEvent; //music events should transcend matches and fights
 	
 	public WebsocketThread() {
 		this.currentEventIndexMapCache = new HashMap<>();
@@ -95,6 +98,23 @@ public class WebsocketThread extends Thread {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public Date lastUpdateDate() {
+		Comparator<Entry<Long, ?>> eventCodeComparator = Comparator.comparing(Entry<Long, ?>::getKey);
+		final List<BattleGroundEventType> validTypes = List.of(BattleGroundEventType.BETTING_BEGINS, BattleGroundEventType.BETTING_ENDS, 
+				BattleGroundEventType.RESULT, BattleGroundEventType.FIGHT_RESULT, BattleGroundEventType.FIGHT_BEGINS);
+		return this.currentEventIndexMapCache.entrySet().stream().sorted(eventCodeComparator)
+				.filter(entry -> {
+					BattleGroundEventType type = entry.getValue().getElement().getEventType();
+					for(BattleGroundEventType validType : validTypes) {
+						if(type == validType) {
+							return true;
+						}
+					}
+					return false;
+				})
+				.findFirst().get().getValue().getElement().getEventTime();
 	}
 	
 	public List<GenericElementOrdering<BattleGroundEvent>> getCurrentEventCache() {

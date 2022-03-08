@@ -39,8 +39,10 @@ import fft_battleground.event.detector.model.UnitInfoEvent;
 import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.Bots;
+import fft_battleground.repo.repository.BotBetDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.Router;
 
 import lombok.Data;
@@ -75,6 +77,9 @@ public class BetBotFactory {
 	private PersonalityModuleFactory personalityModuleFactory;
 	
 	@Autowired
+	private TournamentService tournamentService;
+	
+	@Autowired
 	private Router<ChatMessage> messageSenderRouter;
 	
 	@Autowired
@@ -82,6 +87,9 @@ public class BetBotFactory {
 	
 	@Autowired
 	private BotsRepo botsRepo;
+	
+	@Autowired
+	private BotBetDataRepo botBetDataRepo;
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
@@ -100,11 +108,12 @@ public class BetBotFactory {
 	}
 	
 	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> currentUnits, BettingBeginsEvent beginEvent) {
-		BotLand land = new BotLand(currentAmountToBetWith, beginEvent, otherPlayerBets, currentUnits);
+		BotLand land = new BotLand(currentAmountToBetWith, beginEvent, otherPlayerBets, currentUnits, this.tournamentService.getCurrentTournament());
 		
 		land.setChatMessageRouterRef(this.getMessageSenderRouter());
 		land.setPlayerRecordRepo(this.playerRecordRepo);
 		land.setBotsRepo(this.botsRepo);
+		land.setBotBetDataRepo(this.botBetDataRepo);
 		land.setBattleGroundEventBackPropagationRef(this.battleGroundEventBackPropagation);
 		land.setIrcName(this.ircName);
 		land.setEnableBetting(this.enableBetting);
