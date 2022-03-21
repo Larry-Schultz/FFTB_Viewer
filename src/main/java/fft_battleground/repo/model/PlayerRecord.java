@@ -41,8 +41,8 @@ import fft_battleground.repo.util.SkillType;
 import fft_battleground.repo.util.UpdateSource;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.hibernate.BattleGroundTeamConverter;
-import fft_battleground.util.hibernate.BooleanConverter;
 import fft_battleground.util.hibernate.BooleanConverterNullToTrue;
+import fft_battleground.util.hibernate.BooleanConverterString;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -116,7 +116,7 @@ public class PlayerRecord {
     private Date lastFightActive;
     
     @Column(name="is_subscriber", nullable=true)
-    @Convert(converter = BooleanConverter.class)
+    @Convert(converter = BooleanConverterString.class)
     private Boolean isSubscriber;
     
     @Column(name="is_active", nullable=true)

@@ -46,8 +46,8 @@ public interface PlayerRecordRepo extends JpaRepository<PlayerRecord, String> {
 	
 	@Query("Select player.player AS playerName "
 			+ "FROM PlayerRecord player_record "
-			+ "WHERE player_record.isSubscriber = 'Y'"
-			+ "AND (playerRecord.lastActive >= activeDate OR playerRecord.lastFightActive >= :activeDate")
+			+ "WHERE player_record.isSubscriber = 'Y' "
+			+ "AND (player_record.lastActive >= :activeDate OR player_record.lastFightActive >= :activeDate)")
 	public List<String> getSubscribers(@Param("activeDate") Date activeDate);
 	
 	@Query(nativeQuery=true, value="SELECT playerRecord.player AS playerName From player_record playerRecord WHERE playerRecord.is_active = 'N'") 

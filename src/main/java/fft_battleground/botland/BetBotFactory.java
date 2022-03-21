@@ -32,6 +32,8 @@ import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.model.BotNames;
 import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
+import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingBeginsEvent;
@@ -94,6 +96,12 @@ public class BetBotFactory {
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
 	
+	@Autowired
+	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private DumpService dumpService;
+	
 	private Timer botlandTimer = new Timer();
 	private Cache<String, Map<String, BotData>> botDataCache;
 	
@@ -111,7 +119,6 @@ public class BetBotFactory {
 		BotLand land = new BotLand(currentAmountToBetWith, beginEvent, otherPlayerBets, currentUnits, this.tournamentService.getCurrentTournament());
 		
 		land.setChatMessageRouterRef(this.getMessageSenderRouter());
-		land.setPlayerRecordRepo(this.playerRecordRepo);
 		land.setBotsRepo(this.botsRepo);
 		land.setBotBetDataRepo(this.botBetDataRepo);
 		land.setBattleGroundEventBackPropagationRef(this.battleGroundEventBackPropagation);
@@ -120,6 +127,8 @@ public class BetBotFactory {
 		land.setEnablePersonality(this.enablePersonality);
 		land.setPersonalityModuleFactoryRef(this.personalityModuleFactory);
 		land.setBotlandTimerRef(this.botlandTimer);
+		land.setErrorWebhookManager(errorWebhookManager);
+		land.setBalanceCacheRef(this.dumpService.getBalanceCache());
 		
 		this.attachBots(land, currentAmountToBetWith, otherPlayerBets, beginEvent);
 		

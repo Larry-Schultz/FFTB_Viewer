@@ -1,5 +1,6 @@
 package fft_battleground.botland;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,12 +10,14 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.thymeleaf.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
+import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.model.Bet;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
 import fft_battleground.botland.personality.PersonalityResponse;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BetEvent;
@@ -30,7 +33,8 @@ import fft_battleground.repo.model.BotBetData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.repository.BotBetDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
-import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.repo.util.BotReceivedBet;
+import fft_battleground.repo.util.BotReceivedBets;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.util.Router;
 
@@ -52,12 +56,13 @@ public class BotLand extends TimerTask {
 	
 	//references
 	protected Router<ChatMessage> chatMessageRouterRef;
-	protected PlayerRecordRepo playerRecordRepo;
 	protected BotsRepo botsRepo;
 	protected BotBetDataRepo botBetDataRepo;
 	protected BattleGroundEventBackPropagation battleGroundEventBackPropagationRef;
 	protected PersonalityModuleFactory personalityModuleFactoryRef;
 	protected Timer botlandTimerRef;
+	protected WebhookManager errorWebhookManager;
+	private Map<String, Integer> balanceCacheRef;
 	
 	//state data
 	private BetterBetBot primaryBot;
@@ -69,7 +74,6 @@ public class BotLand extends TimerTask {
 	}
 
 	@Override
-	@SneakyThrows
 	public void run() {
 		Pair<List<BetEvent>, List<BetEvent>> betsBySide = this.helper.sortBetsBySide();
 		this.helper.setUnitsBySide(this.helper.sortUnitsBySide());
@@ -80,7 +84,14 @@ public class BotLand extends TimerTask {
 			this.primaryBot.setUnitsBySide(this.helper.getUnitsBySide());
 			this.primaryBot.setTeamData(this.helper.getTeamData());
 			// get results from main bot
-			Bet bet = primaryBot.call();
+			Bet bet = null;
+			try {
+				bet = primaryBot.call();
+			} catch (Exception e) {
+				String errorMessage = "Error executing primary bot";
+				log.error(errorMessage, e);
+				this.errorWebhookManager.sendException(e, errorMessage);
+			}
 			// send results to irc
 			this.sendBet(bet);
 			// get personality
@@ -121,7 +132,13 @@ public class BotLand extends TimerTask {
 		}
 		
 		//send all data to repo manager
-		this.saveBotBetData();
+		try {
+			this.saveBotBetData();
+		} catch(Exception e) {
+			String errorMessage = "Error handling saving bot data";
+			log.error(errorMessage, e);
+			this.errorWebhookManager.sendException(e, errorMessage);
+		}
 	}
 	
 	public BetResultCollector createCollector() {
@@ -224,13 +241,35 @@ public class BotLand extends TimerTask {
 			BattleGroundTeam rightTeam = helper.getRight();
 			Integer leftSideTotal = helper.getLeftSideTotal();
 			Integer rightSideTotal = helper.getRightSideTotal();
-			Map<String, Integer> leftSideBets = helper.getLeftBetsMap();
-			Map<String, Integer> rightSideBets = helper.getRightBetsMap();
+			BotReceivedBets leftSideBets = this.buildBotReceivedBets(this.helper.getLeftBetsMap());
+			BotReceivedBets rightSideBets = this.buildBotReceivedBets(helper.getRightBetsMap());
 			BotBetData botBetData = new BotBetData(currentTournamentId, leftTeam, rightTeam, leftSideTotal, rightSideTotal, leftSideBets, rightSideBets);
 			this.botBetDataRepo.saveAndFlush(botBetData);
 		} else {
 			log.warn("Tournament ID was null, not recording bet data.");;
 		}
+	}
+	
+	@Transactional
+	protected BotReceivedBets buildBotReceivedBets(Map<String, Integer> betMap) {
+		List<BotReceivedBet> bets = new LinkedList<>();
+		betMap.forEach((key, value)-> {
+			String player = StringUtils.lowerCase(key);
+			int betAmount = value;
+			Integer balance = null;
+			if(this.balanceCacheRef.containsKey(player)) {
+				balance = this.balanceCacheRef.get(player);
+			}
+			
+			if(balance != null) {
+				BotReceivedBet betData = new BotReceivedBet(player, betAmount, balance);
+				bets.add(betData);
+			} else {
+				log.warn("No player bet data for {} recorded", player);
+			}
+		});
+		return new BotReceivedBets(bets);
+		
 	}
 }
 

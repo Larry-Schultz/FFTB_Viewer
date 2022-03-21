@@ -1,6 +1,6 @@
 package fft_battleground.repo.util;
 
-import java.util.Map;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BotReceivedBets {
-	private Map<String, Integer> bets;
+	private List<BotReceivedBet> bets;
 }
