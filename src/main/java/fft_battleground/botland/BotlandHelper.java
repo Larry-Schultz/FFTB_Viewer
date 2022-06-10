@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.botland.model.Bet;
-import fft_battleground.botland.model.TeamData;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.model.TeamData;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;

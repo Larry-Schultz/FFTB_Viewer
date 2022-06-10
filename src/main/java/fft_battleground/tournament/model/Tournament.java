@@ -1,6 +1,7 @@
 package fft_battleground.tournament.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -33,14 +35,18 @@ public class Tournament {
 	private String Type;
 	@JsonProperty("ID")
 	private Long ID;
+	
 	@JsonProperty("LastMod")
-	private String LastMod;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ssXXX")
+	private Date LastMod;
 	@JsonProperty("Teams")
 	private Teams Teams;
 	@JsonProperty("Maps")
 	private List<String> Maps;
 	@JsonProperty("Winners")
 	private List<String> Winners;
+	@JsonProperty("Pots")
+	private List<Pot> pots;
 	@JsonProperty("SkillDrop")
 	private String SkillDrop;
 	@JsonProperty("Entrants")

@@ -3,29 +3,37 @@ package fft_battleground.botland.bot;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.botland.model.Bet;
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.model.BetType;
+import fft_battleground.botland.bot.util.BetterBetBot;
+import fft_battleground.botland.bot.util.BotCanInverse;
+import fft_battleground.botland.bot.util.BotContainsPersonality;
+import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ArbitraryBot extends BetterBetBot {
+public class ArbitraryBot 
+extends BetterBetBot
+implements BotCanInverse, BotContainsPersonality {
 	private static final Random random = new Random();
 	
 	private static final String BET_AMOUNT_PARAMETER = "betAmount";
 	private static final String BET_TYPE_PARAMETER = "betType";
 	private static final String CHOICE_PARAMETER = "choice";
 	
-	private Integer betAmount;
+	private Optional<Integer> betAmount;
 	private BetType betType;
-	private BetChoice choice;
+	private Optional<BetChoice> choice;
 	
 	private String name;
 	
@@ -37,22 +45,14 @@ public class ArbitraryBot extends BetterBetBot {
 	}
 
 	@Override
-	public void initParams(Map<String, BotParam> map) {
-		if(map.containsKey(BET_AMOUNT_PARAMETER)) {
-			this.betAmount = Integer.valueOf(map.get(BET_AMOUNT_PARAMETER).getValue());
-		}
-		if(map.containsKey(BET_TYPE_PARAMETER)) {
-			this.betType = BetType.getBetType(map.get(BET_TYPE_PARAMETER).getValue());
-		}
-		if(map.containsKey(CHOICE_PARAMETER)) {
-			this.choice = BetChoice.getChoiceFromString(map.get(CHOICE_PARAMETER).getValue());
-		}
-		if(map.containsKey(PERSONALITY_PARAM)) {
-			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
-		}
-		if(map.containsKey(INVERSE_PARAM)) {
-			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
-		}
+	public void initParams(Map<String, BotParam> map) throws BotConfigException {
+		BotParameterReader reader = new BotParameterReader(map);
+		this.betAmount = reader.readParam(BET_AMOUNT_PARAMETER, Integer::valueOf);
+		this.betType = reader.readParam(BET_TYPE_PARAMETER, BetType::getBetType)
+				.orElseThrow(reader.throwBotconfigException("Missing Bet Type"));
+		this.choice = reader.readParam(CHOICE_PARAMETER, BetChoice::getChoiceFromString);
+		this.personalityName = this.readPersonalityParam(reader);
+		this.inverse = this.readInverseParameter(reader);
 		
 	}
 
@@ -91,10 +91,10 @@ public class ArbitraryBot extends BetterBetBot {
 		Bet bet = null;
 		if(this.betType == BetType.FLOOR || this.betType == BetType.ALLIN) {
 			bet = new Bet(chosenTeam, this.betType, this.isBotSubscriber);
-		} else if(this.betAmount != null) {
-			bet = new Bet(chosenTeam, this.betAmount, this.isBotSubscriber);
-		} else if(this.betType == BetType.PERCENTAGE) { 
-			bet = new Bet(chosenTeam, this.betAmount, this.betType, this.isBotSubscriber); //if type is percentage, use amount as the percent
+		} else if(this.betAmount.isPresent()) {
+			bet = new Bet(chosenTeam, this.betAmount.get(), this.isBotSubscriber);
+		} else if(this.betType == BetType.PERCENTAGE && this.betAmount.isPresent()) { 
+			bet = new Bet(chosenTeam, this.betAmount.get(), this.betType, this.isBotSubscriber); //if type is percentage, use amount as the percent
 		} else if(this.betType == BetType.RANDOM) {
 			Integer randomValue = random.nextInt(Math.min(this.currentAmountToBetWith, GambleUtil.MAX_BET)) + GambleUtil.getMinimumBetForBettor(this.isBotSubscriber);
 			randomValue = Math.min(randomValue, this.currentAmountToBetWith);
@@ -108,13 +108,15 @@ public class ArbitraryBot extends BetterBetBot {
 
 	@Override
 	public void init() {
-		BetChoice tempChoice = this.choice;
-		if(this.choice == null || this.choice == BetChoice.RANDOM) {
+		BetChoice tempChoice = null;
+		if(this.choice.isEmpty() || (this.choice.isPresent() && this.choice.get() == BetChoice.RANDOM)) {
 			List<BetChoice> choices = Arrays.asList(new BetChoice[] {BetChoice.LEFT, BetChoice.RIGHT});
 			Integer nextIndex = ArbitraryBot.random.nextInt(choices.size());
 			log.info("next index is: {}", nextIndex);
 			BetChoice randomElement = choices.get(nextIndex);
 			tempChoice = randomElement;
+		} else {
+			tempChoice = this.choice.get();
 		}
 		
 		BattleGroundTeam pickedTeam = BattleGroundTeam.RANDOM;

@@ -45,6 +45,7 @@ public class BetEventAnnotator implements BattleGroundEventAnnotator<BetEvent> {
 			metadata.setWins(record.getWins());
 			metadata.setLosses(record.getLosses());
 			metadata.setLastKnownAmount(record.getLastKnownAmount());
+			metadata.setIsSubscriber(record.isSubscriber());
 			event.setMetadata(metadata);
 			event.setBetAmount(GambleUtil.getBetAmountFromBetString(record, event).toString());
 		} else {

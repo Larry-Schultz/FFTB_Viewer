@@ -2,10 +2,12 @@ package fft_battleground.botland.personality.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fft_battleground.botland.personality.BirbBrainPersonality;
 import fft_battleground.botland.personality.BraveFaithPersonalityModule;
 import fft_battleground.botland.personality.ChemicalPersonality;
 import fft_battleground.botland.personality.FactsPersonality;
 import fft_battleground.botland.personality.FollowerPersonality;
+import fft_battleground.botland.personality.GetTheMoneyzPersonality;
 import fft_battleground.botland.personality.HealingPersonality;
 import fft_battleground.botland.personality.InversePercentilePersonality;
 import fft_battleground.botland.personality.InversePersonality;
@@ -13,6 +15,7 @@ import fft_battleground.botland.personality.NerdPersonality;
 import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.PokemonMasterPersonality;
 import fft_battleground.botland.personality.SidePersonality;
+import fft_battleground.botland.personality.SmokeBowlingtonBotPersonality;
 import fft_battleground.botland.personality.TeamValuePersonality;
 import fft_battleground.botland.personality.YoloPersonality;
 
@@ -36,7 +39,11 @@ public enum Personalities {
 	INVERSETEAMVALUEPERSONALITY("inverseteamvalue", new TeamValuePersonality(true)),
 	CHEMICAL("chemical", new ChemicalPersonality()),
 	HEALING("healing", new HealingPersonality()),
-	POKEMON("pokemon", new PokemonMasterPersonality());
+	POKEMON("pokemon", new PokemonMasterPersonality()),
+	KWEH("kweh", new BirbBrainPersonality()),
+	INVERSEKWEH("inversekweh", new BirbBrainPersonality(true)),
+	SMOKEBOWLINGTON("smokebowlington", new SmokeBowlingtonBotPersonality()),
+	GETTHEMONEYZ("getthemoneyz", new GetTheMoneyzPersonality());
 	
 	Personalities(String name, PersonalityModule module) {
 		this.name = name;

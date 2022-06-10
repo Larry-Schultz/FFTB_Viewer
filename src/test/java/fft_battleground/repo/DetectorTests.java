@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.BetType;
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
@@ -119,6 +119,7 @@ public class DetectorTests {
 		ChatMessage message6 = new ChatMessage("thekillernacho", "!bet floor purple");
 		ChatMessage message7 = new ChatMessage("lydian_c", "!allbut 10% champ");
 		ChatMessage message8 = new ChatMessage("practice_pad", "!bet 100000000000000000");
+		ChatMessage smokebowlingtonbotMessage = new ChatMessage("smokebowlingtonbot", "!wager all pals [Kozuka]");
 
 		BetEvent event = (BetEvent) detector.detect(message);
 		assertTrue(event != null);
@@ -151,6 +152,11 @@ public class DetectorTests {
 		
 		event = (BetEvent) detector.detect(message8);
 		assertTrue(event == null);
+		
+		event = (BetEvent) detector.detect(smokebowlingtonbotMessage);
+		assertNotNull(event);
+		assertEquals("smokebowlingtonbot", event.getPlayer());
+		assertEquals(BattleGroundTeam.PURPLE, event.getTeam());
 	}
 
 	@Test

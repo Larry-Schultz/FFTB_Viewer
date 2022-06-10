@@ -6,13 +6,20 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
-import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.util.BetterBetBot;
+import fft_battleground.botland.bot.util.BotCanInverse;
+import fft_battleground.botland.bot.util.BotCanUseBetExpressions;
+import fft_battleground.botland.bot.util.BotContainsPersonality;
+import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
-public class TeamValueBot extends BetterBetBot {
+public class TeamValueBot 
+extends BetterBetBot
+implements BotContainsPersonality, BotCanInverse, BotCanUseBetExpressions{
 
 	private String name;
 	private String betAmountExpression;
@@ -24,15 +31,11 @@ public class TeamValueBot extends BetterBetBot {
 
 	@Override
 	public void initParams(Map<String, BotParam> map) throws BotConfigException {
-		if(map.containsKey(BET_AMOUNT_EXPRESSION_PARAMETER)) {
-			this.betAmountExpression = map.get(BET_AMOUNT_EXPRESSION_PARAMETER).getValue();
-		}
-		if(map.containsKey(PERSONALITY_PARAM)) {
-			super.personalityName = map.get(PERSONALITY_PARAM).getValue();
-		}
-		if(map.containsKey(INVERSE_PARAM)) {
-			super.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
-		}
+		BotParameterReader reader = new BotParameterReader(map);
+		this.betAmountExpression = this.readBetAmountExpression(reader)
+				.orElseThrow(BotParameterReader.throwBotconfigException("missing parameter " + this.getBetAmountExpressionParameter() + " for bot " + this.name));
+		this.personalityName = this.readPersonalityParam(reader);
+		this.inverse = this.readInverseParameter(reader);
 	}
 
 	@Override

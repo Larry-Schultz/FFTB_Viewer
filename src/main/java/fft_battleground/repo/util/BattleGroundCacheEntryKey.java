@@ -13,7 +13,7 @@ public enum BattleGroundCacheEntryKey {
 	FIGHT_PERCENTILES("fightpercentiles", ChronoUnit.HOURS, 8),
 	ALLEGIANCE_LEADERBOARD("allegianceleaderboard", ChronoUnit.HOURS, 8), 
 	EXPERIENCE_LEADERBOARD("experienceLeaderboard", ChronoUnit.HOURS, 1),
-	PRESTIGE_TABLE("prestigetable", ChronoUnit.MINUTES, 5),
+	PRESTIGE_TABLE("prestigetable", ChronoUnit.HOURS, 1),
 	BOTLAND_LEADERBOARD("botlandleaderboard", ChronoUnit.HOURS, 8);
 	
 	BattleGroundCacheEntryKey(String key, TemporalUnit timeUnit, Integer timeValue) {

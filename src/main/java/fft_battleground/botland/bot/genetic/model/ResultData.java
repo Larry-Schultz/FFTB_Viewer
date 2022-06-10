@@ -1,4 +1,4 @@
-package fft_battleground.botland.model;
+package fft_battleground.botland.bot.genetic.model;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -2,7 +2,7 @@ package fft_battleground.event.detector;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.BetType;
 import fft_battleground.event.EventDetector;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -12,6 +12,7 @@ import fft_battleground.model.ChatMessage;
 public class BetDetector implements EventDetector<BetEvent>
 {
 	private static final String ALLINBUT_FLAG_SEARCH_STRING = "allbut"; 
+	private static final String WAGER_SEARCH_STRING = "!wager";
 	
 	@Override
 	public BetEvent detect(ChatMessage message) {
@@ -40,7 +41,8 @@ public class BetDetector implements EventDetector<BetEvent>
 			} else {
 				event = null;
 			}
-		} else if(StringUtils.contains(messageText, "!bet") || StringUtils.startsWithIgnoreCase(messageText, "!" + ALLINBUT_FLAG_SEARCH_STRING)) {
+		} else if(StringUtils.contains(messageText, "!bet") || StringUtils.startsWithIgnoreCase(messageText, "!" + ALLINBUT_FLAG_SEARCH_STRING)
+				|| StringUtils.contains(messageText, WAGER_SEARCH_STRING)) {
 			String amount = "0";
 			String betText = "";
 			String teamName = null;

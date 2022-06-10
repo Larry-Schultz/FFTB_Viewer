@@ -7,24 +7,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.util.BetterBetBot;
+import fft_battleground.botland.bot.util.BotCanInverse;
+import fft_battleground.botland.bot.util.BotContainsPersonality;
+import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DataBetBot extends BetterBetBot {
-	private static final String PLAYER_SCORE_EXPRESSION_PARAMETER = "playerScoreExpression";
-	
+public class DataBetBot 
+extends BetterBetBot 
+implements BotContainsPersonality, BotCanInverse {
 	protected String Name = "DataBetBot";
 	protected Map<String, PlayerRecord> playerBetRecords;
-	
-	private String playerScoreExpression;
 	
 	public DataBetBot(Integer currentAmountToBetWith, BattleGroundTeam left,
 			BattleGroundTeam right) {
@@ -33,16 +35,10 @@ public class DataBetBot extends BetterBetBot {
 	}
 	
 	@Override
-	public void initParams(Map<String, BotParam> map) {
-		if(map.containsKey(PLAYER_SCORE_EXPRESSION_PARAMETER)) {
-			this.playerScoreExpression = map.get(PLAYER_SCORE_EXPRESSION_PARAMETER).getValue();
-		}
-		if(map.containsKey(PERSONALITY_PARAM)) {
-			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
-		}
-		if(map.containsKey(INVERSE_PARAM)) {
-			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
-		}
+	public void initParams(Map<String, BotParam> map) throws BotConfigException {
+		BotParameterReader reader = new BotParameterReader(map);
+		this.personalityName = this.readPersonalityParam(reader);
+		this.inverse = this.readInverseParameter(reader);
 		
 	}
 
@@ -148,7 +144,5 @@ public class DataBetBot extends BetterBetBot {
 		List<BetEvent> otherPlayerBetsCopy = new ArrayList<>(otherPlayerBets);
 		this.playerBetRecords = this.generatePlayerRecordMap(otherPlayerBetsCopy);
 	}
-
-
 
 }

@@ -1,5 +1,6 @@
 package fft_battleground.dump.reports;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import com.google.common.math.Quantiles;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.exception.CacheBuildException;
+import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
@@ -37,17 +39,19 @@ public class FightPercentileReportGenerator extends ReportGenerator<Map<Integer,
 
 	@Override
 	public Map<Integer, Double> generateReport() throws CacheBuildException {
+		List<PlayerRecord> allPlayerRecords = this.playerRecordRepo.findAll();
+		List<Double> playerFightRatios = allPlayerRecords.stream()
+		.filter(playerRecord -> playerRecord.getFightWins() != null
+				&& playerRecord.getFightLosses() != null)
+		.filter(playerRecord -> playerRecord.getLastActive() != null
+				&& this.dumpReportsService.isPlayerActiveInLastMonth(playerRecord.getLastActive()))
+		.filter(playerRecord -> (playerRecord.getFightWins()
+				+ playerRecord.getFightLosses()) > DumpReportsService.PERCENTILE_THRESHOLD)
+		.map(playerRecord -> ((double) playerRecord.getFightWins() + 1)
+				/ ((double) playerRecord.getFightWins() + playerRecord.getFightLosses() + 1))
+		.collect(Collectors.toList());
 		Map<Integer, Double> percentiles = Quantiles.percentiles().indexes(IntStream.rangeClosed(0, 100).toArray())
-				.compute(this.playerRecordRepo.findAll().stream()
-						.filter(playerRecord -> playerRecord.getFightWins() != null
-								&& playerRecord.getFightLosses() != null)
-						.filter(playerRecord -> playerRecord.getLastActive() != null
-								&& this.dumpReportsService.isPlayerActiveInLastMonth(playerRecord.getLastActive()))
-						.filter(playerRecord -> (playerRecord.getFightWins()
-								+ playerRecord.getFightLosses()) > DumpReportsService.PERCENTILE_THRESHOLD)
-						.map(playerRecord -> ((double) playerRecord.getFightWins() + 1)
-								/ ((double) playerRecord.getFightWins() + playerRecord.getFightLosses() + 1))
-						.collect(Collectors.toList()));
+				.compute(playerFightRatios);
 		return percentiles;
 	}
 

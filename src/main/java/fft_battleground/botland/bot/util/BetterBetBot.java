@@ -1,4 +1,4 @@
-package fft_battleground.botland.bot;
+package fft_battleground.botland.bot.util;
 
 import java.util.Collections;
 import java.util.Date;
@@ -8,12 +8,12 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.botland.model.Bet;
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.model.BetType;
+import fft_battleground.botland.bot.model.TeamData;
 import fft_battleground.botland.model.BotParam;
-import fft_battleground.botland.model.TeamData;
 import fft_battleground.botland.personality.PersonalityModule;
-import fft_battleground.botland.personality.PersonalityResponse;
+import fft_battleground.botland.personality.model.PersonalityResponse;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.exception.BotConfigException;
@@ -94,13 +94,14 @@ implements Callable<Bet> {
 	 * Calculate a bet using two scoring algorithms.
 	 * 
 	 * @return
+	 * @throws BotConfigException 
 	 */
-	protected Bet determineBet() {
+	protected Bet determineBet() throws BotConfigException {
 		this.leftScore = this.generateLeftScore();
 		this.rightScore = this.generateRightScore();
 		
 		BattleGroundTeam winningTeam = this.determineWinningTeam(this.leftScore, this.rightScore);
-		if(this.inverse) {
+		if((this instanceof BotCanInverse) && this.inverse) {
 			winningTeam = this.inverse(winningTeam);
 		}
 		Bet result = this.generateBetAmount(this.leftScore, this.rightScore, winningTeam);
@@ -120,7 +121,13 @@ implements Callable<Bet> {
 				bet.setAmount(GambleUtil.MAX_BET);
 			} else if (bet.getAmount() < GambleUtil.getMinimumBetForBettor(this.isBotSubscriber)) {
 				log.warn("The bot {} provided a bet under the minimum value", this.getName());
-				bet.setAmount(GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
+				if(this instanceof BotCanBetBelowMinimum) {
+					BotCanBetBelowMinimum bot = (BotCanBetBelowMinimum) this;
+					bet.setAmount(bot.handleMinimumBet(this.isBotSubscriber));
+				} else {
+					bet.setAmount(GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
+				}
+				
 			}
 		}
 	}
@@ -153,7 +160,7 @@ implements Callable<Bet> {
 			return this.left;
 		}
 	}
-
+	
 	public abstract void initParams(Map<String, BotParam> map) throws BotConfigException;
 	
 	public abstract void init();
@@ -162,9 +169,9 @@ implements Callable<Bet> {
 	
 	public abstract void setName(String name);
 
-	protected abstract Float generateLeftScore();
+	protected abstract Float generateLeftScore() throws BotConfigException;
 
-	protected abstract Float generateRightScore();
+	protected abstract Float generateRightScore() throws BotConfigException;
 
-	protected abstract Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam);
+	protected abstract Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) throws BotConfigException;
 }

@@ -8,17 +8,24 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
-import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.util.BetterBetBot;
+import fft_battleground.botland.bot.util.BotCanInverse;
+import fft_battleground.botland.bot.util.BotCanUseBetExpressions;
+import fft_battleground.botland.bot.util.BotContainsPersonality;
+import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.personality.model.BraveFaith;
 import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GambleUtil;
+import lombok.extern.slf4j.Slf4j;
 
-public class BraveFaithBot extends BetterBetBot {
-
-	private static final String BET_AMOUNT_EXPRESSION_PARAMETER = "betExpression";
+@Slf4j
+public class BraveFaithBot 
+extends BetterBetBot
+implements BotContainsPersonality, BotCanInverse, BotCanUseBetExpressions{
 	private static final String BRAVE_OR_FAITH = "bravefaith";
 	
 	private String betAmountExpression;
@@ -32,28 +39,18 @@ public class BraveFaithBot extends BetterBetBot {
 	
 	@Override
 	public void initParams(Map<String, BotParam> map) throws BotConfigException {
-		if(map.containsKey(BRAVE_OR_FAITH)) {
-			this.braveFaith = BraveFaith.parseString(map.get(BRAVE_OR_FAITH).getValue());
-		}
-		if(map.containsKey(BET_AMOUNT_EXPRESSION_PARAMETER)) {
-			this.betAmountExpression = map.get(BET_AMOUNT_EXPRESSION_PARAMETER).getValue();
-		}
-		if(map.containsKey(PERSONALITY_PARAM)) {
-			super.personalityName = map.get(PERSONALITY_PARAM).getValue();
-		}
-		if(map.containsKey(INVERSE_PARAM)) {
-			super.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
-		}
-		
-		if(this.braveFaith == null) {
-			throw new BotConfigException("missing parameter bravefaith for bot " + this.name);
-		}
+		BotParameterReader reader = new BotParameterReader(map);
+		this.braveFaith = reader.readParam(BRAVE_OR_FAITH, BraveFaith::parseString)
+				.orElseThrow(BotParameterReader.throwBotconfigException("missing parameter bravefaith for bot " + this.name));
+		this.betAmountExpression = this.readBetAmountExpression(reader)
+				.orElseThrow(BotParameterReader.throwBotconfigException("missing parameter " + this.getBetAmountExpressionParameter() + " for bot " + this.name));
+		this.personalityName = this.readPersonalityParam(reader);
+		this.inverse = this.readInverseParameter(reader);
 
 	}
 
 	@Override
 	public void init() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -112,7 +109,7 @@ public class BraveFaithBot extends BetterBetBot {
 		
 		Expression exp = new Expression(this.betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
 		
-		result = new Double(exp.calculate()).intValue();
+		result = Double.valueOf(exp.calculate()).intValue();
 		
 		return result;
 	}

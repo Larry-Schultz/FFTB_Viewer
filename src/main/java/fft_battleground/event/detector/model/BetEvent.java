@@ -1,6 +1,6 @@
 package fft_battleground.event.detector.model;
 
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.BetType;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;

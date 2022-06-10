@@ -1,4 +1,4 @@
-package fft_battleground.botland.model;
+package fft_battleground.botland.bot.model;
 
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;

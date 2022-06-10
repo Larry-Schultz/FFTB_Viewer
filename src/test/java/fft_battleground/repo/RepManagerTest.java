@@ -20,8 +20,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import fft_battleground.botland.model.BetResults;
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.BetResults;
+import fft_battleground.botland.bot.model.BetType;
 import fft_battleground.event.detector.OtherPlayerBalanceDetector;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingEndsEvent;

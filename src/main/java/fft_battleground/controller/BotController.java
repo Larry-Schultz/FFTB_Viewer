@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.botland.BetBotFactory;
-import fft_battleground.botland.model.ResultData;
+import fft_battleground.botland.bot.genetic.model.ResultData;
 import fft_battleground.dump.reports.BotlandLeaderboardReportGenerator;
 import fft_battleground.dump.reports.model.BotlandLeaderboard;
 import fft_battleground.dump.reports.model.BotlandLeaderboardEntry;

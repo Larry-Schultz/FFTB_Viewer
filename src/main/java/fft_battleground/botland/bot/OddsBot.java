@@ -4,13 +4,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-import fft_battleground.botland.model.Bet;
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.model.BetType;
+import fft_battleground.botland.bot.util.BetterBetBot;
+import fft_battleground.botland.bot.util.BotCanInverse;
+import fft_battleground.botland.bot.util.BotContainsPersonality;
+import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
-public class OddsBot extends BetterBetBot {
+public class OddsBot 
+extends BetterBetBot
+implements BotContainsPersonality, BotCanInverse{
 
 	private String NAME = "oddsBot";
 	protected BetType type;
@@ -27,13 +34,10 @@ public class OddsBot extends BetterBetBot {
 	}
 	
 	@Override
-	public void initParams(Map<String, BotParam> map) {
-		if(map.containsKey(PERSONALITY_PARAM)) {
-			this.personalityName = map.get(PERSONALITY_PARAM).getValue();
-		}
-		if(map.containsKey(INVERSE_PARAM)) {
-			this.inverse = Boolean.valueOf(map.get(INVERSE_PARAM).getValue());
-		}
+	public void initParams(Map<String, BotParam> map) throws BotConfigException {
+		BotParameterReader reader = new BotParameterReader(map);
+		this.personalityName = this.readPersonalityParam(reader);
+		this.inverse = this.readInverseParameter(reader);
 	}
 	
 	@Override

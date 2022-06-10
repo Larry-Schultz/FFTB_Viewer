@@ -1,4 +1,4 @@
-package fft_battleground.botland.personality;
+package fft_battleground.botland.personality.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

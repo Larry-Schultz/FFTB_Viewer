@@ -608,5 +608,54 @@
 		<param id="RaidBoss">5</param>
 		<param id="MathSkill" description="blank">15</param>
 	</bot>
-	
+	<bot id="genebotv2" classname="genebotV2"
+		canPrimary="true"
+		description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile"
+			description="file location that contains the genes">winner06-09-2022.txt</param>
+		<param id="personality" description="personality of bot">nerd</param>
+		<param id="use_bet_genes">false</param>
+	</bot>
+	<bot id="genebotv2smartbet" classname="genebotV2"
+		canPrimary="true"
+		description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile"
+			description="file location that contains the genes">winner06-09-2022.txt</param>
+		<param id="personality" description="personality of bot">nerd</param>
+		<param id="use_bet_genes">true</param>
+	</bot>
+	<bot id="genebotv2inverse" classname="genebotV2"
+		canPrimary="true"
+		description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile"
+			description="file location that contains the genes">winner06-09-2022.txt</param>
+		<param id="personality" description="personality of bot">inverse</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+		<param id="use_bet_genes">false</param>
+	</bot>
+	<bot id="birbbrainsbotreference" classname="reference"
+		canPrimary="true"
+		description="Bot that mimics birbbrainsbot">
+		<param id="reference_player">birbbrainsbot</param>
+		<param id="personality" description="personality of bot">kweh</param>
+	</bot>
+	<bot id="birbbrainsbotreferenceinverse" classname="reference"
+		canPrimary="true"
+		description="Bot that bets opposite of birbbrainsbot">
+		<param id="reference_player">birbbrainsbot</param>
+		<param id="personality" description="personality of bot">inversekweh</param>
+		<param id="inverse" description="reverse team chosen">true</param>
+	</bot>
+	<bot id="smokebowlingbotreference" classname="reference"
+		canPrimary="true"
+		description="Bot that mimics smokebowlingbot">
+		<param id="reference_player">smokebowlingbot</param>
+		<param id="personality" description="personality of bot">smokebowlington</param>
+	</bot>
+	<bot id="getthemoneyzreference" classname="reference"
+		canPrimary="true"
+		description="Bot that mimics getthemoneyz">
+		<param id="reference_player">getthemoneyz</param>
+		<param id="personality" description="personality of bot">getthemoneyz</param>
+	</bot>
 </bots>

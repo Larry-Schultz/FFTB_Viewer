@@ -13,7 +13,7 @@ import com.google.common.collect.Sets;
 
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
-import fft_battleground.botland.model.BetResults;
+import fft_battleground.botland.bot.model.BetResults;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BalanceEvent;

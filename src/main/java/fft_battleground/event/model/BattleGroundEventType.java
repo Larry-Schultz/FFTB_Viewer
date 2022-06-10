@@ -53,7 +53,7 @@ public enum BattleGroundEventType {
 	CLASS_BONUS("Class bonus"), 
 	SKILL_BONUS("Skill bonus"), 
 	SNUB("Failed attempts to join !fight"), 
-	OTHER_PLAYER_SNUB("snub event list"), 
+	OTHER_PLAYER_SNUB("Snub"), 
 	INVALID_FIGHT_ENTRY_SEX("Invalid Fight Entry Sex Event"), 
 	INVALID_FIGHT_ENTRY_TOURNAMENT_STARTED("Invalid Fight Entry Tournament Started Event"), 
 	FIGHT_RESULT("Fight Result Event"), 

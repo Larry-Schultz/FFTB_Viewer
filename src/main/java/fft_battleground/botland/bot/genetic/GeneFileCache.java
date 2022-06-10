@@ -1,4 +1,4 @@
-package fft_battleground.botland;
+package fft_battleground.botland.bot.genetic;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,19 +14,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import fft_battleground.botland.model.ResultData;
 import fft_battleground.exception.BotConfigException;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GeneFileCache {
+public abstract class GeneFileCache<T> {
 	private static final long DEFAULT_CACHE_DURATION = 5L;
 	
-	private Cache<String, GeneFile> geneFileCache;
+	private Cache<String, GeneFile<T>> geneFileCache;
 	
 	public GeneFileCache() {
 		this.geneFileCache = this.buildCache(DEFAULT_CACHE_DURATION);
@@ -36,68 +31,58 @@ public class GeneFileCache {
 		this.geneFileCache = this.buildCache(cacheDuration);
 	}
 	
-	public ResultData getGeneData(String filename) throws BotConfigException {
-		GeneFile geneFile = this.geneFileCache.getIfPresent(filename);
+	protected abstract Class<T> getCacheType();
+	protected abstract String baseFolder();
+	
+	public T getGeneData(String filename) throws BotConfigException {
+		GeneFile<T> geneFile = this.geneFileCache.getIfPresent(filename);
 		if(geneFile == null) {
 			geneFile = this.loadGeneDataFromFile(filename);
 			this.geneFileCache.put(filename, geneFile);
 		}
 		
-		ResultData data = geneFile.getData();
+		T data = (T) geneFile.getData();
 		return data;
 	}
 	
-	public ResultData getLatestFile() {
-		List<GeneFile> geneFiles = new ArrayList<>(this.geneFileCache.asMap().values());
+	public T getLatestFile() {
+		List<GeneFile<T>> geneFiles = new ArrayList<>(this.geneFileCache.asMap().values());
 		Collections.sort(geneFiles, Collections.reverseOrder());
-		Optional<GeneFile> firstEntry = geneFiles.stream().findFirst();
+		Optional<GeneFile<T>> firstEntry = geneFiles.stream().findFirst();
 		
-		ResultData data = null;
+		T data = null;
 		if(firstEntry.isPresent()) {
 			data = firstEntry.get().getData();
 		}
 		return data;
 	}
 	
-	private GeneFile loadGeneDataFromFile(String filename) throws BotConfigException {
-		URL resourceUrl = this.getClass().getClassLoader().getResource(filename);
+	protected GeneFile<T> loadGeneDataFromFile(String filename) throws BotConfigException {
+		String path = baseFolder() + "/" + filename;
+		URL resourceUrl = this.getClass().getClassLoader().getResource(path);
 		File resourceFile = new File(filename);
 		Date modificationDate = new Date(resourceFile.lastModified());
 		ObjectMapper mapper = new ObjectMapper();
-		ResultData genes = null;
+		T genes = null;
 		try {
-			genes = mapper.readValue(resourceUrl, ResultData.class);
+			genes = (T) mapper.readValue(resourceUrl, this.getCacheType());
 		} catch (IOException e) {
 			String errorMessage = "Error initializing gene bot from file " + filename;
 			log.error(errorMessage);
 			throw new BotConfigException(errorMessage);
 		}
 		
-		GeneFile result = new GeneFile(filename, modificationDate, genes);
+		GeneFile<T> result = new GeneFile<>(filename, modificationDate, genes);
 		
 		return result;
 	}
 	
-	private Cache<String, GeneFile> buildCache(Long duration) {
-		Cache<String, GeneFile> cache = Caffeine.newBuilder()
+	private Cache<String, GeneFile<T>> buildCache(Long duration) {
+		Cache<String, GeneFile<T>> cache = Caffeine.newBuilder()
 		  .expireAfterWrite(duration, TimeUnit.MINUTES)
 		  .maximumSize(1)
 		  .build();
 		
 		return cache;
-	}
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class GeneFile implements Comparable<GeneFile> {
-	private String filename;
-	private Date fileDate;
-	private ResultData data;
-	
-	@Override
-	public int compareTo(GeneFile o) {
-		return this.getFileDate().compareTo(o.getFileDate());
 	}
 }

@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import fft_battleground.botland.model.BetResults;
+import fft_battleground.botland.bot.model.BetResults;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.model.ChatMessage;

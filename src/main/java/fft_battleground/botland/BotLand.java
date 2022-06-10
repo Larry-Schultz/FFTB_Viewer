@@ -13,10 +13,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.StringUtils;
 
-import fft_battleground.botland.bot.BetterBetBot;
-import fft_battleground.botland.model.Bet;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
-import fft_battleground.botland.personality.PersonalityResponse;
+import fft_battleground.botland.personality.model.PersonalityResponse;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BadBetEvent;
@@ -62,6 +62,7 @@ public class BotLand extends TimerTask {
 	protected PersonalityModuleFactory personalityModuleFactoryRef;
 	protected Timer botlandTimerRef;
 	protected WebhookManager errorWebhookManager;
+	protected WebhookManager noisyWebhookManager;
 	private Map<String, Integer> balanceCacheRef;
 	
 	//state data
@@ -83,6 +84,7 @@ public class BotLand extends TimerTask {
 			this.primaryBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
 			this.primaryBot.setUnitsBySide(this.helper.getUnitsBySide());
 			this.primaryBot.setTeamData(this.helper.getTeamData());
+			this.primaryBot.setMatchInfo(this.helper.getMatchInfo());
 			// get results from main bot
 			Bet bet = null;
 			try {
@@ -107,13 +109,15 @@ public class BotLand extends TimerTask {
 		
 		//call subordinate bots
 		if (this.subordinateBots != null) {
+			BetterBetBot currentSubordinateBot = null;
 			for (int i = 0; i < this.subordinateBots.size(); i++) {
 				try {
-					BetterBetBot currentSubordinateBot = this.subordinateBots.get(i);
+					currentSubordinateBot = this.subordinateBots.get(i);
 					currentSubordinateBot.setOtherPlayerBets(this.helper.getOtherPlayerBets());
 					currentSubordinateBot.setBetsBySide(betsBySide);
 					currentSubordinateBot.setUnitsBySide(this.helper.getUnitsBySide());
-					currentSubordinateBot.setTeamData(this.helper.getTeamData());;
+					currentSubordinateBot.setTeamData(this.helper.getTeamData());
+					currentSubordinateBot.setMatchInfo(this.helper.getMatchInfo());
 					Bots botDataFromDatabase = this.botsRepo.getBotByDateStringAndName(currentSubordinateBot.getDateFormat(), currentSubordinateBot.getName());
 					currentSubordinateBot.setCurrentAmountToBetWith(botDataFromDatabase.getBalance());
 					Bet secondaryBet = currentSubordinateBot.call();
@@ -124,7 +128,9 @@ public class BotLand extends TimerTask {
 						this.personalityModuleFactoryRef.addBotResponse(currentSubordinateBot.getName(), secondaryPersonalityMessage);
 					}
 				} catch(Exception e) {
-					log.error("something went wrong with one of the subordinate bots", e);
+					String message = "something went wrong with bot " + currentSubordinateBot.getName();
+					log.error("message", e);
+					this.noisyWebhookManager.sendException(e, message);
 				}
 			}
 		} else {

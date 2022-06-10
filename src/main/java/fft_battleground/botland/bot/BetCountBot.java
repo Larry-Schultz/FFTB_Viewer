@@ -1,25 +1,33 @@
 package fft_battleground.botland.bot;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
-import fft_battleground.botland.model.Bet;
-import fft_battleground.botland.model.BetType;
+import fft_battleground.botland.bot.model.Bet;
+import fft_battleground.botland.bot.model.BetType;
+import fft_battleground.botland.bot.util.BetterBetBot;
+import fft_battleground.botland.bot.util.BotCanInverse;
+import fft_battleground.botland.bot.util.BotCanUseBetExpressions;
+import fft_battleground.botland.bot.util.BotContainsPersonality;
+import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
+import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class BetCountBot extends BetterBetBot {
+public class BetCountBot 
+extends BetterBetBot 
+implements BotContainsPersonality, BotCanInverse, BotCanUseBetExpressions {
 
 	private static final String BET_AMOUNT_PARAMETER = "betAmount";
 	private static final String BET_TYPE_PARAMETER = "betType";
-	private static final String BET_AMOUNT_EXPRESSION_PARAMETER = "betExpression";
 	
 	public BetCountBot(Integer currentAmountToBetWith, BattleGroundTeam left,
 			BattleGroundTeam right) {
@@ -29,9 +37,9 @@ public class BetCountBot extends BetterBetBot {
 
 	private String name = "minBetBot";
 	
-	private Integer amount;
+	private Optional<Integer> amount;
 	private BetType type = BetType.FLOOR;
-	private String betAmountExpression;
+	private Optional<String> betAmountExpression;
 	
 	@Override
 	public String getName() {
@@ -44,22 +52,14 @@ public class BetCountBot extends BetterBetBot {
 	}
 	
 	@Override
-	public void initParams(Map<String, BotParam> parameters) {
-		if(parameters.containsKey(BET_AMOUNT_PARAMETER)) {
-			this.amount = Integer.valueOf(parameters.get(BET_AMOUNT_PARAMETER).getValue());
-		}
-		if(parameters.containsKey(BET_TYPE_PARAMETER)) {
-			this.type = BetType.getBetType(parameters.get(BET_TYPE_PARAMETER).getValue());
-		}
-		if(parameters.containsKey(BET_AMOUNT_EXPRESSION_PARAMETER)) {
-			this.betAmountExpression = parameters.get(BET_AMOUNT_EXPRESSION_PARAMETER).getValue();
-		}
-		if(parameters.containsKey(PERSONALITY_PARAM)) {
-			this.personalityName = parameters.get(PERSONALITY_PARAM).getValue();
-		}
-		if(parameters.containsKey(INVERSE_PARAM)) {
-			this.inverse = Boolean.valueOf(parameters.get(INVERSE_PARAM).getValue());
-		}
+	public void initParams(Map<String, BotParam> parameters) throws BotConfigException {
+		BotParameterReader reader = new BotParameterReader(parameters);
+		this.amount = reader.readParam(BET_AMOUNT_PARAMETER, Integer::valueOf);
+		this.type = reader.readParam(BET_TYPE_PARAMETER, BetType::getBetType)
+				.orElseThrow(BotParameterReader.throwBotconfigException("Missing Bet Type"));
+		this.betAmountExpression = this.readBetAmountExpression(reader);
+		this.personalityName = this.readPersonalityParam(reader);
+		this.inverse = this.readInverseParameter(reader);
 		
 	}
 
@@ -76,22 +76,23 @@ public class BetCountBot extends BetterBetBot {
 	}
 
 	@Override
-	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) {
+	protected Bet generateBetAmount(Float leftScore, Float rightScore, BattleGroundTeam chosenTeam) throws BotConfigException {
 		Bet result = null;
 		if(type == BetType.FLOOR) {
 			result = new Bet(chosenTeam, BetType.FLOOR, this.isBotSubscriber);
 		} else if(type == BetType.ALLIN) {
 			result = new Bet(chosenTeam, BetType.ALLIN, this.isBotSubscriber);
 		} else if(type == BetType.PERCENTAGE) {
-			result = new Bet(chosenTeam, this.amount, this.type, this.isBotSubscriber);
-		} else if(this.betAmountExpression != null) {
-			Integer betAmount = this.calculateBetAmount(leftScore, rightScore);
+			Integer betAmount = this.amount.orElseThrow(BotParameterReader.throwBotconfigException("Missing Bet Aount"));
+			result = new Bet(chosenTeam, betAmount, this.type, this.isBotSubscriber);
+		} else if(this.betAmountExpression.isPresent()) {
+			Integer betAmount = this.calculateBetAmount(this.betAmountExpression.get(), leftScore, rightScore);
 			result = new Bet(chosenTeam, betAmount, this.isBotSubscriber);
 		}
 		return result;
 	}
 	
-	protected Integer calculateBetAmount(Float leftScore, Float rightScore) {
+	protected Integer calculateBetAmount(String betAmountExpression, Float leftScore, Float rightScore) {
 		Integer result = null;
 		
 		Argument leftScoreArg = new Argument("leftScore", (double) leftScore);
@@ -100,22 +101,22 @@ public class BetCountBot extends BetterBetBot {
 		Constant maxBet = new Constant("mxBet", (double) GambleUtil.MAX_BET);
 		Argument balanceArg = new Argument("balance", this.currentAmountToBetWith);
 		
-		Expression exp = new Expression(this.betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
+		Expression exp = new Expression(betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
 		
-		result = new Double(exp.calculate()).intValue();
+		result = Double.valueOf(exp.calculate()).intValue();
 		
 		return result;
 	}
 
 	@Override
 	public void init() {
-		if(this.betAmountExpression != null) {
+		if(this.betAmountExpression.isPresent()) {
 			Argument leftScoreArg = new Argument("leftScore", (double) 5f);
 			Argument rightScoreArg = new Argument("rightScore", (double) 10f);
 			Argument minBet = new Argument("mnBet", (double) GambleUtil.getMinimumBetForBettor(this.isBotSubscriber));
 			Argument maxBet = new Argument("mxBet", (double) GambleUtil.MAX_BET);
 			Argument balanceArg = new Argument("balance", this.currentAmountToBetWith);
-			Expression testBetAmountExpression = new Expression(this.betAmountExpression, leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
+			Expression testBetAmountExpression = new Expression(this.betAmountExpression.get(), leftScoreArg, rightScoreArg, minBet, maxBet, balanceArg);
 			if(!testBetAmountExpression.checkSyntax() || !testBetAmountExpression.checkLexSyntax()) {
 				log.warn("The syntax of the bet Amount expression {} is faulty with error: {}", this.betAmountExpression, testBetAmountExpression.getErrorMessage());
 			}

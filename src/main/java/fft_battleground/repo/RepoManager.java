@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import fft_battleground.botland.bot.BetterBetBot;
-import fft_battleground.botland.model.BetResults;
+import fft_battleground.botland.bot.model.BetResults;
+import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;

@@ -21,13 +21,19 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.botland.bot.DataBetBot;
 import fft_battleground.botland.bot.GeneticBot;
+import fft_battleground.botland.bot.GeneticBotV2;
 import fft_battleground.botland.bot.ArbitraryBot;
 import fft_battleground.botland.bot.BetCountBot;
-import fft_battleground.botland.bot.BetterBetBot;
 import fft_battleground.botland.bot.BraveFaithBot;
 import fft_battleground.botland.bot.OddsBot;
+import fft_battleground.botland.bot.ReferenceBot;
 import fft_battleground.botland.bot.TeamValueBot;
 import fft_battleground.botland.bot.UnitAwareBot;
+import fft_battleground.botland.bot.genetic.GeneFileCache;
+import fft_battleground.botland.bot.genetic.GeneFileV1Cache;
+import fft_battleground.botland.bot.genetic.GeneFileV2Cache;
+import fft_battleground.botland.bot.genetic.model.GeneTrainerV2BotData;
+import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.model.BotNames;
 import fft_battleground.botland.personality.PersonalityModule;
@@ -100,19 +106,24 @@ public class BetBotFactory {
 	private WebhookManager errorWebhookManager;
 	
 	@Autowired
+	private WebhookManager noisyWebhookManager;
+	
+	@Autowired
 	private DumpService dumpService;
 	
 	private Timer botlandTimer = new Timer();
 	private Cache<String, Map<String, BotData>> botDataCache;
 	
-	@Getter private GeneFileCache geneFileCache;
+	@Getter private GeneFileV1Cache geneFileCache;
+	@Getter private GeneFileCache<GeneTrainerV2BotData> geneFileV2Cache;
 	
 	public BetBotFactory(@Value("${botlandCacheDuration}") long botlandCacheDuration) {
 		this.botDataCache = Caffeine.newBuilder()
 				  .expireAfterWrite(botlandCacheDuration, TimeUnit.MINUTES)
 				  .maximumSize(1)
 				  .build();
-		this.geneFileCache = new GeneFileCache(botlandCacheDuration);
+		this.geneFileCache = new GeneFileV1Cache(botlandCacheDuration);
+		this.geneFileV2Cache = new GeneFileV2Cache(botlandCacheDuration);
 	}
 	
 	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> currentUnits, BettingBeginsEvent beginEvent) {
@@ -127,7 +138,8 @@ public class BetBotFactory {
 		land.setEnablePersonality(this.enablePersonality);
 		land.setPersonalityModuleFactoryRef(this.personalityModuleFactory);
 		land.setBotlandTimerRef(this.botlandTimer);
-		land.setErrorWebhookManager(errorWebhookManager);
+		land.setErrorWebhookManager(this.errorWebhookManager);
+		land.setNoisyWebhookManager(this.noisyWebhookManager);
 		land.setBalanceCacheRef(this.dumpService.getBalanceCache());
 		
 		this.attachBots(land, currentAmountToBetWith, otherPlayerBets, beginEvent);
@@ -249,6 +261,10 @@ public class BetBotFactory {
 		case GENE:
 			betBot = new GeneticBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
 			break;
+		case GENE_V2:
+			betBot = new GeneticBotV2(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileV2Cache,
+					this.dumpService.getBotCache());
+			break;
 		case BRAVEFAITH:
 			betBot = new BraveFaithBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 			break;
@@ -257,6 +273,9 @@ public class BetBotFactory {
 			break;
 		case UNIT:
 			betBot = new UnitAwareBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileCache);
+			break;
+		case REFERENCE:
+			betBot = new ReferenceBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());
 			break;
 		default:
 			log.error("botData with data: {} failed", botData);

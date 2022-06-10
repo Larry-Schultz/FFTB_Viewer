@@ -35,6 +35,8 @@ public class UnitInfoEventAnnotator implements BattleGroundEventAnnotator<UnitIn
 		} else {
 			event.setPlayer(playerName);
 		}
+		
+		event.getUnit().setRaidBoss(event.getIsRaidBoss());
 	}
 
 }

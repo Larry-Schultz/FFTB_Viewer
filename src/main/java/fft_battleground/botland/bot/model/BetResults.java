@@ -1,10 +1,10 @@
-package fft_battleground.botland.model;
+package fft_battleground.botland.bot.model;
 
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import fft_battleground.botland.bot.BetterBetBot;
+import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;

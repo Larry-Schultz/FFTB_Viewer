@@ -2,6 +2,7 @@ package fft_battleground.botland.personality;
 
 import java.util.Map;
 
+import fft_battleground.botland.personality.model.PersonalityResponse;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
