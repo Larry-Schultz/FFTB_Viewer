@@ -67,6 +67,10 @@ public class BetDetector implements EventDetector<BetEvent>
 					betText = amount;
 					type = this.determineBetType(amount); 
 				}
+				
+				if(StringUtils.startsWith(amount, "ab")) {
+					allinbutFlag = true;
+				}
 			}
 			BattleGroundTeam team = BattleGroundTeam.parse(teamName);
 			if(type != null) {
@@ -111,7 +115,7 @@ public class BetDetector implements EventDetector<BetEvent>
 			type = BetType.VALUE;
 		} else if (StringUtils.contains(bet, "half")) {
 			type=BetType.HALF;
-		} else if(StringUtils.contains(bet, "floor")) {
+		} else if(StringUtils.contains(bet, "floor") || StringUtils.endsWith(bet, "f")) {
 			type = BetType.FLOOR;
 		}
 	

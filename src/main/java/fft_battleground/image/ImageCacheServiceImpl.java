@@ -8,22 +8,23 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Service
 @Slf4j
-public class ImageCache {
+public class ImageCacheServiceImpl implements ImageCacheService {
 	
 	@Autowired
 	private Images images;
 	
 	private Cache<String, byte[]> cache = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
 	
+	@Override
 	public byte[] getCharacterImage(String characterName) {
 		String basePath = "/static";
 		String imagePath = images.getCharacterImagePath(characterName);
@@ -36,6 +37,7 @@ public class ImageCache {
 		return data;
 	}
 	
+	@Override
 	public byte[] getPortaitImage(String characterName) {
 		String basePath = "/static/img/portraits";
 		String imagePath = "/" + characterName;

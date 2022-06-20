@@ -6,8 +6,7 @@ import org.springframework.stereotype.Component;
 import fft_battleground.event.detector.model.BuySkillEvent;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.tournament.MonsterUtils;
-
+import fft_battleground.skill.SkillUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -15,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class BuySkillEventAnnotator implements BattleGroundEventAnnotator<BuySkillEvent> {
 
 	@Autowired
-	private MonsterUtils monsterUtils;
+	private SkillUtils monsterUtils;
 	
 	@Override
 	public void annotateEvent(BuySkillEvent event) {

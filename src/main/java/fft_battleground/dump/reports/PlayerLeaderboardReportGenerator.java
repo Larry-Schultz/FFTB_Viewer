@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class PlayerLeaderboardReportGenerator extends ReportGenerator<PlayerLeaderboard> {
+public class PlayerLeaderboardReportGenerator extends AbstractReportGenerator<PlayerLeaderboard> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.LEADERBOARD;
 	private static final String reportName = "Player Leaderboard";
 	

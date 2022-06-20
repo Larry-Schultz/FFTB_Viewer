@@ -21,12 +21,12 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
@@ -65,16 +65,18 @@ import fft_battleground.repo.RepoManager;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.ClassBonusRepo;
 import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.repository.PrestigeSkillsRepo;
 import fft_battleground.repo.repository.SkillBonusRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
-import fft_battleground.tournament.MonsterUtils;
+import fft_battleground.skill.SkillUtils;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import fft_battleground.util.Router;
@@ -113,7 +115,7 @@ public class DumpService {
 	@Getter private Images images;
 	
 	@Autowired
-	@Getter private MonsterUtils monsterUtils;
+	@Getter private SkillUtils monsterUtils;
 	
 	@Autowired
 	@Getter private RepoManager repoManager;
@@ -126,6 +128,9 @@ public class DumpService {
 	
 	@Autowired
 	@Getter private PlayerSkillRepo playerSkillRepo;
+	
+	@Autowired
+	@Getter private PrestigeSkillsRepo prestigeSkillsRepo;
 	
 	@Autowired
 	@Getter private BattleGroundCacheEntryRepo battleGroundCacheEntryRepo;
@@ -205,6 +210,7 @@ public class DumpService {
 		log.info("player data cache load complete");
 		
 		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
+		this.dumpScheduledTasks.forceScheduleUserSkillsTask(this, true);
 		this.dumpScheduledTasks.forceCertificateCheck();
 		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
 		/*
@@ -416,6 +422,7 @@ public class DumpService {
 		return musicList;
 	}
 	
+	@Transactional(readOnly = true)
 	public PlayerData getDataForPlayerPage(String playerName, TimeZone timezone) throws CacheMissException, TournamentApiException {
 		PlayerData playerData = new PlayerData();
 		String id = StringUtils.trim(StringUtils.lowerCase(playerName));
@@ -423,8 +430,13 @@ public class DumpService {
 		if(maybePlayer.isPresent()) {
 			
 			PlayerRecord record = maybePlayer.get();
+			Hibernate.initialize(maybePlayer.get().getPlayerSkills());
+			Hibernate.initialize(maybePlayer.get().getPrestigeSkills());
 			for(PlayerSkills playerSkill : record.getPlayerSkills()) {
 				playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", ""));
+			}
+			for(PrestigeSkills prestigeSkill: record.getPrestigeSkills()) {
+				prestigeSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(prestigeSkill.getSkill()), "\"", ""));
 			}
 			playerData.setPlayerRecord(record);
 			
@@ -464,12 +476,16 @@ public class DumpService {
 			
 			boolean containsPrestige = false;
 			int prestigeLevel = 0;
+			Set<String> prestigeSkills = null;
 			if(this.prestigeSkillsCache.get(playerName) != null) {
-				prestigeLevel = this.prestigeSkillsCache.get(playerName).size();
+				prestigeSkills = new HashSet<>(this.prestigeSkillsCache.get(playerName));
+				prestigeLevel = prestigeSkills.size();
+				containsPrestige = true;
 			}
 			
 			playerData.setContainsPrestige(containsPrestige);
 			playerData.setPrestigeLevel(prestigeLevel);
+			playerData.setPrestigeSkills(prestigeSkills);
 			playerData.setExpRank(this.getExpRankLeaderboardByPlayer().get(record.getPlayer()));
 			
 			DecimalFormat format = new DecimalFormat("##.#########");

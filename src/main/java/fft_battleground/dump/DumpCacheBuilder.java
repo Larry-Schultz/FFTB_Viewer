@@ -13,7 +13,7 @@ import fft_battleground.dump.cache.ClassBonusCacheTask;
 import fft_battleground.dump.cache.ExpCacheTask;
 import fft_battleground.dump.cache.LastActiveCacheTask;
 import fft_battleground.dump.cache.LastFightActiveCacheTask;
-import fft_battleground.dump.cache.LeaderboardBuilder;
+import fft_battleground.dump.cache.ReportBuilder;
 import fft_battleground.dump.cache.MusicBuilder;
 import fft_battleground.dump.cache.PortraitCacheTask;
 import fft_battleground.dump.cache.PrestigeSkillsCacheTask;
@@ -52,7 +52,7 @@ public class DumpCacheBuilder {
 		Future<Map<String, String>> portraitCacheTaskFuture = this.threadPool.submit(new PortraitCacheTask(playerRecords));
 		Future<Map<String, BattleGroundTeam>> allegianceCacheTaskFuture = this.threadPool.submit(new AllegianceCacheTask(playerRecords));
 		Future<Map<String, List<String>>> userSkillsCacheTaskFuture = this.threadPool.submit(new UserSkillsCacheTask(playerRecords));
-		Future<Map<String, List<String>>> prestigeSkillsCacheTaskFuture = this.threadPool.submit(new PrestigeSkillsCacheTask(playerRecords));
+		Future<Map<String, List<String>>> prestigeSkillsCacheTaskFuture = this.threadPool.submit(new PrestigeSkillsCacheTask(playerRecords, dumpService.getPrestigeSkillsRepo()));
 		Future<Map<String, Set<String>>> classBonusCacheTaskFuture = this.threadPool.submit(new ClassBonusCacheTask(playerRecords, dumpService.getClassBonusRepo()));
 		Future<Map<String, Set<String>>> skillBonusCacheTaskFuture = this.threadPool.submit(new SkillBonusCacheTask(playerRecords, dumpService.getSkillBonusRepo()));
 		
@@ -76,7 +76,7 @@ public class DumpCacheBuilder {
 	
 	@SneakyThrows
 	public void buildLeaderboard() {
-		this.threadPool.submit(new LeaderboardBuilder(this.dumpService));
+		this.threadPool.submit(new ReportBuilder(this.dumpService));
 	}
 	
 	@SneakyThrows

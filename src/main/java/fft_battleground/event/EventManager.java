@@ -6,7 +6,9 @@ import java.util.Timer;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
@@ -14,6 +16,7 @@ import com.google.common.collect.Sets;
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
 import fft_battleground.botland.bot.model.BetResults;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BalanceEvent;
@@ -60,6 +63,12 @@ public class EventManager extends Thread {
 	
 	@Autowired
 	private TournamentService tournamentService;
+	
+	@Autowired
+	private WebhookManager errorWebhookManager;
+	
+	@Value("${irc.username}") 
+	private String botUsername;
 	
 	private Timer bettingTimer = new Timer();
 	protected long bettingDelay = 33 * 1000;
@@ -136,7 +145,15 @@ public class EventManager extends Thread {
 					case BAD_BET:
 						if(bettingCurrently && event instanceof BadBetEvent && this.botLand != null) {
 							this.botLand.removeBet((BadBetEvent)event);
+							
+							BadBetEvent badBetEvent = (BadBetEvent) event;
+							boolean isBadBotBet = badBetEvent.getPlayers().stream().filter(player -> StringUtils.equalsAnyIgnoreCase(player, this.botUsername)).count() > 0;
+							if(isBadBotBet) {
+								log.error("Bad bot bet");
+								this.errorWebhookManager.sendMessage("The bot was caught making a bad bet");
+							}
 						}
+						
 						break;
 					case RESULT:
 						ResultEvent resultEvent = (ResultEvent) event;
@@ -155,6 +172,7 @@ public class EventManager extends Thread {
 					case BUY_SKILL: case SKILL_WIN: case PORTRAIT:  case PRESTIGE_SKILLS:
 					case LAST_ACTIVE: case GIFT_SKILL: case GLOBAL_GIL_COUNT_UPDATE: case PRESTIGE_ASCENSION:
 					case BUY_SKILL_RANDOM: case CLASS_BONUS: case SKILL_BONUS: case SNUB: case OTHER_PLAYER_SNUB:
+					case BONUS:
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
 						break;
 					case MATCH_INFO:

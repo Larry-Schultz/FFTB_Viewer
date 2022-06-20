@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class ExperienceLeaderboardReportGenerator extends ReportGenerator<ExpLeaderboard> {
+public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerator<ExpLeaderboard> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.EXPERIENCE_LEADERBOARD;
 	private static final String reportName = "Experience Leaderboard";
 	

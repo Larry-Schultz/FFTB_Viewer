@@ -7,8 +7,7 @@ import fft_battleground.event.detector.model.GiftSkillEvent;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
 import fft_battleground.event.model.GiftSkill;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.tournament.MonsterUtils;
-
+import fft_battleground.skill.SkillUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -16,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GiftSkillEventAnnotator implements BattleGroundEventAnnotator<GiftSkillEvent> {
 
 	@Autowired
-	private MonsterUtils monsterUtils;
+	private SkillUtils monsterUtils;
 	
 	@Override
 	public void annotateEvent(GiftSkillEvent event) {

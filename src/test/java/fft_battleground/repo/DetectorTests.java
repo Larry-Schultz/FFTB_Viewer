@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -13,6 +16,7 @@ import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
+import fft_battleground.event.detector.BonusDetector;
 import fft_battleground.event.detector.BuySkillDetector;
 import fft_battleground.event.detector.BuySkillRandomDetector;
 import fft_battleground.event.detector.FightBeginsDetector;
@@ -36,6 +40,7 @@ import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BetInfoEvent;
 import fft_battleground.event.detector.model.BettingEndsEvent;
+import fft_battleground.event.detector.model.BonusEvent;
 import fft_battleground.event.detector.model.BuySkillEvent;
 import fft_battleground.event.detector.model.BuySkillRandomEvent;
 import fft_battleground.event.detector.model.FightEntryEvent;
@@ -56,6 +61,7 @@ import fft_battleground.event.detector.model.composite.OtherPlayerUnownedSkillEv
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
+import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -120,6 +126,8 @@ public class DetectorTests {
 		ChatMessage message7 = new ChatMessage("lydian_c", "!allbut 10% champ");
 		ChatMessage message8 = new ChatMessage("practice_pad", "!bet 100000000000000000");
 		ChatMessage smokebowlingtonbotMessage = new ChatMessage("smokebowlingtonbot", "!wager all pals [Kozuka]");
+		ChatMessage allbutFloor = new ChatMessage("OtherBrand", "!wager ab0.57f purple");
+		ChatMessage doublePercentage = new ChatMessage("testGuy", "!bet 5.07% red");
 
 		BetEvent event = (BetEvent) detector.detect(message);
 		assertTrue(event != null);
@@ -157,6 +165,23 @@ public class DetectorTests {
 		assertNotNull(event);
 		assertEquals("smokebowlingtonbot", event.getPlayer());
 		assertEquals(BattleGroundTeam.PURPLE, event.getTeam());
+		
+		event = (BetEvent) detector.detect(allbutFloor);
+		assertTrue(event != null);
+		assertEquals("ab0.57f", event.getBetAmount());
+		int balance = 1000;
+		PlayerRecord testRecord = this.createRelevantPlayerRecord(event.getPlayer(), 10, 0, balance, false);
+		int amount = GambleUtil.getBetAmountFromBetString(testRecord, event);
+		int expectedAmount = balance - BigDecimal.valueOf(GambleUtil.getMinimumBetForLevel(testRecord.getLastKnownLevel(), (int) testRecord.getLastKnownPrestige(), testRecord.getIsSubscriber()))
+				.multiply(BigDecimal.valueOf(0.57f)).setScale(0, RoundingMode.HALF_UP).intValue();
+		assertEquals(expectedAmount, amount);
+		
+		event = (BetEvent) detector.detect(doublePercentage);
+		assertTrue(event != null);
+		assertEquals("5.07%", event.getBetAmount());
+		amount = GambleUtil.getBetAmountFromBetString(testRecord, event);
+		expectedAmount = BigDecimal.valueOf(0.01f).multiply(BigDecimal.valueOf(balance)).multiply(BigDecimal.valueOf(5.07)).setScale(0, RoundingMode.HALF_UP).intValue();
+		assertEquals(expectedAmount, amount);
 	}
 
 	@Test
@@ -439,9 +464,30 @@ public class DetectorTests {
 		assertTrue(StringUtils.equals(event.getUnownedSkillEvents().get(0).getPlayer(), "otherbrand"));
 		assertTrue(StringUtils.equals(event.getUnownedSkillEvents().get(0).getSkill(), "Pnchart"));
 	}
+	
+	@Test
+	public void testBonusDetector() {
+		ChatMessage message = this.createBotChatMessage("OtherBrand, you'll earn a +7 EXP bonus for entering as a random unit, or one of these classes: Knight, Thief, Calculator. Also, you'll earn a +2 EXP bonus for using this skill: EquipSword.");
+		BonusDetector detector = new BonusDetector();
+		BonusEvent event = detector.detect(message);
+		assertTrue(event.getClassBonusEvent() != null);
+		assertTrue(event.getClassBonusEvent().getClassBonuses().size() == 3);
+		assertTrue(event.getSkillBonusEvent().getSkillBonuses().size() == 1);
+	}
 
 	protected ChatMessage createBotChatMessage(String message) {
 		ChatMessage chatMessage = new ChatMessage("fftbattleground", message);
 		return chatMessage;
+	}
+	
+	protected PlayerRecord createRelevantPlayerRecord(String player, int level, int prestige, int amount, boolean subscriber) {
+		PlayerRecord playerRecord = new PlayerRecord();
+		playerRecord.setPlayer(player);
+		playerRecord.setLastKnownLevel((short) level);
+		playerRecord.setLastKnownPrestige((short) prestige);
+		playerRecord.setLastKnownAmount(amount);
+		playerRecord.setIsSubscriber(subscriber);
+		
+		return playerRecord;
 	}
 }

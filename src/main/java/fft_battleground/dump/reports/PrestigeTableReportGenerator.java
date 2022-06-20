@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class PrestigeTableReportGenerator extends ReportGenerator<AscensionData> {
+public class PrestigeTableReportGenerator extends AbstractReportGenerator<AscensionData> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.PRESTIGE_TABLE;
 	private static final String reportName = "Prestige Table";
 	private static final long fixedDelay = BattleGroundCacheEntryKey.PRESTIGE_TABLE.millis();

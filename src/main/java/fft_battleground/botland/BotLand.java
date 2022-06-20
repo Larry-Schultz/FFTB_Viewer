@@ -89,13 +89,13 @@ public class BotLand extends TimerTask {
 			Bet bet = null;
 			try {
 				bet = primaryBot.call();
+				// send results to irc
+				this.sendBet(bet);
 			} catch (Exception e) {
 				String errorMessage = "Error executing primary bot";
 				log.error(errorMessage, e);
 				this.errorWebhookManager.sendException(e, errorMessage);
 			}
-			// send results to irc
-			this.sendBet(bet);
 			// get personality
 			PersonalityResponse personalityMessage = this.primaryBot.generatePersonalityResponse();
 			if (personalityMessage != null && personalityMessage.isDisplay()) {

@@ -105,6 +105,9 @@ public class PlayerRecord {
     @OneToMany(mappedBy = "player_record", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<PlayerSkills> playerSkills;
     
+    @OneToMany(mappedBy = "player_record", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PrestigeSkills> prestigeSkills;
+    
     @Temporal(TemporalType.DATE)
     @Column(name="last_active", nullable=true)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
@@ -240,11 +243,14 @@ public class PlayerRecord {
     
 	public void addPlayerSkill(PlayerSkills playerSkills) {
 		this.playerSkills.add(playerSkills);
-		
 	}
     
 	public void addPlayerSkill(String skill, Integer cooldown, SkillType type) {
 		this.playerSkills.add(new PlayerSkills(skill, cooldown, type, this));
+	}
+	
+	public void addPrestigeSkills(PrestigeSkills prestigeSkill) {
+		this.prestigeSkills.add(prestigeSkill);
 	}
     
     protected void setDefaults() {

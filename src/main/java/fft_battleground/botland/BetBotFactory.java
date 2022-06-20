@@ -172,7 +172,7 @@ public class BetBotFactory {
 			} catch (BotConfigException e) {
 				log.error("primary bot was unabled to be created, please fix!", e);
 			}
-			log.info("primary bot is minbetbot");
+			log.info("primary bot is {}", primaryBot.getName());
 		}
 		
 		botland.setPrimaryBot(primaryBot);
@@ -263,7 +263,7 @@ public class BetBotFactory {
 			break;
 		case GENE_V2:
 			betBot = new GeneticBotV2(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileV2Cache,
-					this.dumpService.getBotCache());
+					this.dumpService.getBotCache(), this.noisyWebhookManager);
 			break;
 		case BRAVEFAITH:
 			betBot = new BraveFaithBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());

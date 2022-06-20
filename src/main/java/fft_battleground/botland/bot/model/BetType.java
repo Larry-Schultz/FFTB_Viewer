@@ -8,7 +8,8 @@ public enum BetType {
 	HALF("half"),
 	ALLIN("allin"),
 	FLOOR("floor"),
-	RANDOM("random")
+	RANDOM("random"),
+	ALLBUT("allbut")
 	;
 	
 	private String str;

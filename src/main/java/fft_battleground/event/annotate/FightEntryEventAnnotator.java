@@ -1,18 +1,10 @@
 package fft_battleground.event.annotate;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.detector.model.FightEntryEvent;
@@ -21,10 +13,9 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Gender;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
-import fft_battleground.tournament.MonsterUtils;
-import fft_battleground.tournament.Tips;
+import fft_battleground.skill.SkillUtils;
 import fft_battleground.tournament.TournamentService;
-
+import fft_battleground.tournament.tips.Tips;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -41,7 +32,7 @@ public class FightEntryEventAnnotator implements BattleGroundEventAnnotator<Figh
 	private TournamentService tournamentService;
 	
 	@Autowired
-	private MonsterUtils monsterUtils;
+	private SkillUtils monsterUtils;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;

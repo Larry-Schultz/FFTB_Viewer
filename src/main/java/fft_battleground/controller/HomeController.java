@@ -50,7 +50,7 @@ import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.image.ImageCache;
+import fft_battleground.image.ImageCacheService;
 import fft_battleground.metrics.AccessTracker;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
@@ -69,7 +69,7 @@ import springfox.documentation.annotations.ApiIgnore;
 public class HomeController {
 	
 	@Autowired
-	private ImageCache imageCache;
+	private ImageCacheService imageCacheService;
 	
 	@Autowired
 	private BotsRepo botsRepo;
@@ -95,7 +95,7 @@ public class HomeController {
 	@ApiIgnore
 	@GetMapping(value = "/images/characters/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
-		byte[] data = this.imageCache.getCharacterImage(characterName);
+		byte[] data = this.imageCacheService.getCharacterImage(characterName);
 	    if(data == null) {
 	    	return new ResponseEntity<>(new byte[] {}, HttpStatus.NOT_FOUND);
 	    } else {
@@ -106,7 +106,7 @@ public class HomeController {
 	@ApiIgnore
 	@GetMapping(value = "/images/portraits/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public @ResponseBody ResponseEntity<byte[]> getPortraitImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
-		byte[] data = this.imageCache.getPortaitImage(characterName);
+		byte[] data = this.imageCacheService.getPortaitImage(characterName);
 	    if(data == null) {
 	    	return new ResponseEntity<>(new byte[] {}, HttpStatus.NOT_FOUND);
 	    } else {

@@ -1,8 +1,11 @@
 package fft_battleground.util;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.repo.model.PlayerRecord;
@@ -66,9 +69,9 @@ public class GambleUtil {
 		case PERCENTAGE:
 			String filteredValue = StringUtils.remove(event.getBetAmount(), '%');
 			Integer lastKnownAmount = player.getLastKnownAmount();
-			if(lastKnownAmount != null && StringUtils.isNumeric(filteredValue)) {
-				Integer percentage = Integer.valueOf(filteredValue);
-				value = new Integer( (int) (lastKnownAmount.floatValue() * percentage.floatValue() * 0.01f));
+			if(lastKnownAmount != null && NumberUtils.isCreatable(filteredValue)) {
+				BigDecimal percentage = new BigDecimal(filteredValue);
+				value = BigDecimal.valueOf(lastKnownAmount).multiply(percentage).multiply(BigDecimal.valueOf(0.01f)).setScale(0, RoundingMode.HALF_UP).intValue();
 				if(event.isAllinbutFlag()) {
 					value = lastKnownAmount - value;
 				}
@@ -98,6 +101,14 @@ public class GambleUtil {
 				value = getMinimumBetForLevel(player.getLastKnownLevel(), player.prestigeLevel(), event.getIsSubscriber());
 			} else {
 				value = getMinimumBetForLevel((short)0, player.prestigeLevel(), event.getIsSubscriber());
+			}
+			if(StringUtils.endsWith(event.getBetAmount(), "f")) {
+				String cleanedBetText = StringUtils.remove(event.getBetAmount(), "f");
+				if(event.isAllinbutFlag()) {
+					cleanedBetText = StringUtils.remove(cleanedBetText, "ab");
+				}
+				BigDecimal multiplier = new BigDecimal(cleanedBetText);
+				value = BigDecimal.valueOf(value).multiply(multiplier).setScale(0, RoundingMode.HALF_UP).intValue();
 			}
 			if(event.isAllinbutFlag()) {
 				value = player.getLastKnownAmount() - value;

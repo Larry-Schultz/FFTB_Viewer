@@ -2,7 +2,7 @@ package fft_battleground.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.common.base.Optional;
 
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
@@ -63,6 +65,19 @@ public class MatchController {
 		List<GenericElementOrdering<BattleGroundEvent>> events = this.websocketThread.getCurrentEventCache();
 		return GenericResponse.createGenericResponseEntity(events);
 	}
+	
+	@ApiIgnore
+	@RequestMapping(value="/currentMenuData", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<GenericResponse<List<GenericElementOrdering<BattleGroundEvent>>>> 
+	getCurrentMenuData(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
+		EnumSet<BattleGroundEventType> menuEvents = EnumSet.of(BattleGroundEventType.BETTING_BEGINS, BattleGroundEventType.BETTING_ENDS,
+				BattleGroundEventType.FIGHT_BEGINS);
+		List<GenericElementOrdering<BattleGroundEvent>> events = Optional.fromNullable(this.websocketThread.getCurrentEventCache()).or(List.of())
+				.stream()
+				.filter(geo -> menuEvents.contains(geo.getElement().getEventType()))
+				.collect(Collectors.toList());
+		return GenericResponse.createGenericResponseEntity(events);
+	}
 
 	@ApiIgnore
 	@RequestMapping(value="/RetrieveEventById", method=RequestMethod.GET)
@@ -83,51 +98,4 @@ public class MatchController {
 		this.accessTracker.addAccessEntry(pageName, userAgent, request);
 	}
 	 
-}
-
-class BattleGroundEventComparator implements Comparator<BattleGroundEvent> {
-
-	@Override
-	public int compare(BattleGroundEvent o1, BattleGroundEvent o2) {
-		int priority1 = this.getPriority(o1.getEventType());
-		int priority2 = this.getPriority(o2.getEventType());
-
-		if (priority1 == priority2) {
-			int eventTimeCompareResult = o1.getEventTime().compareTo(o2.getEventTime());
-			return eventTimeCompareResult;
-		} else if (priority1 > priority2) {
-			return 1;
-		} else {
-			return -1;
-		}
-	}
-
-	protected int getPriority(BattleGroundEventType type) {
-		int priority = Integer.MAX_VALUE;
-		switch (type) {
-		case BETTING_BEGINS:
-			priority = 0;
-			break;
-		case FIGHT_BEGINS:
-			priority = 1;
-			break;
-		case BET:
-		case BAD_BET:
-			priority = 5;
-			break;
-		case MATCH_INFO:
-			priority = 4;
-			break;
-		case TEAM_INFO:
-			priority = 2;
-			break;
-		case UNIT_INFO:
-			priority = 3;
-			break;
-		}
-
-		return priority;
-
-	}
-
 }

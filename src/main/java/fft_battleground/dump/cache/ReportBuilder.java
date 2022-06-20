@@ -8,13 +8,13 @@ import fft_battleground.exception.DumpException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LeaderboardBuilder
+public class ReportBuilder
 implements Runnable {
 	
 	private DumpService dumpServiceRef;
 	private List<ReportGenerator<?>> reportGenerators;
 	
-	public LeaderboardBuilder(DumpService dumpService) {
+	public ReportBuilder(DumpService dumpService) {
 		this.dumpServiceRef = dumpService;
 		this.reportGenerators = dumpService.getDumpReportsService().allReportGenerators();
 	}

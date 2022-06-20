@@ -4,7 +4,8 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
-
+import fft_battleground.tournament.tips.UnitStats;
+import fft_battleground.tournament.tips.UnitTipInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,6 +20,9 @@ public class UnitInfoEvent extends BattleGroundEvent {
 	private Boolean isRaidBoss = false;
 	private BattleGroundTeam team;
 	private Integer position;
+	
+	private UnitTipInfo unitTipInfo;
+	private UnitStats unitStats;
 
 	public UnitInfoEvent() {}
 	

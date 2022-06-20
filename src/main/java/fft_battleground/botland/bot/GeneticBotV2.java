@@ -25,6 +25,7 @@ import fft_battleground.botland.bot.util.BotContainsPersonality;
 import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.bot.util.BotUsesGeneFile;
 import fft_battleground.botland.model.BotParam;
+import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
@@ -53,15 +54,17 @@ implements BotCanBetBelowMinimum, BotContainsPersonality, BotCanInverse, BotUses
 	
 	protected GeneFileCache<GeneTrainerV2BotData> geneFileCache;
 	protected Collection<String> bots;
+	protected WebhookManager noisyWebhookManager;
 	
 	protected UnitAttributeClassifier unitAttributeClassifier = new V2UnitAttributeClassifier();
 	
 	public GeneticBotV2(Integer currentAmountToBetWith, BattleGroundTeam left, BattleGroundTeam right,
-			GeneFileCache<GeneTrainerV2BotData> geneFileCache, Collection<String> bots) {
+			GeneFileCache<GeneTrainerV2BotData> geneFileCache, Collection<String> bots, WebhookManager noisyWebhookManager) {
 		super(currentAmountToBetWith, left, right);
 
 		this.geneFileCache = geneFileCache;
 		this.bots = bots;
+		this.noisyWebhookManager = noisyWebhookManager;
 	}
 
 	@Override
@@ -182,10 +185,16 @@ implements BotCanBetBelowMinimum, BotContainsPersonality, BotCanInverse, BotUses
 	
 	protected Double scoreMap(MatchInfoEvent matchInfo, BattleGroundTeam side) throws MissingGeneException {
 		MapGeneAttributes mapGeneAttributes = this.genes.getMapGeneAttributes();
-		int mapNumber = this.matchInfo.getMapNumber();
-		Double gene = mapGeneAttributes.mapGene(side, mapNumber)
-				.orElseThrow(this.createMissingMapGeneException(mapNumber, side));
-		return gene.doubleValue();
+		double geneValue = 0;
+		if(this.matchInfo != null && this.matchInfo.getMapNumber() != null) {
+			int mapNumber = this.matchInfo.getMapNumber();
+			Double gene = mapGeneAttributes.mapGene(side, mapNumber)
+					.orElseThrow(this.createMissingMapGeneException(mapNumber, side));
+			geneValue = gene.doubleValue();
+		} else {
+			this.noisyWebhookManager.sendMessage("Missing map data for bot: " + this.getName());
+		}
+		return geneValue;
 	}
 	
 	protected Supplier<MissingGeneException> createMissingMapGeneException(int mapNumber, BattleGroundTeam side) {

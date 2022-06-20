@@ -1,4 +1,4 @@
-package fft_battleground.tournament;
+package fft_battleground.skill;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,12 +22,13 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Gender;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.util.SkillCategory;
-
+import fft_battleground.tournament.TournamentService;
+import fft_battleground.tournament.tips.Tips;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class MonsterUtils {
+public class SkillUtils {
 	private static final List<String> ELITE_MONSTERS = Arrays.asList(new String[]{"RedChocobo", "UltimaDemon", "SteelGiant", "Byblos", "Serpentarius", "Tiamat", "DarkBehemoth", "HolyDragon"});
 	private static final List<String> STRONG_MONSTERS = Arrays.asList(new String[]{"Apanda", "ArchaicDemon", "KingBehemoth", "Hydra", "RedDragon", "Sehkret", "BlueDragon", "Dragon"});
 	private static final List<String> ADDITIONAL_MONSTER_SKILLS = Arrays.asList(new String[] {"RandomMonster"});

@@ -25,6 +25,7 @@ public class PlayerData {
 	private Integer fightPercentile;
 	private Set<String> classBonuses;
 	private Set<String> skillBonuses;
+	private Set<String> prestigeSkills;
 	
 	public PlayerData() {}
 }

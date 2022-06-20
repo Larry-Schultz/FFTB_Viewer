@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class BetPercentileReportGenerator extends ReportGenerator<Map<Integer, Double>> {
+public class BetPercentileReportGenerator extends AbstractReportGenerator<Map<Integer, Double>> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.BET_PERCENTILES;
 	private static final String reportName = "Bet Percentiles";
 	

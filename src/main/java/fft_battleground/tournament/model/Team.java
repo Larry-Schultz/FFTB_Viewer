@@ -159,8 +159,8 @@ class PalettesFieldSerializer extends StdSerializer<Palette> {
 	public void serialize(Palette value, JsonGenerator gen, SerializerProvider provider)
 			throws IOException {
 		String result = null;
-		if(value != null && value.getPalettes() != null) {
-			result = value.getPalettes().getLeft().getProperName() + "/" + value.getPalettes().getRight().getProperName();
+		if(value != null && value.getPrimary() != null && value.getSecondary() != null) {
+			result = value.getPrimary().getProperName() + "/" + value.getSecondary().getProperName();
 		}
 		gen.writeString(result);
 		

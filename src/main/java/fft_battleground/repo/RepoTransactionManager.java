@@ -44,6 +44,7 @@ import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.repository.BalanceHistoryRepo;
 import fft_battleground.repo.repository.BotsHourlyDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
@@ -51,6 +52,7 @@ import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.repository.PrestigeSkillsRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.repo.util.SkillType;
@@ -78,6 +80,9 @@ public class RepoTransactionManager {
 	
 	@Autowired
 	private PlayerSkillRepo playerSkillRepo;
+	
+	@Autowired
+	private PrestigeSkillsRepo prestigeSkillRepo;
 	
 	@Autowired
 	private BotsRepo botsRepo;
@@ -530,41 +535,56 @@ public class RepoTransactionManager {
 				//add skills to player
 				for(PlayerSkills possibleNewSkill: event.getPlayerSkills()) {
 					if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
-						if(event instanceof PrestigeSkillsEvent) {
-							maybeRecord.get().addPlayerSkill(possibleNewSkill.getSkill(), SkillType.PRESTIGE);
-							this.playerRecordRepo.save(maybeRecord.get());
-						} else {
-							maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
-							this.playerRecordRepo.save(maybeRecord.get());
-						}
+						maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
+						this.playerRecordRepo.save(maybeRecord.get());
 					} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
-						if(!(event instanceof PrestigeSkillsEvent)) {
-							List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
-							if(matchingSkills.size() > 0) {
-								PlayerSkills currentSkill = matchingSkills.get(0);
-								if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
-									currentSkill.setCooldown(possibleNewSkill.getCooldown());
-									currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
-									this.playerSkillRepo.save(currentSkill);
-								}
+						List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
+						if(matchingSkills.size() > 0) {
+							PlayerSkills currentSkill = matchingSkills.get(0);
+							if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
+								currentSkill.setCooldown(possibleNewSkill.getCooldown());
+								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
+								this.playerSkillRepo.save(currentSkill);
 							}
 						}
-					} else {
-						if(event instanceof PrestigeSkillsEvent) {
-							for(String skillName : event.getSkills()) {
-								PlayerSkills playerSkill = this.playerSkillRepo.getSkillsByPlayerAndSkillName(cleanedName, skillName);
-								if(playerSkill != null) {
-									playerSkill.setSkillType(SkillType.PRESTIGE);
-									this.playerSkillRepo.save(playerSkill);
-								}
-							}
-							
-						}
-					}
+					} 
 				}
-				
 				this.playerRecordRepo.flush();
 				this.playerSkillRepo.flush();
+			}
+		} catch(DataIntegrityViolationException dive) {
+			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
+		}
+	}
+	
+	@Transactional(propagation=Propagation.REQUIRED)
+	public void updatePrestigeSkills(PrestigeSkillsEvent event) throws BattleGroundDataIntegrityViolationException {
+		String cleanedName = this.cleanString(event.getPlayer());
+		try {
+			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
+			if(maybeRecord.isPresent()) {
+				Hibernate.initialize(maybeRecord.get().getPrestigeSkills());
+				List<PrestigeSkills> currentSkills = maybeRecord.get().getPrestigeSkills();
+				List<String> currentSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
+				//add skills to player
+				for(PrestigeSkills possibleNewSkill: event.getPlayerSkills()) {
+					if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
+						maybeRecord.get().addPrestigeSkills(new PrestigeSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
+						this.playerRecordRepo.save(maybeRecord.get());
+					} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
+						List<PrestigeSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
+						if(matchingSkills.size() > 0) {
+							PrestigeSkills currentSkill = matchingSkills.get(0);
+							if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
+								currentSkill.setCooldown(possibleNewSkill.getCooldown());
+								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
+								this.prestigeSkillRepo.save(currentSkill);
+							}
+						}
+					} 
+				}
+				this.playerRecordRepo.flush();
+				this.prestigeSkillRepo.flush();
 			}
 		} catch(DataIntegrityViolationException dive) {
 			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);

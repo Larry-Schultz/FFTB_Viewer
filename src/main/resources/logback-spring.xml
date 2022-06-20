@@ -114,6 +114,26 @@
 		</rollingPolicy>
 	</appender>
 	
+	<appender name="BatchUpdateLogRollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOGS}/batchUpdate.log</file>
+		<encoder
+			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
+		</encoder>
+
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily and when the file reaches 10 MegaBytes -->
+			<fileNamePattern>${LOGS}/archived/batchUpdate.log-%d{yyyy-MM-dd}.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+	</appender>
+	
 	<appender name="DataUpdateLogRollingFile"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LOGS}/dataUpdate.log</file>
@@ -183,6 +203,12 @@
 		<appender-ref ref="EventLogsRollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
+	
+	<logger name="fft_battleground.dump.scheduled.task" level="INFO" additivity="false">
+		<appender-ref ref="BatchUpdateLogRollingFile" />
+		<appender-ref ref="Console" />
+	</logger>
+	
 	<logger name="AscensionPrestigeLogger" level="DEBUG" additivity="false">
 		<appender-ref ref="AscensionPrestigeLogRollingFile" />
 		<appender-ref ref="Console" />

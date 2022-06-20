@@ -53,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class AllegianceReportGenerator extends ReportGenerator<AllegianceLeaderboardWrapper> {
+public class AllegianceReportGenerator extends AbstractReportGenerator<AllegianceLeaderboardWrapper> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD;
 	private static final String reportName = "Allegiance Leaderboard";
 	

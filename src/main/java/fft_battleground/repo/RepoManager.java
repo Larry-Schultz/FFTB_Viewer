@@ -17,6 +17,7 @@ import fft_battleground.dump.DumpService;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BalanceEvent;
+import fft_battleground.event.detector.model.BonusEvent;
 import fft_battleground.event.detector.model.BuySkillEvent;
 import fft_battleground.event.detector.model.BuySkillRandomEvent;
 import fft_battleground.event.detector.model.ExpEvent;
@@ -121,11 +122,13 @@ public class RepoManager extends Thread {
 				} else if(newResults instanceof ClassBonusEvent) {
 					this.handleClassBonusEvent((ClassBonusEvent) newResults);
 				} else if(newResults instanceof SkillBonusEvent) {
-					this.handleClassBonusEvent((SkillBonusEvent) newResults);
+					this.handleSkillBonusEvent((SkillBonusEvent) newResults);
 				} else if(newResults instanceof SnubEvent) {
 					this.handleSnubEvent((SnubEvent) newResults);
 				} else if(newResults instanceof OtherPlayerSnubEvent) {
 					this.handleOtherPlayerSnubEvent((OtherPlayerSnubEvent) newResults);
+				} else if(newResults instanceof BonusEvent) {
+					this.handleBonusEvent((BonusEvent) newResults);
 				}
 			} catch (InterruptedException e) {
 				log.error("error in RepoManager", e);
@@ -210,7 +213,7 @@ public class RepoManager extends Thread {
 	}
 	
 	protected void handlePrestigeSkillsEvent(PrestigeSkillsEvent event) throws BattleGroundDataIntegrityViolationException {
-		this.handlePlayerSkillEvent((PlayerSkillEvent) event);
+		this.repoTransactionManager.updatePrestigeSkills(event);
 	}
 	
 	protected void handlePlayerSkillEvent(PlayerSkillEvent event) throws BattleGroundDataIntegrityViolationException {
@@ -222,7 +225,7 @@ public class RepoManager extends Thread {
 			this.repoTransactionManager.clearPlayerSkillsForPlayer(event.getPlayer());
 			this.repoTransactionManager.updatePlayerSkills(event.getPlayerSkillEvent());
 			if(event.getPrestigeSkillEvent() != null) {
-				this.repoTransactionManager.updatePlayerSkills(event.getPrestigeSkillEvent());
+				this.repoTransactionManager.updatePrestigeSkills(event.getPrestigeSkillEvent());
 			}
 		} catch(Exception e) {
 			log.error("Error processing Ascension refresh for player {}", event.getPlayer());
@@ -307,8 +310,7 @@ public class RepoManager extends Thread {
 		this.repoTransactionManager.updateClassBonus(newResults);
 	}
 	
-	private void handleClassBonusEvent(SkillBonusEvent newResults) {
-		
+	private void handleSkillBonusEvent(SkillBonusEvent newResults) {
 		this.repoTransactionManager.updateSkillBonus(newResults);
 	}
 	
@@ -325,6 +327,11 @@ public class RepoManager extends Thread {
 				errorWebhookManager.sendException(bgdive, bgdive.getMessage());
 			}
 		}
+	}
+	
+	private void handleBonusEvent(BonusEvent event) {
+		this.handleClassBonusEvent(event.getClassBonusEvent());
+		this.handleSkillBonusEvent(event.getSkillBonusEvent());
 	}
 
 	

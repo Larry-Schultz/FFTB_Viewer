@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,6 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +40,7 @@ import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.repository.BalanceHistoryRepo;
 import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
@@ -84,14 +88,20 @@ public class PlayerRecordController {
 	
 	@ApiIgnore
 	@GetMapping("/playerRecord/{playerName}")
+	@Transactional(propagation=Propagation.REQUIRED)
 	public ResponseEntity<GenericResponse<PlayerRecord>> getPlayerData(@PathVariable("playerName") String playerName, HttpServletRequest request) throws TournamentApiException {
 		log.info("Player api called for player {}", playerName);
 		String idString = StringUtils.lowerCase(playerName);
 		Optional<PlayerRecord> maybePlayer =  this.playerRecordRepo.findById(idString);
 		if(maybePlayer.isPresent()) {
 			//map metadata
+			Hibernate.initialize(maybePlayer.get().getPlayerSkills());
+			Hibernate.initialize(maybePlayer.get().getPrestigeSkills());
 			for(PlayerSkills playerSkill : maybePlayer.get().getPlayerSkills()) {
 				playerSkill.setMetadata(this.tournamentService.getCurrentTips().getPlayerSkillMetadata(playerSkill.getSkill()));
+			}
+			for(PrestigeSkills prestigeSkill : maybePlayer.get().getPrestigeSkills()) {
+				prestigeSkill.setMetadata(this.tournamentService.getCurrentTips().getPlayerSkillMetadata(prestigeSkill.getSkill()));
 			}
 			
 			return GenericResponse.createGenericResponseEntity(maybePlayer.get());

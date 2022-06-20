@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class BotlandLeaderboardReportGenerator extends ReportGenerator<BotlandLeaderboard> {
+public class BotlandLeaderboardReportGenerator extends AbstractReportGenerator<BotlandLeaderboard> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.BOTLAND_LEADERBOARD;
 	private static final String reportName = "Botland Leaderboard";
 	

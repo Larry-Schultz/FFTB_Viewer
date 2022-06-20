@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class BotLeaderboardReportGenerator extends ReportGenerator<BotLeaderboard> {
+public class BotLeaderboardReportGenerator extends AbstractReportGenerator<BotLeaderboard> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.BOT_LEADERBOARD;
 	private static final String reportName = "Bot Leaderboard";
 	

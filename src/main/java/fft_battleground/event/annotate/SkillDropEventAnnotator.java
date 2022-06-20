@@ -6,9 +6,8 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.event.detector.model.SkillDropEvent;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.tournament.Tips;
 import fft_battleground.tournament.TournamentService;
-
+import fft_battleground.tournament.tips.Tips;
 import lombok.extern.slf4j.Slf4j;
 
 @Component

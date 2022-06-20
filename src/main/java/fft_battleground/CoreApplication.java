@@ -18,6 +18,7 @@ import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
 import fft_battleground.irc.IrcChatbotThread;
 import fft_battleground.metrics.AccessTracker;
+import fft_battleground.mustadio.MustadioService;
 import fft_battleground.repo.RepoManager;
 
 import lombok.SneakyThrows;
@@ -60,6 +61,9 @@ public class CoreApplication implements ApplicationContextAware {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
+	@Autowired
+	private MustadioService mustadioService;
+	
 	private ApplicationContext context;
 	
 	/**
@@ -82,6 +86,7 @@ public class CoreApplication implements ApplicationContextAware {
 		repoManager.start();
 		websocketThread.start();
 		accessTracker.start();
+		this.mustadioService.refreshMustadioData();
 		
 		this.errorWebhookManager.sendMessage("Restarting Server");
 	}
