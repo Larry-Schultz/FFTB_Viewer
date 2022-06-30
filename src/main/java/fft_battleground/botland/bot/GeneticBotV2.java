@@ -4,6 +4,7 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -206,9 +207,13 @@ implements BotCanBetBelowMinimum, BotContainsPersonality, BotCanInverse, BotUses
 	protected Double scoreFighters(TeamInfoEvent teamInfoEvent) {
 		Double score = 0d;
 		PlayerDataGeneAttributes playerDataGeneAttributes = this.genes.getPlayerDataGeneAttributes();
-		score += teamInfoEvent.getMetaData().stream().mapToDouble((metadata) -> {
-			double fightRatio = ((double) metadata.getFightWins() + 1) / ((double) metadata.getFightWins() + metadata.getFightLosses() + 1d);
-			return fightRatio * playerDataGeneAttributes.fightWinRatio();
+		score += teamInfoEvent.getMetaData().stream()
+				.filter(metadata -> metadata != null)
+				.mapToDouble((metadata) -> {
+					double wins = metadata.getFightWins() != null ? metadata.getFightWins().doubleValue() : 0;
+					double losses = metadata.getFightLosses() != null ? metadata.getFightLosses().doubleValue() : 0;
+					double fightRatio = (wins + 1d) / (wins + losses + 1d);
+					return fightRatio * playerDataGeneAttributes.fightWinRatio();
 		}).sum();
 		
 		int missingUnitMetadata = 4 - teamInfoEvent.getMetaData().size();
@@ -224,13 +229,18 @@ implements BotCanBetBelowMinimum, BotContainsPersonality, BotCanInverse, BotUses
 		//score bet ratios
 		List<PlayerRecord> betEventMetadata = bets.stream().map(BetEvent::getMetadata).collect(Collectors.toList());
 		PlayerDataGeneAttributes playerGenes = this.genes.getPlayerDataGeneAttributes();
-		score += betEventMetadata.stream().mapToDouble((metadata) -> {
-			double betRatio = ((double) metadata.getWins() + 1) / ((double) metadata.getWins() + metadata.getLosses() + 1d);
-			return betRatio * playerGenes.betWinRatio();
+		score += betEventMetadata.stream()
+				.filter(metadata -> metadata != null)
+				.mapToDouble((metadata) -> {
+					double wins = metadata.getWins() != null ? metadata.getWins().doubleValue() : 0;
+					double losses = metadata.getLosses() != null ? metadata.getLosses().doubleValue() : 0;
+					double betRatio = (wins + 1d) / (wins + losses + 1d);
+					return betRatio * playerGenes.betWinRatio();
 		}).sum();
 		
 		//score subscribers
-		score+= betEventMetadata.stream().filter(PlayerRecord::isSubscriber).count() * playerGenes.subscriber();
+		score+= betEventMetadata.stream().filter(Objects::nonNull)
+				.filter(PlayerRecord::isSubscriber).count() * playerGenes.subscriber();
 		
 		//score robots vs humans
 		score+= betEventMetadata.stream().map(PlayerRecord::getPlayer)

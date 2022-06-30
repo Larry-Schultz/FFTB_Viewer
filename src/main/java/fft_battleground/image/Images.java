@@ -24,7 +24,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.repo.model.TeamInfo;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -190,28 +189,5 @@ public class Images {
 		
 		return result;
 	}
-	
-	public String getPortraitLocationByTeamInfo(TeamInfo teamInfo, BattleGroundTeam team) {
-		String result = null;
-		Optional<Portrait> possibleMatch = null;
-		if(StringUtils.equalsIgnoreCase(teamInfo.getGender(), "Monster")) {
-			possibleMatch = this.portraits.stream().filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName())).findFirst();
-		} else if(team != BattleGroundTeam.NONE && team != null) {
-			possibleMatch = this.portraits.stream().
-					filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName()) && StringUtils.equalsIgnoreCase(teamInfo.getGender(), portraits.getGender())
-							&& team == portraits.getColor()).findFirst();
-		} else {
-			possibleMatch = this.portraits.stream().
-					filter(portraits -> StringUtils.equalsIgnoreCase(teamInfo.getClassName(), portraits.getClassName()) && StringUtils.equalsIgnoreCase(teamInfo.getGender(), portraits.getGender())
-							&& teamInfo.getTeam() == portraits.getColor()).findFirst();
-		}
-		
-		if(possibleMatch.isPresent()) {
-			result = this.portraitsBaseUrl + possibleMatch.get().getLocation();
-		} else {
-			result = null;
-		}
-		
-		return result;
-	}
+ 
 }

@@ -7,9 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
-import fft_battleground.tournament.model.Tournament;
 
 public class TournamentSurvivorCalculator {
 

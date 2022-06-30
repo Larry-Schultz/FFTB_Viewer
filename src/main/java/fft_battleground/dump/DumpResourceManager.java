@@ -84,6 +84,14 @@ public class DumpResourceManager {
 		return players;
 	}
 	
+	/**
+	 * Finds the latest time an updated to this file was performed, and get the data for then entries that match that update.
+	 * @param url
+	 * @param initialTimeUnitTimeLengthPair
+	 * @param walkTimeUnitTimeLengthPair
+	 * @return
+	 * @throws DumpException
+	 */
 	public Set<String> getRecentlyUpdatedPlayers(String url, Pair<Integer, Integer> initialTimeUnitTimeLengthPair, Pair<Integer, Integer> walkTimeUnitTimeLengthPair) throws DumpException {
 		List<PlayerListData> entriesWithNullLastUpdated = new ArrayList<>();
 		List<PlayerListData> playerList = this.getPlayerDataFromList(url).stream()

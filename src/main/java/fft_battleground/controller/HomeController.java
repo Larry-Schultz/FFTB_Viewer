@@ -41,7 +41,6 @@ import fft_battleground.controller.response.model.botland.BotlandData;
 import fft_battleground.dump.DumpReportsService;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.GlobalGilPageData;
-import fft_battleground.dump.model.Music;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
 import fft_battleground.dump.reports.model.AscensionData;
 import fft_battleground.dump.reports.model.BotLeaderboard;
@@ -52,6 +51,8 @@ import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.image.ImageCacheService;
 import fft_battleground.metrics.AccessTracker;
+import fft_battleground.music.MusicService;
+import fft_battleground.music.model.Music;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.repository.BotsHourlyDataRepo;
@@ -82,6 +83,9 @@ public class HomeController {
 	
 	@Autowired
 	private DumpService dumpService;
+	
+	@Autowired
+	private MusicService musicService;
 	
 	@Autowired
 	private DumpReportsService dumpReportsService;
@@ -155,7 +159,7 @@ public class HomeController {
 	public @ResponseBody ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, 
 			Model model, HttpServletRequest request) {
 		this.logAccess("music search page", userAgent, request);
-		Collection<Music> music = this.dumpService.getPlaylist();
+		Collection<Music> music = this.musicService.getPlaylist();
 		Collection<MusicData> data = music.parallelStream().map(musicEntry -> new MusicData(musicEntry)).collect(Collectors.toList());
 		
 		return GenericResponse.createGenericResponseEntity(data);

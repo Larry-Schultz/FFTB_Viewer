@@ -1,10 +1,6 @@
 package fft_battleground.repo.model;
 
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -28,8 +24,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.repo.util.SkillCategory;
-import fft_battleground.repo.util.SkillType;
+import fft_battleground.skill.model.Skill;
+import fft_battleground.skill.model.SkillCategory;
+import fft_battleground.skill.model.SkillType;
 import fft_battleground.util.hibernate.BooleanConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,7 +38,7 @@ import lombok.Data;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Data
 @AllArgsConstructor
-public class PlayerSkills {
+public class PlayerSkills implements Skill {
 
 	@JsonIgnore
 	@Id
@@ -86,6 +83,14 @@ public class PlayerSkills {
 	
     public PlayerSkills() {}
     
+    public PlayerSkills(Skill playerSkill) {
+    	this.skill = playerSkill.getSkill();
+    	this.skillType = playerSkill.getSkillType();
+    	this.cooldown = playerSkill.getCooldown();
+    	this.player_record = playerSkill.getPlayer_record();
+    	this.skillCategory = SkillCategory.PRESTIGE;
+    }
+    
     public PlayerSkills( String skill, SkillType type, PlayerRecord player_record) {
 		this.skill = skill;
 		this.skillType = type;
@@ -126,11 +131,6 @@ public class PlayerSkills {
 		this.skillType = type;
 		this.skillCategory = skillCategory;
 		this.player_record = playerRecord;
-	}
-	
-	public static List<String> convertToListOfSkillStrings(Collection<PlayerSkills> playerSkills) {
-		List<String> skillStrings = playerSkills.parallelStream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
-		return skillStrings;
 	}
 
 }

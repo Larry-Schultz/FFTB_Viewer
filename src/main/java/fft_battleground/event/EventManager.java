@@ -2,9 +2,11 @@ package fft_battleground.event;
 
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,9 @@ import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
 import fft_battleground.botland.bot.model.BetResults;
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.scheduled.DumpMatchScheduledTask;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BalanceEvent;
 import fft_battleground.event.detector.model.BetEvent;
@@ -62,6 +66,9 @@ public class EventManager extends Thread {
 	private DumpService dumpService;
 	
 	@Autowired
+	private DumpScheduledTasksManagerImpl dumpScheduledTasks;
+	
+	@Autowired
 	private TournamentService tournamentService;
 	
 	@Autowired
@@ -70,7 +77,7 @@ public class EventManager extends Thread {
 	@Value("${irc.username}") 
 	private String botUsername;
 	
-	private Timer bettingTimer = new Timer();
+	private ScheduledExecutorService bettingTimer = Executors.newScheduledThreadPool(1);
 	protected long bettingDelay = 33 * 1000;
 	
 	public EventManager() {
@@ -108,7 +115,7 @@ public class EventManager extends Thread {
 						if(event instanceof BettingBeginsEvent) {
 							BettingBeginsEvent beginEvent = (BettingBeginsEvent) event;
 							this.botLand = this.betBotFactory.createBotLand(currentAmount, currentBets, currentUnits, beginEvent);
-							this.bettingTimer.schedule(this.botLand, this.bettingDelay);
+							this.bettingTimer.schedule(this.botLand, this.bettingDelay, TimeUnit.SECONDS);
 						}
 						break;
 					case BETTING_ENDS:
@@ -119,7 +126,8 @@ public class EventManager extends Thread {
 							this.botLand.setBettingEndsEvent(bettingEndsEvent);
 						}
 						if(bettingEndsEvent.getTeam1() == BattleGroundTeam.RED && bettingEndsEvent.getTeam2() == BattleGroundTeam.BLUE) {
-							this.bettingTimer.schedule(this.dumpService.getGlobalGilUpdateTask(), 5L);
+							DumpMatchScheduledTask task = this.dumpScheduledTasks.getGlobalGilUpdateTask();
+							this.bettingTimer.schedule(task, 5L, TimeUnit.SECONDS);
 						}
 						break;
 					case BALANCE:
@@ -208,7 +216,7 @@ public class EventManager extends Thread {
 	}
 	
 	public void sendScheduledMessage(String message, Long waitTime) {
-		this.bettingTimer.schedule(new MessageSenderTask(this.messageSenderRouter, message), waitTime);
+		this.bettingTimer.schedule(new MessageSenderTask(this.messageSenderRouter, message), waitTime, TimeUnit.SECONDS);
 	}
 	
 	public void sendMessage(String message) {

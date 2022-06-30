@@ -7,10 +7,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.util.BatchDataEntryType;
 
+@Repository
 public interface BatchDataEntryRepo extends JpaRepository<BatchDataEntry, Long> {
 
 	@Query("SELECT batchDataEntry FROM BatchDataEntry batchDataEntry WHERE batchDataEntry.batchDataEntryType = :batchDataEntryType ORDER BY batchDataEntry.updateComplete DESC")

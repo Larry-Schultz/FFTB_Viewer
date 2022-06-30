@@ -115,12 +115,12 @@ class ClassDataKey {
 	String className;
 	
 	public ClassDataKey(ClassData classData) {
-		this.gender = Gender.getGenderFromString(classData.getGender());
+		this.gender = classData.getGender();
 		this.className = StringUtils.lowerCase(classData.getName());
 	}
 	
 	public ClassDataKey(Unit unit) {
-		this.gender = Gender.getGenderFromString(unit.getGender());
+		this.gender = unit.getGender();
 		this.className = StringUtils.replace(StringUtils.lowerCase(unit.getClassName()), " ", ""); //mustadio removes spaces from class names
 	}
 }

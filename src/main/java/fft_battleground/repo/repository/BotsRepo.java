@@ -11,11 +11,13 @@ import org.apache.commons.lang3.tuple.MutableTriple;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import fft_battleground.repo.model.Bots;
 import fft_battleground.util.GambleUtil;
 import lombok.SneakyThrows;
 
+@Repository
 public interface BotsRepo extends JpaRepository<Bots, Long> {
 
 	@Query("SELECT Bot FROM Bots Bot WHERE Bot.dateString = :dateString AND Bot.player = :name")

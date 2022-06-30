@@ -7,11 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.repo.model.BotBetData;
 
 @Transactional
+@Repository
 public interface BotBetDataRepo extends JpaRepository<BotBetData, Long> {
 
 	@Query("SELECT botBetData FROM BotBetData botBetData ORDER BY botBetData.createDateTime ASC")

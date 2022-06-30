@@ -3,16 +3,18 @@ package fft_battleground.event;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
 import fft_battleground.event.annotate.TeamInfoEventAnnotator;
 import fft_battleground.event.annotate.UnitInfoEventAnnotator;
@@ -25,6 +27,7 @@ import fft_battleground.event.detector.model.FightBeginsEvent;
 import fft_battleground.event.detector.model.FightEntryEvent;
 import fft_battleground.event.detector.model.GiftSkillEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
+import fft_battleground.event.detector.model.MusicEvent;
 import fft_battleground.event.detector.model.PrestigeAscensionEvent;
 import fft_battleground.event.detector.model.SkillDropEvent;
 import fft_battleground.event.detector.model.SkillWinEvent;
@@ -38,11 +41,15 @@ import fft_battleground.event.detector.model.composite.OtherPlayerSkillOnCooldow
 import fft_battleground.event.detector.model.composite.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.detector.model.fake.TournamentStatusUpdateEvent;
 import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.exception.BattleGroundException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.MissingEventTypeException;
+import fft_battleground.exception.NotANumberBetException;
 import fft_battleground.exception.TournamentApiException;
+import fft_battleground.metrics.DetectorAuditManager;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
+import fft_battleground.music.MusicService;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.tournament.tracker.TournamentTracker;
@@ -77,6 +84,9 @@ public class EventParser extends Thread {
 	
 	@Autowired
 	private DumpService dumpService;
+	
+	@Autowired
+	private DumpScheduledTasksManagerImpl dumpScheduledTasks;
 	
 	@Autowired
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
@@ -117,8 +127,14 @@ public class EventParser extends Thread {
 	@Autowired
 	private BattleGroundEventAnnotator<FightEntryEvent> fightEntryEventAnnotator;
 	
-	private Timer eventTimer = new Timer();
-	private Timer tournamentTrackerTimer = new Timer();
+	@Autowired
+	private DetectorAuditManager detectorAuditManager;
+	
+	@Autowired
+	private MusicService musicService;
+	
+	private ExecutorService eventTimer = Executors.newFixedThreadPool(1);
+	private ExecutorService tournamentTrackerTimer = Executors.newFixedThreadPool(1);
 	
 	public EventParser() {
 		this.setName("EvntParsrThrd");
@@ -147,6 +163,7 @@ public class EventParser extends Thread {
 					try {
 						this.logEvent(event, message);
 						this.handleBattleGroundEvent(event);
+						this.sendEventToDetectorAudit(event);
 					} catch(MissingEventTypeException e) {
 						log.error("Missing event type for event of type: {}", event.getClass().toString(), e);
 					}
@@ -186,8 +203,14 @@ public class EventParser extends Thread {
 				}
 				switch(event.getEventType()) {
 				case BET:
-					this.betEventAnnotator.annotateEvent((BetEvent)event);
-					this.eventRouter.sendDataToQueues(event);
+					BetEvent betEvent = (BetEvent) event;
+					try {
+						this.betEventAnnotator.annotateEvent(betEvent);
+						this.eventRouter.sendDataToQueues(event);
+					} catch(NotANumberBetException e) {
+						log.error("Error parsing bet {}", e, betEvent.getBetText());
+						this.errorWebhookManager.sendMessage("Bad bet found: " + betEvent.getBetText() + " ignoring for now.");
+					}
 					break;
 				case BET_INFO:
 					this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) event);
@@ -253,6 +276,11 @@ public class EventParser extends Thread {
 					this.skillDropEventAnnotator.annotateEvent((SkillDropEvent) event);
 					this.eventRouter.sendDataToQueues(event);
 					break;
+				case MUSIC:
+					MusicEvent musicEvent = (MusicEvent) event;
+					this.musicService.addOccurence(musicEvent);
+					this.eventRouter.sendDataToQueues(musicEvent);
+					break;
 				case BETTING_ENDS:
 					this.handleBettingEndsEvent(event);
 					break;
@@ -305,7 +333,13 @@ public class EventParser extends Thread {
 			List<BattleGroundEvent> finalBets = this.tournamentService.getRealBetInfoFromLatestPotFile(this.currentTournament.getID());
 			log.info("Sending final bet data with {} entries", finalBets.size());
 			log.info("The final bet event data: {}", finalBets);
-			finalBets.parallelStream().forEach(betInfoEvent -> this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) betInfoEvent));
+			for(BattleGroundEvent betInfoEvent: finalBets) {
+				try {
+					this.betInfoEventAnnotator.annotateEvent((BetInfoEvent) betInfoEvent);
+				} catch(BattleGroundException e) {
+					log.error("Error parsing bet {}", e, betInfoEvent);
+				}
+			}
 			this.eventRouter.sendAllDataToQueues(finalBets);
 		}
 	}
@@ -384,16 +418,21 @@ public class EventParser extends Thread {
 	}
 	
 	protected void sendScheduledMessage(String message, Long waitTime) {
-		this.eventTimer.schedule(new MessageSenderTask(this.messageSenderRouter, message), waitTime);
+		this.eventTimer.submit(new MessageSenderTask(this.messageSenderRouter, message));
 	}
 	
 	protected void startEventUpdate() {
-		this.eventTimer.schedule(this.dumpService.getDataUpdateTask(), BattleGroundEventBackPropagation.delayIncrement);
+		List<DumpTournamentScheduledTask> tournamentTasks = this.dumpScheduledTasks.getTournamentTasks();
+		tournamentTasks.forEach(task -> this.eventTimer.submit(task));
+	}
+	
+	protected void sendEventToDetectorAudit(BattleGroundEvent event) {
+		this.eventTimer.submit(() -> this.detectorAuditManager.addEvent(event.getEventType()));
 	}
 	
 	protected void createAndSendTournamentTracker(BettingBeginsEvent bettingBeginsEvent, Tournament currentTournament) {
 		EventParser eventParser = this;
-		this.tournamentTrackerTimer.schedule(new TimerTask() {;
+		this.tournamentTrackerTimer.submit(new Runnable() {;
 			@Override
 			public void run() {
 				TournamentStatusUpdateEvent tournamentStatusEvent;
@@ -405,7 +444,7 @@ public class EventParser extends Thread {
 					eventParser.errorWebhookManager.sendException(e);
 				}
 			}
-		}, 0);
+		});
 	}
 	
 	protected <T extends BattleGroundEvent> void sendAllEventsToEventRouter(Collection<T> events) {

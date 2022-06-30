@@ -22,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.metrics.model.AccessEntry;
+import fft_battleground.metrics.model.HitsMetricsTracker;
+import fft_battleground.metrics.model.MetricsTrackerBuilder;
 import fft_battleground.repo.model.Hits;
 import fft_battleground.repo.repository.HitsRepo;
 import fft_battleground.repo.util.HitsType;

@@ -21,7 +21,7 @@ import com.google.common.base.Functions;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.model.Gender;
 import fft_battleground.repo.model.PlayerSkills;
-import fft_battleground.repo.util.SkillCategory;
+import fft_battleground.skill.model.SkillCategory;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.tournament.tips.Tips;
 import lombok.extern.slf4j.Slf4j;

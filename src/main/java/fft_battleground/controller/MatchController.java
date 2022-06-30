@@ -1,6 +1,5 @@
 package fft_battleground.controller;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -10,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,7 +23,6 @@ import com.google.common.base.Optional;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.metrics.AccessTracker;
-import fft_battleground.repo.model.Match;
 import fft_battleground.util.GenericElementOrdering;
 import fft_battleground.util.GenericResponse;
 
@@ -48,14 +45,6 @@ public class MatchController {
 		//this.logAccess("health check", userAgent, request);
 		Boolean result = true;
 		return GenericResponse.createGenericResponseEntity(result);
-	}
-
-	@ApiIgnore
-	@RequestMapping(value = "/matches", method = RequestMethod.GET)
-	public ResponseEntity<GenericResponse<List<Match>>> getMatches(
-			@RequestParam(name = "first", required = false, defaultValue = "0") Integer firstMatchIndex) {
-		List<Match> matches = new ArrayList<>();
-		return GenericResponse.createGenericResponseEntity(matches, HttpStatus.OK);
 	}
 
 	@ApiIgnore

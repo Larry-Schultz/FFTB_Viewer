@@ -59,6 +59,7 @@ import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightCo
 import fft_battleground.event.detector.model.composite.OtherPlayerInvalidFightEntryClassEvent;
 import fft_battleground.event.detector.model.composite.OtherPlayerUnownedSkillEvent;
 import fft_battleground.event.model.BattleGroundEvent;
+import fft_battleground.exception.NotANumberBetException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.model.PlayerRecord;
@@ -115,7 +116,7 @@ public class DetectorTests {
 	}
 
 	@Test
-	public void testBetDetector() {
+	public void testBetDetector() throws NotANumberBetException {
 		BetDetector detector = new BetDetector();
 		ChatMessage message = new ChatMessage("OtherBrand", "!bet 57% red");
 		ChatMessage message2 = new ChatMessage("allinbot", "!bet all blue");

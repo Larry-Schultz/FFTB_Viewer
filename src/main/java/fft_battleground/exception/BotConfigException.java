@@ -10,4 +10,12 @@ public class BotConfigException extends BattleGroundException {
 	public BotConfigException(String message) {
 		super(message);
 	}
+	
+	public BotConfigException(Exception e) {
+		super(e);
+	}
+
+	public BotConfigException(String string, NullPointerException e) {
+		super(string, e);
+	}
 }

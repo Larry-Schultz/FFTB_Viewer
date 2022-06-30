@@ -7,6 +7,7 @@ import java.util.function.Function;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import fft_battleground.repo.model.BattleGroundCacheEntry;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import lombok.SneakyThrows;
 
+@Repository
 public interface BattleGroundCacheEntryRepo extends JpaRepository<BattleGroundCacheEntry, String> {
 	
 	@Query("SELECT battleGroundCacheEntry FROM BattleGroundCacheEntry battleGroundCacheEntry WHERE battleGroundCacheEntry.cacheEntryId = :id AND battleGroundCacheEntry.lastUpdateDate <= :timestamp ")

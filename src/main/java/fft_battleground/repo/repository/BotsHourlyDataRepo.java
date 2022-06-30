@@ -12,10 +12,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.util.GenericElementOrdering;
 
+@Repository
 public interface BotsHourlyDataRepo extends JpaRepository<BotHourlyData, String> {
 
 	@Query("SELECT botHourlyData FROM BotHourlyData botHourlyData WHERE botHourlyData.player = :player")

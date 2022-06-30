@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,9 +39,7 @@ import fft_battleground.exception.DumpException;
 import fft_battleground.image.Images;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
-import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
@@ -71,9 +68,6 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
-	
-	@Autowired
-	private MatchRepo matchRepo;
 	
 	@Autowired
 	private Images images;
@@ -331,13 +325,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 			portraitUrl = this.images.getPortraitByName(topPlayerPortrait, team);
 		}
 		if (StringUtils.isBlank(topPlayerPortrait) || portraitUrl == null) {
-			List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(top5Players.get(0).getName(),
-					PageRequest.of(0, 1));
-			if (playerTeamInfo != null && playerTeamInfo.size() > 0) {
-				portraitUrl = this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0), team);
-			} else {
-				portraitUrl = this.images.getPortraitByName("Ramza");
-			}
+			portraitUrl = this.images.getPortraitByName("Ramza");
 		}
 		
 		log.info("Portrait lookup complete for team {}", team);

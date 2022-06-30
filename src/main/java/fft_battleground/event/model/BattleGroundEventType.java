@@ -76,7 +76,7 @@ public enum BattleGroundEventType {
 	}
 	
 	@JsonValue
-	public String jsonValue() {
+	public String formalName() {
 		String result = StringUtils.upperCase(this.name());
 		return result;
 	}

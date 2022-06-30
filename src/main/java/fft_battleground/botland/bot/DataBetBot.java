@@ -53,13 +53,13 @@ implements BotContainsPersonality, BotCanInverse {
 	}
 
 	@Override
-	protected Float generateLeftScore() {
+	protected Float generateLeftScore() throws BotConfigException {
 		Float score = this.findScoreOfBets(this.betsBySide.getLeft());
 		return score;
 	}
 
 	@Override
-	protected Float generateRightScore() {
+	protected Float generateRightScore() throws BotConfigException {
 		Float score = this.findScoreOfBets(this.betsBySide.getRight());
 		return score;
 	}
@@ -80,7 +80,7 @@ implements BotContainsPersonality, BotCanInverse {
 		return result;
 	}
 
-	protected Float findScoreOfBets(List<BetEvent> bets) {
+	protected Float findScoreOfBets(List<BetEvent> bets) throws BotConfigException {
 		float scoreSum = 0f;
 		for(BetEvent bet: bets) {
 			PlayerRecord playerRecord = null;
@@ -97,7 +97,11 @@ implements BotContainsPersonality, BotCanInverse {
 			}
 			Integer amount = GambleUtil.getMinimumBetForBettor(this.isBotSubscriber);
 			if(playerRecord != null) {
-				amount = GambleUtil.getBetAmountFromBetString(playerRecord, bet);
+				try {
+					amount = GambleUtil.getBetAmountFromBetString(playerRecord, bet);
+				} catch(Exception e) {
+					throw new BotConfigException(e);
+				}
 				scoreSum += this.scoreByPlayer(playerRecord.getWins(), playerRecord.getLosses(), amount, playerRecord.getLastKnownAmount());
 			}
 			

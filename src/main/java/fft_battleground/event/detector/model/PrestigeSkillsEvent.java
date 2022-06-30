@@ -32,6 +32,12 @@ implements DatabaseResultsData {
 		this.playerSkills = List.of(new PrestigeSkills(skill));
 	}
 	
+	public PrestigeSkillsEvent(List<PrestigeSkills> prestigeSkills, String player) {
+		super(type);
+		this.player = player;
+		this.playerSkills = prestigeSkills;
+	}
+	
 	public List<String> getSkills() {
 		List<String> skills = this.playerSkills.parallelStream().map(playerSkills -> playerSkills.getSkill()).collect(Collectors.toList());
 		return skills;

@@ -1,15 +1,15 @@
 package fft_battleground.tournament.model;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import fft_battleground.event.detector.model.UnitInfoEvent;
+import fft_battleground.model.Gender;
+import fft_battleground.util.jackson.GenderDeserializer;
 import lombok.Data;
 
 @Data
@@ -22,34 +22,50 @@ public class Unit {
 	
 	@JsonProperty("Name")
 	private String Name;
+	
+	@JsonDeserialize(using = GenderDeserializer.class)
 	@JsonProperty("Gender")
-	private String Gender;
+	private Gender gender;
+	
 	@JsonProperty("Sign")
 	private String Sign;
+	
 	@JsonProperty("Brave")
 	private Short Brave;
+	
 	@JsonProperty("Faith")
 	private Short Faith;
+	
 	@JsonProperty("Class")
 	private String className;
+	
 	@JsonProperty("ActionSkill")
 	private String ActionSkill;
+	
 	@JsonProperty("ReactionSkill")
 	private String ReactionSkill;
+	
 	@JsonProperty("MoveSkill")
 	private String MoveSkill;
+	
 	@JsonProperty("Mainhand")
 	private String Mainhand;
+	
 	@JsonProperty("Offhand")
 	private String Offhand;
+	
 	@JsonProperty("Head")
 	private String Head;
+	
 	@JsonProperty("Armor")
 	private String Armor;
+	
 	@JsonProperty("Accessory")
 	private String Accessory;
+	
 	@JsonProperty("ClassSkills")
 	private List<String> ClassSkills;
+	
 	@JsonProperty("ExtraSkills")
 	private List<String> ExtraSkills;
 	
@@ -65,15 +81,15 @@ public class Unit {
 	public String getUnitInfoString() {
 		String unitInfoString = "";
 		
-		if(!StringUtils.equals(this.Gender, "Monster")) {
+		if(this.gender != Gender.MONSTER) {
 			unitInfoString = this.createDashDelimitedString(Arrays.asList(new String[] {
-				this.Name, this.Gender, this.Sign, this.Brave.toString(), this.Faith.toString(), this.className, this.ActionSkill,
+				this.Name, this.gender.toString(), this.Sign, this.Brave.toString(), this.Faith.toString(), this.className, this.ActionSkill,
 				this.ReactionSkill, this.MoveSkill, this.Mainhand, this.Offhand, this.Head, this.Armor, this.Accessory,
 				this.createCommaDelimitedString(this.ClassSkills), this.createCommaDelimitedString(this.ExtraSkills)
 			}));
 		} else {
 			unitInfoString = this.createDashDelimitedString(Arrays.asList(new String[] {
-					this.Name, this.Gender, this.Sign, this.Brave.toString(), this.Faith.toString(), this.className, this.ActionSkill,
+					this.Name, this.gender.toString(), this.Sign, this.Brave.toString(), this.Faith.toString(), this.className, this.ActionSkill,
 					this.ReactionSkill
 				}));
 		}

@@ -35,14 +35,16 @@ public class BonusDetector implements EventDetector<BonusEvent> {
 		String classes = StringUtils.trim(StringUtils.substringBetween(message, SEARCH_STRING, CLASS_BONUS_SEARCH_STRING));
 		String skillBonus = StringUtils.trim(StringUtils.substringAfter(message, SKILL_BONUS_SEARCH_STRING));
 		Set<String> classList = this.parseClassBonus(classes);
-		event = new BonusEvent(player, classList, skillBonus);
+		if(classList != null) {
+			event = new BonusEvent(player, classList, skillBonus);
+		}
 		return event;
 	}
 	
 	private Set<String> parseClassBonus(String classList) {
 		String[] classStrings = StringUtils.split(classList, ", ");
 		Set<String> classStringList = null;
-		if(classStrings.length >= 3) {
+		if(classStrings != null && classStrings.length >= 3) {
 			classStringList = Set.of(classStrings);
 		}
 		

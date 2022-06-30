@@ -29,10 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public abstract class BetterBetBot
 implements Callable<Bet> {
-	protected static final String PERSONALITY_PARAM = "personality";
-	protected static final String INVERSE_PARAM = "inverse";
-	protected static final String BET_AMOUNT_EXPRESSION_PARAMETER = "betExpression";
-	
 	protected boolean isBotSubscriber = true;
 	
 	protected String personalityName;
@@ -163,7 +159,7 @@ implements Callable<Bet> {
 	
 	public abstract void initParams(Map<String, BotParam> map) throws BotConfigException;
 	
-	public abstract void init();
+	public abstract void init() throws BotConfigException;
 	
 	public abstract String getName();
 	

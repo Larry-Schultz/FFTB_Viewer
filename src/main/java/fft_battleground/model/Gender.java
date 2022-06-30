@@ -2,6 +2,8 @@ package fft_battleground.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Gender {
 	MALE("male"),
 	FEMALE("female"),
@@ -37,6 +39,12 @@ public enum Gender {
 		return null;
 	}
 	
+	public String toCapitalizedString() {
+		String result = StringUtils.capitalize(this.genderString);
+		return result;
+	}
+	
+	@JsonValue
 	@Override
 	public String toString() {
 		return this.genderString;

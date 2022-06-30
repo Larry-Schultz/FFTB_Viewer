@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.exception.NotANumberBetException;
 import fft_battleground.repo.model.PlayerRecord;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ public class GambleUtil {
 		return newAmount;
 	}
 	
-	public static Integer getBetAmountFromBetString(PlayerRecord player, BetEvent event) {
+	public static Integer getBetAmountFromBetString(PlayerRecord player, BetEvent event) throws NotANumberBetException {
 		Integer value = 0;
 		switch(event.getBetType()) {
 		case VALUE:
@@ -107,7 +108,21 @@ public class GambleUtil {
 				if(event.isAllinbutFlag()) {
 					cleanedBetText = StringUtils.remove(cleanedBetText, "ab");
 				}
-				BigDecimal multiplier = new BigDecimal(cleanedBetText);
+				
+				if(StringUtils.equalsIgnoreCase(cleanedBetText, "")) {
+					/*
+					 * if we've removed both "ab" and "f" and come up with a blank string, we need to add a 1 since its implied.
+					 * This covers bets like "bet f red" and maybe "bet abf red"
+					 */
+					cleanedBetText = "1";  
+				}
+				
+				BigDecimal multiplier = null;
+				try {
+					multiplier = new BigDecimal(cleanedBetText);
+				} catch(NumberFormatException e) {
+					throw new NotANumberBetException(e);
+				}
 				value = BigDecimal.valueOf(value).multiply(multiplier).setScale(0, RoundingMode.HALF_UP).intValue();
 			}
 			if(event.isAllinbutFlag()) {
@@ -161,7 +176,9 @@ public class GambleUtil {
 		if(percentiles == null || percentiles.isEmpty()) {
 			return 50;
 		}
-		int scoreDifference = (int) Math.abs(leftScore - rightScore);
+		float leftScoreVal = leftScore != null ? leftScore.floatValue() : 0f;
+		float rightScoreVal = rightScore != null ? rightScore.floatValue() : 0f;
+		int scoreDifference = (int) Math.abs(leftScoreVal - rightScoreVal);
 		int percentile = 0;
 		for(int i = 1; i < 100 && percentiles.get(i) < scoreDifference; i++) {
 			percentile = i;

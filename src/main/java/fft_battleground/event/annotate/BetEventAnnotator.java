@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.model.BetEvent;
+import fft_battleground.exception.NotANumberBetException;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.util.GambleUtil;
@@ -24,7 +25,7 @@ public class BetEventAnnotator implements BattleGroundEventAnnotator<BetEvent> {
 	private DumpService dumpService;
 	
 	@Override
-	public void annotateEvent(BetEvent event) {
+	public void annotateEvent(BetEvent event) throws NotANumberBetException {
 		this.annotePlayerMetadata(event);
 		String cleanedPlayerName = GambleUtil.cleanString(event.getPlayer());
 		if(this.dumpService.getBotNames().contains(cleanedPlayerName)) {
@@ -36,7 +37,7 @@ public class BetEventAnnotator implements BattleGroundEventAnnotator<BetEvent> {
 		return;
 	}
 	
-	private void annotePlayerMetadata(BetEvent event) {
+	private void annotePlayerMetadata(BetEvent event) throws NotANumberBetException {
 		PlayerRecord metadata = new PlayerRecord();
 		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(StringUtils.lowerCase(event.getPlayer()));
 		if(maybeRecord.isPresent()) {

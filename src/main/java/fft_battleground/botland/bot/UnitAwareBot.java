@@ -16,6 +16,7 @@ import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
 import fft_battleground.botland.bot.genetic.GeneFileV1Cache;
+import fft_battleground.botland.bot.genetic.model.ResultData;
 import fft_battleground.botland.bot.model.Bet;
 import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.botland.bot.util.BotCanInverse;
@@ -75,7 +76,7 @@ implements BotCanInverse, BotContainsPersonality, BotCanUseBetExpressions {
 	}
 
 	@Override
-	public void init() {
+	public void init() throws BotConfigException {
 		UnitAwareBotConfigVerifier verifier = new UnitAwareBotConfigVerifier(this.geneFileCache);
 		Optional<List<String>> invalidAttributes = verifier.checkForInvalidAttributes(this.unitParameters.keySet());
 		if(invalidAttributes.isPresent()) {
@@ -164,10 +165,15 @@ class UnitAwareBotConfigVerifier {
 	
 	public UnitAwareBotConfigVerifier() {}
 	
-	public UnitAwareBotConfigVerifier(GeneFileV1Cache cache) {
-		this.validAttributes = cache.getLatestFile().getGeneticAttributes().stream()
-		.map(geneticAttribute -> StringUtils.lowerCase(geneticAttribute.getKey()))
-		.collect(Collectors.toList());
+	public UnitAwareBotConfigVerifier(GeneFileV1Cache cache) throws BotConfigException {
+		try {
+		ResultData latestFile = cache.getLatestFile();
+		this.validAttributes = latestFile.getGeneticAttributes().stream()
+			.map(geneticAttribute -> StringUtils.lowerCase(geneticAttribute.getKey()))
+			.collect(Collectors.toList());
+		} catch(NullPointerException e) {
+			throw new BotConfigException("Missing or bad Gen 1 gene file", e);
+		}
 	}
 	
 	public Optional<List<String>> checkForInvalidAttributes(Collection<String> attributes) {

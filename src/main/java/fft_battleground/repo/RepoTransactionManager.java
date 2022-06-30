@@ -41,7 +41,6 @@ import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.BotHourlyData;
 import fft_battleground.repo.model.Bots;
 import fft_battleground.repo.model.GlobalGilHistory;
-import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.PrestigeSkills;
@@ -49,14 +48,13 @@ import fft_battleground.repo.repository.BalanceHistoryRepo;
 import fft_battleground.repo.repository.BotsHourlyDataRepo;
 import fft_battleground.repo.repository.BotsRepo;
 import fft_battleground.repo.repository.GlobalGilHistoryRepo;
-import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.repository.PrestigeSkillsRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
-import fft_battleground.repo.util.SkillType;
 import fft_battleground.repo.util.UpdateSource;
+import fft_battleground.skill.model.SkillType;
 import fft_battleground.util.GambleUtil;
 
 import lombok.SneakyThrows;
@@ -68,9 +66,6 @@ public class RepoTransactionManager {
 
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
-	
-	@Autowired
-	private MatchRepo matchRepo;
 	
 	@Autowired
 	private BalanceHistoryRepo balanceHistoryRepo;
@@ -101,10 +96,9 @@ public class RepoTransactionManager {
 	
 	public RepoTransactionManager() {}
 	
-	public RepoTransactionManager(PlayerRecordRepo playerRecordRepo, MatchRepo matchRepo, BalanceHistoryRepo balanceHistoryRepo,
+	public RepoTransactionManager(PlayerRecordRepo playerRecordRepo, BalanceHistoryRepo balanceHistoryRepo,
 			BattleGroundEventBackPropagation battleGroundEventBackPropagation) {
 		this.playerRecordRepo = playerRecordRepo;
-		this.matchRepo = matchRepo;
 		this.balanceHistoryRepo = balanceHistoryRepo;
 		this.battleGroundEventBackPropagation = battleGroundEventBackPropagation;
 	}
@@ -337,13 +331,6 @@ public class RepoTransactionManager {
 		}
 		
 		this.botsHourlyDataRepo.saveAndFlush(currentData);
-	}
-	
-	@Transactional
-	public void updateMatchData(BetResults result) {
-		log.info("updating match data.");
-		Match mostRecentMatch = new Match(result);
-		this.matchRepo.saveAndFlush(mostRecentMatch);
 	}
 	
 	@Transactional
@@ -668,15 +655,27 @@ public class RepoTransactionManager {
 	}
 	
 	@Transactional
-	public void updateClassBonus(ClassBonusEvent classBonusEvent) {
-		this.dumpService.getClassBonusRepo().deleteClassBonusForPlayer(classBonusEvent.getPlayer());
-		this.dumpService.getClassBonusRepo().addClassBonusesForPlayer(classBonusEvent.getPlayer(), classBonusEvent.getClassBonuses());
+	public void updateClassBonus(ClassBonusEvent classBonusEvent) throws BattleGroundDataIntegrityViolationException {
+		try {
+			this.dumpService.getClassBonusRepo().deleteClassBonusForPlayer(classBonusEvent.getPlayer());
+			this.dumpService.getClassBonusRepo().addClassBonusesForPlayer(classBonusEvent.getPlayer(), classBonusEvent.getClassBonuses());
+		} catch(DataIntegrityViolationException dive) {
+			String errorMessage = "Data integrity violation during class bonus update for player " + classBonusEvent.getPlayer();
+			log.error(errorMessage, dive);
+			throw new BattleGroundDataIntegrityViolationException(errorMessage, dive);
+		}
 	}
 	
 	@Transactional
-	public void updateSkillBonus(SkillBonusEvent skillBonusEvent) {
-		this.dumpService.getSkillBonusRepo().deleteSkillForPlayer(skillBonusEvent.getPlayer());
-		this.dumpService.getSkillBonusRepo().addSkillBonusesForPlayer(skillBonusEvent.getPlayer(), skillBonusEvent.getSkillBonuses());
+	public void updateSkillBonus(SkillBonusEvent skillBonusEvent) throws BattleGroundDataIntegrityViolationException {
+		try {
+			this.dumpService.getSkillBonusRepo().deleteSkillForPlayer(skillBonusEvent.getPlayer());
+			this.dumpService.getSkillBonusRepo().addSkillBonusesForPlayer(skillBonusEvent.getPlayer(), skillBonusEvent.getSkillBonuses());
+		} catch(DataIntegrityViolationException dive) {
+			String errorMessage = "Data integrity violation during skill bonus update for player " + skillBonusEvent.getPlayer();
+			log.error(errorMessage, dive);
+			throw new BattleGroundDataIntegrityViolationException(errorMessage, dive);
+		}
 	}
 	
 	@Transactional

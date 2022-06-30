@@ -163,9 +163,6 @@ public class RepoManager extends Thread {
 			//update player data
 			this.updatePlayerData(newResults);
 			
-			//update match data
-			this.repoTransactionManager.updateMatchData(newResults);
-			
 			//update bot data
 			this.updateBotData(newResults);
 		} catch( NullPointerException e) {
@@ -306,11 +303,11 @@ public class RepoManager extends Thread {
 		}
 	}
 	
-	private void handleClassBonusEvent(ClassBonusEvent newResults) {
+	private void handleClassBonusEvent(ClassBonusEvent newResults) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updateClassBonus(newResults);
 	}
 	
-	private void handleSkillBonusEvent(SkillBonusEvent newResults) {
+	private void handleSkillBonusEvent(SkillBonusEvent newResults) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updateSkillBonus(newResults);
 	}
 	
@@ -329,7 +326,7 @@ public class RepoManager extends Thread {
 		}
 	}
 	
-	private void handleBonusEvent(BonusEvent event) {
+	private void handleBonusEvent(BonusEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.handleClassBonusEvent(event.getClassBonusEvent());
 		this.handleSkillBonusEvent(event.getSkillBonusEvent());
 	}

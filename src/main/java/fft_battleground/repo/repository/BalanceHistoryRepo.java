@@ -9,10 +9,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import fft_battleground.repo.model.BalanceHistory;
 import lombok.SneakyThrows;
 
+@Repository
 public interface BalanceHistoryRepo extends JpaRepository<BalanceHistory, String> {
 
 	@Query("Select balanceHistory from BalanceHistory balanceHistory where balanceHistory.player = :player AND balanceHistory.type= 'DUMP' ORDER BY create_timestamp DESC")

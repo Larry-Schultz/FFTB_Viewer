@@ -1,8 +1,5 @@
 package fft_battleground.dump;
 
-import java.io.StringReader;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,36 +14,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
 import fft_battleground.controller.response.model.PlayerData;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.model.Music;
-import fft_battleground.dump.scheduled.GenerateDataUpdateFromDump;
-import fft_battleground.dump.scheduled.UpdateGlobalGilCount;
+import fft_battleground.dump.cache.DumpCacheBuilder;
 import fft_battleground.event.detector.model.BalanceEvent;
 import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.event.detector.model.LastActiveEvent;
@@ -60,16 +42,17 @@ import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.image.Images;
+import fft_battleground.metrics.DetectorAuditManager;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.music.MusicService;
+import fft_battleground.music.model.Music;
 import fft_battleground.repo.RepoManager;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.PrestigeSkills;
-import fft_battleground.repo.model.TeamInfo;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.ClassBonusRepo;
-import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.repository.PlayerSkillRepo;
 import fft_battleground.repo.repository.PrestigeSkillsRepo;
@@ -83,7 +66,6 @@ import fft_battleground.util.Router;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -103,7 +85,7 @@ public class DumpService {
 	@Getter private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
-	@Getter private DumpScheduledTasks dumpScheduledTasks;
+	@Getter private DumpScheduledTasksManagerImpl dumpScheduledTasks;
 	
 	@Autowired
 	@Getter private DumpReportsService dumpReportsService;
@@ -119,9 +101,6 @@ public class DumpService {
 	
 	@Autowired
 	@Getter private RepoManager repoManager;
-	
-	@Autowired
-	@Getter private MatchRepo matchRepo;
 	
 	@Autowired
 	@Getter private PlayerRecordRepo playerRecordRepo;
@@ -146,6 +125,12 @@ public class DumpService {
 	
 	@Autowired
 	@Getter private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	@Getter private DetectorAuditManager detectorAuditManager;
+	
+	@Autowired
+	@Getter private MusicService musicService;
 	
 	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
@@ -190,36 +175,17 @@ public class DumpService {
 
 		DumpCacheBuilder builder = new DumpCacheBuilder(this);
 		builder.buildCache(playerRecords);
-
-		log.info("started loading bot cache");
-		try {
-			this.botCache = this.dumpDataProvider.getBots();
-		} catch (DumpException e) {
-			log.error("error loading bot file");
-			throw new CacheBuildException("error building bot file", e);
-		}
-		log.info("finished loading bot cache");
+		builder.buildBotCache();
 
 		if(this.runBatch != null && this.runBatch) {
 			//this.dumpScheduledTasks.runAllUpdates();
 		}
 		
-		builder.buildPlaylist();
-		builder.buildLeaderboard();
+		builder.runStartupBuilders();
 
 		log.info("player data cache load complete");
 		
-		this.dumpScheduledTasks.forceScheduleAllegianceBatch();
-		this.dumpScheduledTasks.forceScheduleUserSkillsTask(this, true);
-		this.dumpScheduledTasks.forceCertificateCheck();
-		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
-		/*
-		 * this.dumpScheduledTasks.forceScheduleUserSkillsTask();
-		 * this.dumpScheduledTasks.forceScheduleClassBonusTask();
-		 * this.dumpScheduledTasks.forceScheduleSkillBonusTask();
-		 * 
-		 * 
-		 */
+		builder.forceSpecificDailyTasks();
 		
 		Date latestDate = this.getLatestActiveDate();
 	}
@@ -368,58 +334,8 @@ public class DumpService {
 		return botNames;
 	}
 	
-	public TimerTask getDataUpdateTask() {
-		return new GenerateDataUpdateFromDump(this.eventRouter, this);
-	}
-	
-	public TimerTask getGlobalGilUpdateTask() {
-		return new UpdateGlobalGilCount(this.eventRouter, this);
-	}
-	
 	public void updateBalanceCache(BalanceEvent event) {
 		this.balanceCache.put(event.getPlayer(), event.getAmount());
-	}
-
-	@SneakyThrows
-	public Collection<Music> getPlaylist() {
-		Collection<Music> musicList;
-		synchronized(this.musicCacheLock) {
-			musicList = this.musicCache;
-		}
-		return musicList;
-	}
-	
-	@SneakyThrows
-	public Collection<Music> setPlaylist() {
-		log.info("Updating music data");
-		Set<Music> musicSet = new HashSet<>();
-		String xmlData = this.dumpDataProvider.getMusicXmlString();
-		
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.parse(new InputSource(new StringReader(xmlData)));
-		doc.getDocumentElement().normalize();
-		
-		NodeList leafs = doc.getElementsByTagName("leaf");
-		for(int i = 0; i < leafs.getLength(); i++) {
-			Node node = leafs.item(i);
-			if(node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element) node;
-				String name = element.getAttribute("uri");
-				name = StringUtils.substringAfterLast(name, "/");
-				name = StringUtils.substringBefore(name, ".mp3");
-				name = URLDecoder.decode(name, StandardCharsets.UTF_8.toString());
-				musicSet.add(new Music(name, element.getAttribute("id"), element.getAttribute("duration")));
-			}
-		}
-		
-		Collection<Music> musicList = musicSet.stream().collect(Collectors.toList()).stream().sorted().collect(Collectors.toList());
-		synchronized(this.musicCacheLock) {
-			this.musicCache = musicList;
-		}
-		log.info("music data update complete");
-		
-		return musicList;
 	}
 	
 	@Transactional(readOnly = true)
@@ -449,15 +365,10 @@ public class DumpService {
 				playerData.setPortraitUrl(portraitUrl);
 			}
 			if(StringUtils.isBlank(record.getPortrait()) || playerData.getPortraitUrl() == null) {
-				List<TeamInfo> playerTeamInfo = this.matchRepo.getLatestTeamInfoForPlayer(record.getPlayer(), PageRequest.of(0,1));
-				if(playerTeamInfo != null && playerTeamInfo.size() > 0) {
-					playerData.setPortraitUrl(this.images.getPortraitLocationByTeamInfo(playerTeamInfo.get(0), record.getAllegiance()));
+				if(playerData.isBot()) {
+					playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
 				} else {
-					if(playerData.isBot()) {
-						playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
-					} else {
-						playerData.setPortraitUrl(this.images.getPortraitByName("Ramza"));
-					}
+					playerData.setPortraitUrl(this.images.getPortraitByName("Ramza"));
 				}
 			}
 			

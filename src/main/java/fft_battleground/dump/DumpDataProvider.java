@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -26,7 +29,9 @@ import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerSkills;
-import fft_battleground.repo.util.SkillType;
+import fft_battleground.repo.model.PrestigeSkills;
+import fft_battleground.skill.model.Skill;
+import fft_battleground.skill.model.SkillType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +50,7 @@ public class DumpDataProvider {
 	private static final String DUMP_ALLEGIANCE_URL_FORMAT = "http://www.fftbattleground.com/fftbg/allegiance/%s";
 	private static final String DUMP_USERSKILLS_URL_FORMAT = "http://www.fftbattleground.com/fftbg/userskills/%s";
 	private static final String DUMP_PRESTIGE_URL_FORMAT = "http://www.fftbattleground.com/fftbg/prestige/%s";
+	private static final String DUMP_PRESTIGE_COOLDOWN_URL_FORMAT = "http://www.fftbattleground.com/fftbg/prestige/snubstreak/%s";
 	private static final String DUMP_CLASSBONUS_URL_FORMAT ="http://www.fftbattleground.com/fftbg/classbonus/%s";
 	private static final String DUMP_SKILLBONUS_URL_FORMAT = "http://www.fftbattleground.com/fftbg/skillbonus/%s";
 	
@@ -197,6 +203,21 @@ public class DumpDataProvider {
 		return players;
 	}
 	
+	public Set<String> getRecentPlayersForPrestigeSkillsDump() {
+		Set<String> players = this.getRecentPlayerListFromUrl(DUMP_PRESTIGE_URL_FORMAT);
+		return players;
+	}
+	
+	public Set<String> getPlayersForPrestigeSkillsCooldown() {
+		Set<String> player = this.getPlayerList(DUMP_PRESTIGE_COOLDOWN_URL_FORMAT);
+		return player;
+	}
+	
+	public Set<String> getRecentPlayersForPrestigeSkillsCooldown() {
+		Set<String> player = this.getRecentPlayerListFromUrl(DUMP_PRESTIGE_COOLDOWN_URL_FORMAT);
+		return player;
+	}
+	
 	public Set<String> getPlayersForUserSkillsDump() {
 		Set<String> players = this.getPlayerList(DUMP_USERSKILLS_URL_FORMAT);
 		return players;
@@ -313,10 +334,27 @@ public class DumpDataProvider {
 		return skills;
 	}
 	
-	public List<String> getPrestigeSkillsForPlayer(String player) throws DumpException {
-		List<PlayerSkills> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT, SkillType.PRESTIGE);
-		List<String> skillStrings = PlayerSkills.convertToListOfSkillStrings(skills); 
-		return skillStrings;
+	public List<PrestigeSkills> getPrestigeSkillsForPlayer(String player) throws DumpException {
+		List<PrestigeSkills> skills = this.getSkills(player, DUMP_PRESTIGE_URL_FORMAT, SkillType.PRESTIGE).stream()
+										.map(PrestigeSkills::new).collect(Collectors.toList());
+		List<Integer> cooldowns = this.getPrestigeSkillCooldownsForPlayer(player, skills.size());
+		for(int i = 0; i < skills.size(); i++) {
+			skills.get(i).setCooldown(cooldowns.get(i));
+		}
+		
+		return skills;
+	}
+	
+	public List<Integer> getPrestigeSkillCooldownsForPlayer(String player, int skillCount) throws DumpException {
+		List<Integer> cooldownList = new ArrayList<>();
+		for(int i = 1; i <= skillCount; i++) {
+			String alteredPlayer = player + "%20" + String.valueOf(i);
+			Function<String, Integer> stringToInteger = Integer::valueOf;
+			int cooldown = this.readLineDataFromFile(alteredPlayer, DUMP_PRESTIGE_COOLDOWN_URL_FORMAT, "prestige cooldown", stringToInteger);
+			cooldownList.add(cooldown);
+		}
+		
+		return cooldownList;
 	}
 	
 	protected List<PlayerSkills> getSkills(String player, String urlFormat, SkillType type) throws DumpException {

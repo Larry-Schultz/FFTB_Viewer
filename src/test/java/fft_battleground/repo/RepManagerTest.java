@@ -29,9 +29,7 @@ import fft_battleground.event.detector.model.composite.OtherPlayerBalanceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.repo.model.Match;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.repository.MatchRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.util.UpdateSource;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +47,6 @@ public class RepManagerTest {
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
-	
-	@Autowired
-	private MatchRepo matchRepo;
 	
 	@Autowired
 	private RepoManager repoManager;
@@ -100,27 +95,6 @@ public class RepManagerTest {
 		assertTrue(maybeRecord.isPresent());
 		assertTrue(maybeRecord.get().getWins().equals(2));
 		assertTrue(maybeRecord.get().getLosses().equals(1));
-	}
-	
-	@Test
-	public void testMatchRepoWrite() {
-		Pair<List<BetEvent>, List<BetEvent>> sampleBetEvents = new ImmutablePair<>(new ArrayList<>(), new ArrayList<>());
-		BetEvent leftEvent = new BetEvent("OtherBrand", BattleGroundTeam.BLACK, "allin", "allin", BetType.ALLIN, true);
-		BetEvent rightEvent = new BetEvent("datadrivenbot", BattleGroundTeam.GREEN, "100", "100", BetType.VALUE, true);
-		sampleBetEvents.getLeft().add(leftEvent);
-		sampleBetEvents.getRight().add(rightEvent);
-		
-		BettingEndsEvent endsEvent = new BettingEndsEvent(BattleGroundTeam.BLACK, 3, 1000, BattleGroundTeam.GREEN, 4, 1750);
-		BetResults testResult = new BetResults(sampleBetEvents, BattleGroundTeam.LEFT, BattleGroundTeam.BLACK, BattleGroundTeam.GREEN, endsEvent, null, null, null);
-		
-		this.repoManager.getRepoTransactionManager().updateMatchData(testResult);
-		List<Match> matches = this.matchRepo.findAll();
-		assertNotNull(matches);
-		assertTrue(matches.size() >= 1);
-		assertNotNull(matches.get(0).getBets());
-		assertTrue(matches.get(0).getBets().size() == 2);
-		log.info("The left team amount = {}", matches.get(0).getRealBetInformation().getLeftTeamAmount());
-		assertTrue(matches.get(0).getRealBetInformation().getLeftTeamAmount().equals(1000));
 	}
 	
 	@Test

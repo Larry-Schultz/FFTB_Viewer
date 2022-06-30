@@ -1,7 +1,6 @@
 package fft_battleground.controller.response.model;
 
-import fft_battleground.dump.model.Music;
-
+import fft_battleground.music.model.Music;
 import lombok.Data;
 
 @Data

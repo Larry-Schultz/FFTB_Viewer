@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.exception.MissingTipException;
+import fft_battleground.model.Gender;
 import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GenericPairing;
 import lombok.Data;
@@ -34,9 +35,9 @@ public class UnitTipInfo {
 	
 	public UnitTipInfo(Unit unit, Tips tips) throws MissingTipException {
 		if(StringUtils.isNotEmpty(unit.getClassName())) {
-			if(StringUtils.equalsIgnoreCase(unit.getGender(), "male") || StringUtils.equalsIgnoreCase(unit.getGender(), "female")) {
+			if(unit.getGender() == Gender.MALE || unit.getGender() == Gender.FEMALE) {
 				String className = StringUtils.replace(unit.getClassName(), " ", "");
-				this.classTip = this.readTipMap(tips.getClassMap(), className + " " + unit.getGender());
+				this.classTip = this.readTipMap(tips.getClassMap(), className + " " + unit.getGender().toCapitalizedString());
 			} else {
 				String searchString = StringUtils.replace(unit.getClassName(), " ", "");
 				this.classTip = this.readTipMap(tips.getClassMap(), searchString);
