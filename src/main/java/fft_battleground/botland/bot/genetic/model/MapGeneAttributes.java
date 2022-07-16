@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -19,8 +20,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class MapGeneAttributes extends GeneAttributes {
+public class MapGeneAttributes 
+extends GeneAttributes
+implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4805458165145763116L;
+	
 	@JsonIgnore
 	private transient Map<MapKey, Double> mapGeneMap;
 	

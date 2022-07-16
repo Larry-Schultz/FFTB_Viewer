@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
+import fft_battleground.dump.DumpService;
 import fft_battleground.dump.scheduled.DumpDailyScheduledTask;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
@@ -24,8 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AllegianceDailyTask extends DumpDailyScheduledTask {
 
 	
-	public AllegianceDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) { 
-		super(dumpScheduledTasks);
+	public AllegianceDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) { 
+		super(dumpScheduledTasks, dumpService);
 	}
 	
 	protected void task() {

@@ -185,7 +185,7 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
-		builder.forceSpecificDailyTasks();
+		builder.forceSpecificDailyTasks(this);
 		
 		Date latestDate = this.getLatestActiveDate();
 	}

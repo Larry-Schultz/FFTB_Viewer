@@ -22,8 +22,8 @@ public class BadAccountsDailyTask extends ScheduledTask {
 	private DumpService dumpServiceRef;
 	private DumpDataProvider dumpDataProviderRef;
 	
-	public BadAccountsDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+	public BadAccountsDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
+		super(dumpScheduledTasks, dumpService);
 		this.dumpServiceRef = dumpScheduledTasks.getDumpService();
 		this.dumpDataProviderRef = dumpScheduledTasks.getDumpDataProvider();
 	}

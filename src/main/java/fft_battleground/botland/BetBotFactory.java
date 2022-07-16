@@ -111,19 +111,22 @@ public class BetBotFactory {
 	@Autowired
 	private DumpService dumpService;
 	
+	@Autowired
+	@Getter private GeneFileV1Cache geneFileCache;
+	
+	@Autowired
+	@Getter private GeneFileCache<GeneTrainerV2BotData> geneFileV2Cache;
+	
 	private Timer botlandTimer = new Timer();
 	private Cache<String, Map<String, BotData>> botDataCache;
-	
-	@Getter private GeneFileV1Cache geneFileCache;
-	@Getter private GeneFileCache<GeneTrainerV2BotData> geneFileV2Cache;
 	
 	public BetBotFactory(@Value("${botlandCacheDuration}") long botlandCacheDuration) {
 		this.botDataCache = Caffeine.newBuilder()
 				  .expireAfterWrite(botlandCacheDuration, TimeUnit.MINUTES)
 				  .maximumSize(1)
 				  .build();
-		this.geneFileCache = new GeneFileV1Cache(botlandCacheDuration);
-		this.geneFileV2Cache = new GeneFileV2Cache(botlandCacheDuration);
+		this.geneFileCache = new GeneFileV1Cache();
+		this.geneFileV2Cache = new GeneFileV2Cache();
 	}
 	
 	public BotLand createBotLand(Integer currentAmountToBetWith, List<BetEvent> otherPlayerBets, Set<UnitInfoEvent> currentUnits, BettingBeginsEvent beginEvent) {

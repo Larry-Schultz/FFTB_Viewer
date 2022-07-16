@@ -1,6 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
-import java.util.List;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -14,7 +14,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeneAttributes {
+public class GeneAttributes implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1539905136661247962L;
+
 	protected GeneAttributeContainer geneAttributes;
 	
 	@JsonIgnore

@@ -1,5 +1,7 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -7,7 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class PlayerDataGeneAttributes extends GeneAttributes {
+public class PlayerDataGeneAttributes 
+extends GeneAttributes
+implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8793370223720765018L;
 	public static final String BET_WIN_RATIO = "BetWinRatio";
 	public static final String FIGHT_WIN_RATIO = "FightWinRatio";
 	public static final String MISSING_FIGHT_WIN_RATIO = "MissingFightWinRatio";

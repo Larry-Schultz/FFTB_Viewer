@@ -23,16 +23,18 @@ extends BuilderTask {
 	
 	@Override
 	public void run() {
-		
+		log.info("Running Music Cache Build");
 		Collection<Music> dumpData;
 		try {
 			List<MusicListenCount> repoData = this.musicService.loadMusicListenCountFromRepo();
+			log.info("music listen count data loaded");
 			dumpData = this.musicService.loadMusicDataFromDump();
+			log.info("music data from dump loaded");
 			this.musicService.freshLoad(dumpData, repoData);
 		} catch (DumpException e) {
 			log.error("Error starting up music service", e);
 		}
-		
+		log.info("Music Cache Build complete");
 	}
 	
 }

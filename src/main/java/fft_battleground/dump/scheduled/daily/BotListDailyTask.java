@@ -20,8 +20,8 @@ public class BotListDailyTask extends ScheduledTask {
 	private WebhookManager errorWebhookManagerRef;
 	private BatchDataEntryRepo batchDataEntryRepoRef;
 	
-	public BotListDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+	public BotListDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
+		super(dumpScheduledTasks, dumpService);
 		this.dumpServiceRef = dumpScheduledTasks.getDumpService();
 		this.dumpDataProviderRef = dumpScheduledTasks.getDumpDataProvider();
 		this.errorWebhookManagerRef = dumpScheduledTasks.getErrorWebhookManager();

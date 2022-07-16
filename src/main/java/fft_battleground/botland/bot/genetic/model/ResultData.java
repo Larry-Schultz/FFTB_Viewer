@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,7 +15,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ResultData {
+public class ResultData implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8030323286648344935L;
+	
 	private boolean abilityEnabled;
 	private boolean itemEnabled;
 	private boolean userSkillsEnabled;

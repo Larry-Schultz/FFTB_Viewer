@@ -20,6 +20,7 @@ public class UpdateMusicDataTournamentTask extends DumpTournamentScheduledTask {
 
 	@Override
 	protected void task() {
+		log.info("Running music tournament task");
 		try {
 			this.musicService.updateOccurences();
 			this.musicService.updatePlaylist();
@@ -27,6 +28,7 @@ public class UpdateMusicDataTournamentTask extends DumpTournamentScheduledTask {
 			log.error("Error reloading music data");
 			this.errorWebhookManager.sendException(e, "Error reloading music data");
 		}
+		log.info("Music Tournament Task complete.");
 	}
 
 }

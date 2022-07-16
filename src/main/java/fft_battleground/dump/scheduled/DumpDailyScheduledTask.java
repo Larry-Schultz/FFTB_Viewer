@@ -19,8 +19,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 public abstract class DumpDailyScheduledTask extends ScheduledTask {
-
-	protected DumpService dumpServiceRef;
 	protected BatchDataEntryRepo batchDataEntryRepoRef;
 	protected DumpDataProvider dumpDataProviderRef;
 	protected WebhookManager errorWebhookManagerRef;
@@ -30,8 +28,8 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 	
 	@Getter @Setter private boolean checkAllUsers = false;
 	
-	public DumpDailyScheduledTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+	public DumpDailyScheduledTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
+		super(dumpScheduledTasks, dumpService);
 		
 		this.batchDataEntryRepoRef = this.dumpScheduledTasksRef.getBatchDataEntryRepo();
 		this.dumpDataProviderRef = this.dumpScheduledTasksRef.getDumpDataProvider();

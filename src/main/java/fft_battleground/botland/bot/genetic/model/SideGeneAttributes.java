@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -13,8 +14,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class SideGeneAttributes extends GeneAttributes {
+public class SideGeneAttributes 
+extends GeneAttributes
+implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8090830343214187826L;
+	
 	@JsonIgnore
 	protected transient Map<BattleGroundTeam, Double> teamAttributeMap;
 	

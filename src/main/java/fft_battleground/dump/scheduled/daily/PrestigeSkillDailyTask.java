@@ -27,7 +27,7 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 	private static final Logger ascensionLogger = LoggerFactory.getLogger("AscensionPrestigeLogger");
 	
 	public PrestigeSkillDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
-		super(dumpScheduledTasks);
+		super(dumpScheduledTasks, dumpService);
 	}
 
 	@Override

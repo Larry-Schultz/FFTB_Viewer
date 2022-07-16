@@ -32,6 +32,7 @@ import fft_battleground.dump.scheduled.daily.BotListDailyTask;
 import fft_battleground.dump.scheduled.daily.CheckCertificateDailyTask;
 import fft_battleground.dump.scheduled.daily.ClassBonusDailyTask;
 import fft_battleground.dump.scheduled.daily.PortraitsDailyTask;
+import fft_battleground.dump.scheduled.daily.PrestigeSkillDailyTask;
 import fft_battleground.dump.scheduled.daily.SkillBonusDailyTask;
 import fft_battleground.dump.scheduled.daily.UserSkillsDailyTask;
 import fft_battleground.event.detector.model.ExpEvent;
@@ -109,53 +110,59 @@ public class DumpCacheBuilder {
 		builderTasks.forEach(builderTask -> this.threadPool.submit(builderTask));
 	}
 	
-	public void forceSpecificDailyTasks() {
+	public void forceSpecificDailyTasks(DumpService dumpService) {
 		//this.dumpScheduledTasks.forceScheduleAllegianceBatch();
 		//.dumpScheduledTasks.forceScheduleUserSkillsTask(this, true);
-		this.forceCertificateCheck();
-		//this.dumpScheduledTasks.forceScheduleClassBonusTask();
-		//this.dumpScheduledTasks.forceScheduleSkillBonusTask();
+		this.forceCertificateCheck(dumpService);
+		this.forceScheduleUserSkillsTask(false, dumpService);
+		//this.forceScheduleClassBonusTask(dumpService);
+		//this.forceScheduleSkillBonusTask(dumpService);
+		//this.forceScheduledPrestigeSkillTask(dumpService);
 		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
 		/*
-		 * this.dumpScheduledTasks.forceScheduleUserSkillsTask();
+		 * 
 		 * 
 		 * 
 		 * 
 		 */
 	}
 	
-	protected void forceCertificateCheck() {
-		this.forceSchedule(new CheckCertificateDailyTask(this.dumpScheduledTasks));
+	protected void forceCertificateCheck(DumpService dumpService) {
+		this.forceSchedule(new CheckCertificateDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
-	protected void forceScheduleAllegianceBatch() {
-		this.forceSchedule(new AllegianceDailyTask(this.dumpScheduledTasks));
+	protected void forceScheduleAllegianceBatch(DumpService dumpService) {
+		this.forceSchedule(new AllegianceDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
-	protected void forceScheduleBotListTask() {
-		this.forceSchedule(new BotListDailyTask(this.dumpScheduledTasks));
+	protected void forceScheduleBotListTask(DumpService dumpService) {
+		this.forceSchedule(new BotListDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
-	protected void forceSchedulePortraitsBatch() {
-		this.forceSchedule(new PortraitsDailyTask(this.dumpScheduledTasks));
+	protected void forceSchedulePortraitsBatch(DumpService dumpService) {
+		this.forceSchedule(new PortraitsDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
-	protected void forceScheduleUserSkillsTask(boolean runAll) {
-		UserSkillsDailyTask task = new UserSkillsDailyTask(this.dumpScheduledTasks, this.dumpService);
+	protected void forceScheduleUserSkillsTask(boolean runAll, DumpService dumpService) {
+		UserSkillsDailyTask task = new UserSkillsDailyTask(this.dumpScheduledTasks, dumpService);
 		task.setCheckAllUsers(runAll);
 		this.forceSchedule(task);
 	}
 	
-	protected void forceScheduleClassBonusTask() {
-		this.forceSchedule(new ClassBonusDailyTask(this.dumpScheduledTasks));
+	protected void forceScheduleClassBonusTask(DumpService dumpService) {
+		this.forceSchedule(new ClassBonusDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
-	protected void forceScheduleSkillBonusTask() {
-		this.forceSchedule(new SkillBonusDailyTask(this.dumpScheduledTasks));
+	protected void forceScheduleSkillBonusTask(DumpService dumpService) {
+		this.forceSchedule(new SkillBonusDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
-	protected void forceScheduledBadAccountsTask() {
-		this.forceSchedule(new BadAccountsDailyTask(this.dumpScheduledTasks));
+	protected void forceScheduledBadAccountsTask(DumpService dumpService) {
+		this.forceSchedule(new BadAccountsDailyTask(this.dumpScheduledTasks, dumpService));
+	}
+	
+	protected void forceScheduledPrestigeSkillTask(DumpService dumpService) {
+		this.forceSchedule(new PrestigeSkillDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
 	protected void forceSchedule(ScheduledTask task) {

@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
@@ -16,8 +17,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class BetGeneAttributes extends GeneAttributes {
+public class BetGeneAttributes 
+extends GeneAttributes
+implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5502967701083946211L;
+	
 	@JsonIgnore
 	private transient Map<Integer, Double> betGeneMap;
 	

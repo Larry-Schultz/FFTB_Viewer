@@ -23,6 +23,7 @@ public class UpdateUserSkillsTournamentTask extends DumpTournamentScheduledTask 
 
 	@Override
 	protected void task() {
+		log.info("Starting skills tournament update task ");
 		Set<String> playersWithUpdatedUserSkills = this.dumpServiceRef.getDumpDataProvider().getRecentPlayersForUserSkillsDump()
 				.parallelStream().map(playerName -> StringUtils.lowerCase(playerName)).collect(Collectors.toSet()); //lowercase output;
 		AtomicInteger count = new AtomicInteger(0);

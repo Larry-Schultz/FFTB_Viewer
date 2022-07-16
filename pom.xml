@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.OtherBrand</groupId>
 	<artifactId>FFT_BattleGround_Databot</artifactId>
-	<version>2.13.4-SNAPSHOT</version> 
+	<version>2.13.6-SNAPSHOT</version> 
 	<packaging>war</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -16,15 +16,12 @@
 		<start-class>fft_battleground.App</start-class>
 		<log4j2.version>2.17.0</log4j2.version>
 		<lombok.version>1.18.22</lombok.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -37,6 +34,18 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-starter-cache</artifactId>
+    	</dependency>
+    	<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+	    <dependency>
+		  <groupId>org.springframework.boot</groupId>
+		  <artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 		    <groupId>io.springfox</groupId>
@@ -53,10 +62,10 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-core -->
 		<dependency>
-		    <groupId>de.codecentric</groupId>
-		    <artifactId>spring-boot-admin-starter-client</artifactId>
-		    <version>2.3.1</version>
+		    <groupId>io.micrometer</groupId>
+		    <artifactId>micrometer-core</artifactId>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.github.ulisesbocchio/jasypt-spring-boot-starter -->
 		<dependency>
@@ -64,12 +73,11 @@
 			<artifactId>jasypt-spring-boot-starter</artifactId>
 			<version>3.0.2</version>
 		</dependency>
+		<!-- in memory caching -->
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 			</dependency>
-		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-devtools</artifactId> 
-			<scope>runtime</scope> <optional>true</optional> </dependency> -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -107,7 +115,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.13.1</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.javassist/javassist -->
 		<dependency>
@@ -161,14 +168,23 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.14.2</version>
 		</dependency>
+		<!-- Hibernate L2 cache -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
+			<!-- Embedded Redis -->
 		</dependency>
+		<dependency>
+		  <groupId>com.github.kstyrc</groupId>
+		  <artifactId>embedded-redis</artifactId>
+		  <version>0.6</version>
+		</dependency>
+		<!-- Postgres JDBC driver -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
+		<!-- Math equation parser used by bots -->
 		<dependency>
 			<groupId>org.mariuszgromada.math</groupId>
 			<artifactId>MathParser.org-mXparser</artifactId>
@@ -189,6 +205,7 @@
     		<groupId>org.codehaus.janino</groupId>
     		<artifactId>janino</artifactId>
     	</dependency>
+    	<!-- https://mvnrepository.com/artifact/org.redisson/redisson -->
 	</dependencies>
 	<profiles>
 		<profile>
@@ -201,7 +218,44 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter-web</artifactId>
 				</dependency>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</dependency>
 			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.coderplus.maven.plugins</groupId>
+						<artifactId>copy-rename-maven-plugin</artifactId>
+						<version>1.0</version>
+						<executions>
+							<execution>
+								<id>copy-file1</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>rename</goal>
+								</goals>
+								<configuration>
+									<sourceFile>target/classes/application.properties</sourceFile>
+									<destinationFile>target/classes/application-heroku.properties</destinationFile>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-file2</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>rename</goal>
+								</goals>
+								<configuration>
+									<sourceFile>target/classes/application-local.properties</sourceFile>
+									<destinationFile>target/classes/application.properties</destinationFile>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 		<profile>
 			<id>PRODUCTION</id>
@@ -253,6 +307,27 @@
 							</execution>
 						</executions>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>HEROKU</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-web</artifactId>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.heroku.sdk</groupId>
+						<artifactId>heroku-maven-plugin</artifactId>
+						<version>3.0.3</version>
+						<configuration>
+							<appName>fftb-viewer</appName>
+						</configuration>
+			        </plugin>
 				</plugins>
 			</build>
 		</profile>

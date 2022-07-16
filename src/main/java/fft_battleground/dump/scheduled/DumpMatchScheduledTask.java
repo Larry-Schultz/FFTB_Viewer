@@ -8,7 +8,7 @@ public abstract class DumpMatchScheduledTask extends ScheduledTask {
 	protected DumpService dumpServiceRef;
 	
 	public DumpMatchScheduledTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+		super(dumpScheduledTasks, dumpScheduledTasks.getDumpService());
 		this.dumpServiceRef = dumpScheduledTasks.getDumpService();
 	}
 

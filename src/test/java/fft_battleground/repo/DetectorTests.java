@@ -263,14 +263,21 @@ public class DetectorTests {
 
 	@Test
 	public void testPortraitDetector() {
-		String test1 = "OtherBrand, your Cheer Portrait was successfully set to black chocobo.";
+		String test1 = "OtherBrand, your Cheer Portrait was successfully set to Chocobo.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		PortraitEventDetector detector = new PortraitEventDetector();
 		BattleGroundEvent event = detector.detect(message);
 		assertTrue(event != null && event instanceof PortraitEvent);
 		PortraitEvent portraitEvent = (PortraitEvent) event;
 		assertTrue(portraitEvent.getPlayer() != null && portraitEvent.getPortrait() != null
-				&& portraitEvent.getPlayer().equals("otherbrand") && portraitEvent.getPortrait().equals("chocobo"));
+				&& portraitEvent.getPlayer().equals("otherbrand") && portraitEvent.getPortrait().equals("Chocobo"));
+		
+		message = this.createBotChatMessage("OtherBrand, your Cheer Portrait is set to Black Chocobo.");
+		event = detector.detect(message);
+		assertTrue(event != null);
+		portraitEvent = (PortraitEvent) event;
+		assertTrue(StringUtils.equals("otherbrand", portraitEvent.getPlayer()));
+		assertTrue(StringUtils.equals("Black Chocobo", portraitEvent.getPortrait()));
 	}
 	
 	@Test
@@ -392,6 +399,12 @@ public class DetectorTests {
 		MusicEvent musicEvent = (MusicEvent) event;
 		assertTrue(musicEvent.getDurationInSeconds() == 35);
 		assertTrue(StringUtils.equals(musicEvent.getSongName(), "Mega Man 7 - Wily Stage 4"));
+		
+		message = this.createBotChatMessage("The track is now: Clubhouse Games 51 Worldwide Classics - Four-in-a-Row, Sliding Puzzle. It will play for 170 seconds.");
+		musicEvent = detector.detect(message);
+		assertTrue(musicEvent != null);
+		assertTrue(StringUtils.equalsIgnoreCase("Clubhouse Games 51 Worldwide Classics - Four-in-a-Row, Sliding Puzzle", musicEvent.getSongName()));
+		assertTrue(musicEvent.getDurationInSeconds() == 170);
 	}
 	
 	@Test

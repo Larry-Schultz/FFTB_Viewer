@@ -1,5 +1,6 @@
 package fft_battleground.util;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GenericPairing<U, V> {
+public class GenericPairing<U, V> implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1667033672393218347L;
+	
 	private U key;
 	private V value;
 	

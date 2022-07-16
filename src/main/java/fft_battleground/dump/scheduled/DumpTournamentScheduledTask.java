@@ -21,7 +21,7 @@ public abstract class DumpTournamentScheduledTask extends ScheduledTask {
 	protected DumpService dumpServiceRef;
 	
 	public DumpTournamentScheduledTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+		super(dumpScheduledTasks, dumpScheduledTasks.getDumpService());
 		
 		this.routerRef = dumpScheduledTasks.getEventRouter();
 		this.dumpServiceRef = dumpScheduledTasks.getDumpService();

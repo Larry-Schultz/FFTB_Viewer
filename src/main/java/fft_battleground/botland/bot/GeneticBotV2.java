@@ -243,9 +243,13 @@ implements BotCanBetBelowMinimum, BotContainsPersonality, BotCanInverse, BotUses
 				.filter(PlayerRecord::isSubscriber).count() * playerGenes.subscriber();
 		
 		//score robots vs humans
+		try {
 		score+= betEventMetadata.stream().map(PlayerRecord::getPlayer)
 				.mapToDouble(player -> this.bots.contains(player) ? playerGenes.robot() : playerGenes.human())
 				.sum();
+		} catch(NullPointerException e) {
+			log.error("Null Pointer Exception getting player and robot genes", e);
+		}
 		
 		return score;
 	}

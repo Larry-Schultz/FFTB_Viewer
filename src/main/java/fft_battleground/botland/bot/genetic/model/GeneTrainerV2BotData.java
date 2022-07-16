@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
@@ -20,7 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Slf4j
-public class GeneTrainerV2BotData {
+public class GeneTrainerV2BotData implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8240185947691080322L;
+
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
 	private Date creationDate;
 	

@@ -1,5 +1,7 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -7,7 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class BraveFaithAttributes extends GeneAttributes {
+public class BraveFaithAttributes 
+extends GeneAttributes
+implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3291209177591407908L;
+	
 	public static final String BRAVE_KEY = "Brave";
 	public static final String FAITH_KEY = "Faith";
 	public static final String BRAVEFAITH_KEY = "BraveFaith";

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -19,45 +21,31 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class GeneFileCache<T> {
-	private static final long DEFAULT_CACHE_DURATION = 5L;
 	
-	private Cache<String, GeneFile<T>> geneFileCache;
+	protected Pair<Date, String> genefileWithMostRecentData;
 	
-	public GeneFileCache() {
-		this.geneFileCache = this.buildCache(DEFAULT_CACHE_DURATION);
-	}
-	
-	public GeneFileCache(Long cacheDuration) {
-		this.geneFileCache = this.buildCache(cacheDuration);
-	}
+	public GeneFileCache() {}
 	
 	protected abstract Class<T> getCacheType();
 	protected abstract String baseFolder();
 	
 	public T getGeneData(String filename) throws BotConfigException {
-		GeneFile<T> geneFile = this.geneFileCache.getIfPresent(filename);
-		if(geneFile == null) {
-			geneFile = this.loadGeneDataFromFile(filename);
-			this.geneFileCache.put(filename, geneFile);
-		}
+		GeneFile<T> geneFile = this.loadGeneDataFromFile(filename);
 		
 		T data = (T) geneFile.getData();
-		return data;
-	}
-	
-	public T getLatestFile() {
-		List<GeneFile<T>> geneFiles = new ArrayList<>(this.geneFileCache.asMap().values());
-		Collections.sort(geneFiles, Collections.reverseOrder());
-		Optional<GeneFile<T>> firstEntry = geneFiles.stream().findFirst();
-		
-		T data = null;
-		if(firstEntry.isPresent()) {
-			data = firstEntry.get().getData();
+		if(this.genefileWithMostRecentData == null || this.genefileWithMostRecentData.getLeft().before(geneFile.getFileDate())) {
+			this.genefileWithMostRecentData = Pair.of(geneFile.getFileDate(), geneFile.getFilename());
 		}
 		return data;
 	}
 	
-	protected GeneFile<T> loadGeneDataFromFile(String filename) throws BotConfigException {
+	public T getLatestFile() throws BotConfigException {
+		T result = this.genefileWithMostRecentData != null ? this.getGeneData(this.genefileWithMostRecentData.getRight()) : null; 
+		
+		return result;
+	}
+	
+	public GeneFile<T> loadGeneDataFromFile(String filename) throws BotConfigException {
 		String path = baseFolder() + "/" + filename;
 		URL resourceUrl = this.getClass().getClassLoader().getResource(path);
 		File resourceFile = new File(filename);

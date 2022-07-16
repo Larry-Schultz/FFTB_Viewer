@@ -1,6 +1,5 @@
 package fft_battleground.controller;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -17,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,6 +31,7 @@ import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
 import fft_battleground.controller.response.model.ExpLeaderboardData;
 import fft_battleground.controller.response.model.MusicData;
+import fft_battleground.controller.response.model.MusicPayload;
 import fft_battleground.controller.response.model.PlayerData;
 import fft_battleground.controller.response.model.PlayerLeaderboardData;
 import fft_battleground.controller.response.model.botland.BotLeaderboardData;
@@ -49,7 +48,6 @@ import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.image.ImageCacheService;
 import fft_battleground.metrics.AccessTracker;
 import fft_battleground.music.MusicService;
 import fft_battleground.music.model.Music;
@@ -68,9 +66,6 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("/")
 @Slf4j
 public class HomeController {
-	
-	@Autowired
-	private ImageCacheService imageCacheService;
 	
 	@Autowired
 	private BotsRepo botsRepo;
@@ -95,28 +90,6 @@ public class HomeController {
 	
 	@Autowired
 	private AccessTracker accessTracker;
-	
-	@ApiIgnore
-	@GetMapping(value = "/images/characters/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public @ResponseBody ResponseEntity<byte[]> getImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
-		byte[] data = this.imageCacheService.getCharacterImage(characterName);
-	    if(data == null) {
-	    	return new ResponseEntity<>(new byte[] {}, HttpStatus.NOT_FOUND);
-	    } else {
-	    	return new ResponseEntity<>(data, HttpStatus.OK);
-	    }
-	}
-	
-	@ApiIgnore
-	@GetMapping(value = "/images/portraits/{characterName}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public @ResponseBody ResponseEntity<byte[]> getPortraitImageWithMediaType(@PathVariable("characterName") String characterName) throws IOException {
-		byte[] data = this.imageCacheService.getPortaitImage(characterName);
-	    if(data == null) {
-	    	return new ResponseEntity<>(new byte[] {}, HttpStatus.NOT_FOUND);
-	    } else {
-	    	return new ResponseEntity<>(data, HttpStatus.OK);
-	    }
-	}
 	
 	@ApiIgnore
 	@GetMapping("/")
@@ -156,13 +129,19 @@ public class HomeController {
 	
 	@ApiOperation(value="returns all songs in the stream's playlist")
 	@GetMapping("/music")
-	public @ResponseBody ResponseEntity<GenericResponse<Collection<MusicData>>> musicPage(@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, 
-			Model model, HttpServletRequest request) {
+	public @ResponseBody ResponseEntity<GenericResponse<MusicPayload>> musicPage(@RequestHeader(value = "User-Agent", required=false, defaultValue="") String userAgent, 
+			Model model, HttpServletRequest request) throws CacheMissException {
 		this.logAccess("music search page", userAgent, request);
 		Collection<Music> music = this.musicService.getPlaylist();
+		if(music == null || music.size() == 0) {
+			throw new CacheMissException("No cache data for music playlist!");
+		}
 		Collection<MusicData> data = music.parallelStream().map(musicEntry -> new MusicData(musicEntry)).collect(Collectors.toList());
-		
-		return GenericResponse.createGenericResponseEntity(data);
+		Date firstOccurence = this.musicService.getFirstOccurenceDate();
+		long totalOccurences = this.musicService.getTotalOccurences();
+		long songWithOccurencesCount = this.musicService.getSongsWithOccurencesCount();
+		MusicPayload payload = new MusicPayload(data, firstOccurence, totalOccurences, songWithOccurencesCount);
+		return GenericResponse.createGenericResponseEntity(payload);
 	}
 	
 	@ApiIgnore

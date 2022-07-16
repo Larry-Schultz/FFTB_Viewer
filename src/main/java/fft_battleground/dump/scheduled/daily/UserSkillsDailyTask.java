@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserSkillsDailyTask extends DumpDailyScheduledTask {
 
 	public UserSkillsDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
-		super(dumpScheduledTasks);
+		super(dumpScheduledTasks, dumpService);
 	}
 	
 	protected void task() {

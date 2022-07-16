@@ -2,16 +2,16 @@ package fft_battleground.image;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
+import java.util.Collection;
+import java.util.Comparator;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,30 +22,32 @@ public class ImageCacheServiceImpl implements ImageCacheService {
 	@Autowired
 	private Images images;
 	
-	private Cache<String, byte[]> cache = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
-	
+	@Cacheable("characterImages")
 	@Override
 	public byte[] getCharacterImage(String characterName) {
 		String basePath = "/static";
 		String imagePath = images.getCharacterImagePath(characterName);
 		String path = basePath + imagePath;
-		byte[] data = cache.getIfPresent(path);
-		if(data == null) {
-			data = this.loadFileData(path);
-		}
+		byte[] data = this.loadFileData(path);
 		
 		return data;
 	}
 	
 	@Override
+	public byte[] justGetMeACharacterImage(String characterName) {
+		Collection<String> characterNames = this.images.getCharacters().keySet();
+		String closestMatch = this.getClosestMatch(characterName, characterNames);
+		byte[] image = this.getCharacterImage(closestMatch);
+		return image;
+	}
+	
+	@Cacheable("portraitImages")
+	@Override
 	public byte[] getPortaitImage(String characterName) {
 		String basePath = "/static/img/portraits";
 		String imagePath = "/" + characterName;
 		String path = basePath + imagePath;
-		byte[] data = cache.getIfPresent(path);
-		if(data == null) {
-			data = this.loadFileData(path);
-		}
+		byte[] data = this.loadFileData(path);
 		
 		return data;
 	}
@@ -58,10 +60,19 @@ public class ImageCacheServiceImpl implements ImageCacheService {
 			in = imageResource.getInputStream();
 			result = IOUtils.toByteArray(in);
 		} catch (IOException e) {
-			log.error("Could not load file with path {}", path, e);
+			log.info("Could not load file with path {}", path);
 			result = null;
 		}
 		
 		return result;
+	}
+	
+	private String getClosestMatch(String searchCriteria, Collection<String> names) {
+		LevenshteinDistance distanceCalculator = LevenshteinDistance.getDefaultInstance();
+		String closestMatch = names.stream().map(name -> Pair.of(name, distanceCalculator.apply(name, searchCriteria)))
+				.sorted(Comparator.comparing(Pair::getRight))
+				.findFirst().get().getLeft();
+		
+		return closestMatch;
 	}
 }

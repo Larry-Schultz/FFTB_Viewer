@@ -17,6 +17,7 @@ import org.springframework.core.io.Resource;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
+import fft_battleground.dump.DumpService;
 import fft_battleground.dump.scheduled.ScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,8 +26,8 @@ public class CheckCertificateDailyTask extends ScheduledTask {
 	private String keyStorePassRef;
 	private WebhookManager errorWebhookManagerRef;
 	
-	public CheckCertificateDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+	public CheckCertificateDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
+		super(dumpScheduledTasks, dumpService);
 		this.keyStorePassRef = dumpScheduledTasks.getKeyStorePass();
 		this.errorWebhookManagerRef = dumpScheduledTasks.getErrorWebhookManager();
 	}

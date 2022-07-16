@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.Set;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
+import fft_battleground.dump.DumpService;
 import fft_battleground.dump.scheduled.DumpDailyScheduledTask;
 import fft_battleground.event.detector.model.fake.SkillBonusEvent;
 import fft_battleground.exception.DumpException;
@@ -14,8 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SkillBonusDailyTask extends DumpDailyScheduledTask {
 	
-	public SkillBonusDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+	public SkillBonusDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
+		super(dumpScheduledTasks, dumpService);
 	}
 	
 	protected void task() {

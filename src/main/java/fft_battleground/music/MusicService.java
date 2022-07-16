@@ -1,6 +1,7 @@
 package fft_battleground.music;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -17,4 +18,7 @@ public interface MusicService {
 	void freshLoad(Collection<Music> dumpMusicData, List<MusicListenCount> occurrenceData);
 	Set<Music> loadMusicDataFromDump() throws DumpException;
 	List<MusicListenCount> loadMusicListenCountFromRepo();
+	Date getFirstOccurenceDate();
+	long getTotalOccurences();
+	long getSongsWithOccurencesCount();
 }

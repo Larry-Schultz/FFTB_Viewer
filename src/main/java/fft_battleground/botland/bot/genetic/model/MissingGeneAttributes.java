@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -12,8 +13,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class MissingGeneAttributes extends GeneAttributes {
+public class MissingGeneAttributes 
+extends GeneAttributes
+implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4391612249027053393L;
+
 	@Override
 	public Double getGene(String attributeName) {
 		return super.getGene(StringUtils.lowerCase(attributeName));

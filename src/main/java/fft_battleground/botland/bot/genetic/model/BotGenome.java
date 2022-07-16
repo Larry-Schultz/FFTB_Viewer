@@ -1,5 +1,6 @@
 package fft_battleground.botland.bot.genetic.model;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -11,7 +12,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BotGenome {
+public class BotGenome implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8669765184330928045L;
+	
 	private MapGeneAttributes mapGeneAttributes;
 	private BraveFaithAttributes braveFaithAttributes;
 	private PotGeneAttributes potGeneAttributes;

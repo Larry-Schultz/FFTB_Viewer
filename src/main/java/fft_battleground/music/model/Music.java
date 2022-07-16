@@ -1,16 +1,19 @@
 package fft_battleground.music.model;
 
+import java.util.Date;
+
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class Music implements Comparable<Music> {
 	private String songName;
 	private Long id;
 	private String minutes;
 	private String seconds;
 	private Long occurences;
-	
-	public Music() {}
+	private Date mostRecentOccurence;
 
 	public Music(String name, String id, String duration) {
 		this.songName = name;

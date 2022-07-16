@@ -23,6 +23,10 @@ public class CacheMissException extends BattleGroundException {
 		this.setKey(key);
 	}
 
+	public CacheMissException(String string) {
+		super(string);
+	}
+
 	public BattleGroundCacheEntryKey getKey() {
 		return key;
 	}

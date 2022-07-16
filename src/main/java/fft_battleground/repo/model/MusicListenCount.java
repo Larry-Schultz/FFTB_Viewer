@@ -1,6 +1,7 @@
 package fft_battleground.repo.model;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
@@ -35,7 +36,7 @@ public class MusicListenCount {
 	
 	@Column(name = "occurences", nullable = false)
 	@ColumnDefault("0")
-	private long occurences;
+	private long occurences = 0;
 	
     @CreationTimestamp
     @JsonIgnore
@@ -50,6 +51,9 @@ public class MusicListenCount {
     public MusicListenCount(Long songId, String song) {
     	this.songId = songId;
     	this.song = song;
-    	this.occurences = 0;
+    	this.occurences = 1;
+    	this.createDateTime = Timestamp.from(Instant.now());
+    	this.updateDateTime = Timestamp.from(Instant.now());
     }
+    
 }

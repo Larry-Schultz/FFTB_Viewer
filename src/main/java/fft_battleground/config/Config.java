@@ -6,7 +6,6 @@ import java.util.Timer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -55,13 +54,13 @@ import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.repo.repository.ErrorMessageEntryRepo;
 import fft_battleground.util.Router;
-
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
 @Configuration
-@EnableCaching
 @EnableScheduling
 @EnableRetry
 @Slf4j
@@ -103,6 +102,11 @@ public class Config {
 			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector(), new OtherPlayerSnubEventDetector(),
 			new OtherPlayerInvalidFightEntrySexDetector(), new OtherPlayerInvalidFightEntryTournamentStartedDetector(), new BonusDetector()
 		});
+	}
+	
+	@Bean
+	public MeterRegistry meterRegistry() {
+		return new SimpleMeterRegistry();
 	}
 	
 	@Bean

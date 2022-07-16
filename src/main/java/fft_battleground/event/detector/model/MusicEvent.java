@@ -9,12 +9,13 @@ import fft_battleground.event.model.BattleGroundEventType;
 import lombok.Data;
 
 @Data
-public class MusicEvent  extends BattleGroundEvent {
+public class MusicEvent extends BattleGroundEvent {
 	private static final BattleGroundEventType EVENT_TYPE = BattleGroundEventType.MUSIC;
 	
 	private String songName;
 	private Integer durationInSeconds;
 	private String id;
+	private boolean automatic = false;
 	
 	public MusicEvent(String name, Integer durationInSeconds) {
 		super(EVENT_TYPE);
@@ -45,6 +46,6 @@ public class MusicEvent  extends BattleGroundEvent {
 		result = prime * result + Objects.hash(durationInSeconds, id, songName);
 		return result;
 	}
-
-
+	
+	
 }

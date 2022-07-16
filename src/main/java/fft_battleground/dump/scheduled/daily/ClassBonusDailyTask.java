@@ -30,8 +30,8 @@ public class ClassBonusDailyTask extends DumpDailyScheduledTask {
 	
 	@Getter @Setter private boolean checkAllUsers = false;
 	
-	public ClassBonusDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks) {
-		super(dumpScheduledTasks);
+	public ClassBonusDailyTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService) {
+		super(dumpScheduledTasks, dumpService);
 	}
 	
 	protected void task() {

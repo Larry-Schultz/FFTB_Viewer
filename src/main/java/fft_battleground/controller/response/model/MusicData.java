@@ -1,5 +1,7 @@
 package fft_battleground.controller.response.model;
 
+import java.util.Date;
+
 import fft_battleground.music.model.Music;
 import lombok.Data;
 
@@ -7,10 +9,14 @@ import lombok.Data;
 public class MusicData {
 	private String songName;
 	private String duration;
+	private long occurences;
+	private Date mostRecentOccurence;
 	
 	public MusicData(Music music) {
 		this.songName = music.getSongName();
 		this.duration = this.buildDurationString(music.getMinutes(), music.getSeconds());
+		this.occurences = music.getOccurences();
+		this.mostRecentOccurence = music.getMostRecentOccurence();
 	}
 	
 	protected String buildDurationString(String minutes, String seconds) {

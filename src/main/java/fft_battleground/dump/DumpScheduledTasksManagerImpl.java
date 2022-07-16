@@ -81,16 +81,16 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 	@Scheduled(cron = "0 0 1 * * ?")
 	public void runAllUpdates() {
 		ScheduledTask[] dumpScheduledTasks = new ScheduledTask[] {
-				new BadAccountsDailyTask(this),
-				new CheckCertificateDailyTask(this),
-				new AllegianceDailyTask(this), 
-				new BotListDailyTask(this), 
-				new PortraitsDailyTask(this),
+				new BadAccountsDailyTask(this, this.dumpService),
+				new CheckCertificateDailyTask(this, this.dumpService),
+				new AllegianceDailyTask(this, this.dumpService), 
+				new BotListDailyTask(this, this.dumpService), 
+				new PortraitsDailyTask(this, this.dumpService),
 				new UserSkillsDailyTask(this, this.dumpService),
 				new PrestigeSkillDailyTask(this, this.dumpService),
-				new ClassBonusDailyTask(this),
-				new SkillBonusDailyTask(this),
-				new RefreshMustadioDailyTask(this),
+				new ClassBonusDailyTask(this, this.dumpService),
+				new SkillBonusDailyTask(this, this.dumpService),
+				new RefreshMustadioDailyTask(this, this.dumpService),
 			};
 		for(ScheduledTask task : dumpScheduledTasks) {
 			this.batchTimer.submit(task);
