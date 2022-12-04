@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.bot.model.Bet;
 import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.botland.bot.util.BotCanInverse;
@@ -14,7 +15,6 @@ import fft_battleground.botland.bot.util.BotContainsPersonality;
 import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.event.detector.model.BetEvent;
-import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.util.GambleUtil;

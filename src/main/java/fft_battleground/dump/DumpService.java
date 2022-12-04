@@ -1,23 +1,16 @@
 package fft_battleground.dump;
 
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
@@ -26,9 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
-import fft_battleground.controller.response.model.PlayerData;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.cache.DumpCacheBuilder;
+import fft_battleground.dump.cache.startup.DumpCacheBuilder;
 import fft_battleground.event.detector.model.BalanceEvent;
 import fft_battleground.event.detector.model.ExpEvent;
 import fft_battleground.event.detector.model.LastActiveEvent;
@@ -38,10 +30,8 @@ import fft_battleground.event.detector.model.composite.OtherPlayerExpEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.BattleGroundEventType;
 import fft_battleground.exception.CacheBuildException;
-import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
-import fft_battleground.exception.TournamentApiException;
-import fft_battleground.image.Images;
+import fft_battleground.image.model.Images;
 import fft_battleground.metrics.DetectorAuditManager;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.music.MusicService;
@@ -49,8 +39,6 @@ import fft_battleground.music.model.Music;
 import fft_battleground.repo.RepoManager;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.repo.model.PlayerSkills;
-import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.ClassBonusRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
@@ -85,10 +73,10 @@ public class DumpService {
 	@Getter private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
-	@Getter private DumpScheduledTasksManagerImpl dumpScheduledTasks;
+	@Getter private DumpScheduledTasksManager dumpScheduledTasks;
 	
 	@Autowired
-	@Getter private DumpReportsService dumpReportsService;
+	@Getter private DumpReportsServiceImpl dumpReportsService;
 	
 	@Autowired
 	@Getter private TournamentService tournamentService;
@@ -150,7 +138,6 @@ public class DumpService {
 	@Getter private Map<Integer, String> expRankLeaderboardByRank = new ConcurrentHashMap<>();
 	@Getter private Map<String, Integer> expRankLeaderboardByPlayer = new ConcurrentHashMap<>(); 
 	
-	private Object musicCacheLock = new Object();
 	@Getter private Collection<Music> musicCache = Collections.<Music>emptyList();
 	
 	public DumpService() {}
@@ -336,109 +323,6 @@ public class DumpService {
 	
 	public void updateBalanceCache(BalanceEvent event) {
 		this.balanceCache.put(event.getPlayer(), event.getAmount());
-	}
-	
-	@Transactional(readOnly = true)
-	public PlayerData getDataForPlayerPage(String playerName, TimeZone timezone) throws CacheMissException, TournamentApiException {
-		PlayerData playerData = new PlayerData();
-		String id = StringUtils.trim(StringUtils.lowerCase(playerName));
-		Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(id);
-		if(maybePlayer.isPresent()) {
-			
-			PlayerRecord record = maybePlayer.get();
-			Hibernate.initialize(maybePlayer.get().getPlayerSkills());
-			Hibernate.initialize(maybePlayer.get().getPrestigeSkills());
-			for(PlayerSkills playerSkill : record.getPlayerSkills()) {
-				playerSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(playerSkill.getSkill()), "\"", ""));
-			}
-			for(PrestigeSkills prestigeSkill: record.getPrestigeSkills()) {
-				prestigeSkill.setMetadata(StringUtils.replace(this.tournamentService.getCurrentTips().getUserSkill().get(prestigeSkill.getSkill()), "\"", ""));
-			}
-			playerData.setPlayerRecord(record);
-			
-			boolean isBot = this.getBotCache().contains(record.getPlayer());
-			playerData.setBot(isBot);
-			
-			if(StringUtils.isNotBlank(record.getPortrait())) {
-				String portrait = record.getPortrait();
-				String portraitUrl = this.images.getPortraitByName(portrait, record.getAllegiance());
-				playerData.setPortraitUrl(portraitUrl);
-			}
-			if(StringUtils.isBlank(record.getPortrait()) || playerData.getPortraitUrl() == null) {
-				if(playerData.isBot()) {
-					playerData.setPortraitUrl(this.images.getPortraitByName("Steel Giant"));
-				} else {
-					playerData.setPortraitUrl(this.images.getPortraitByName("Ramza"));
-				}
-			}
-			
-			DecimalFormat df = new DecimalFormat("0.00");
-			Double betRatio = ((double) 1 + record.getWins())/((double)1+ record.getWins() + record.getLosses());
-			Double fightRatio = ((double)1 + record.getFightWins())/((double) record.getFightWins() + record.getFightLosses());
-			String betRatioString = df.format(betRatio);
-			String fightRatioString = df.format(fightRatio);
-			playerData.setBetRatio(betRatioString);
-			playerData.setFightRatio(fightRatioString);
-			Integer betPercentile = this.dumpReportsService.getBetPercentile(betRatio);
-			Integer fightPercentile = this.dumpReportsService.getFightPercentile(fightRatio);
-			playerData.setBetPercentile(betPercentile);
-			playerData.setFightPercentile(fightPercentile);
-			
-			
-			boolean containsPrestige = false;
-			int prestigeLevel = 0;
-			Set<String> prestigeSkills = null;
-			if(this.prestigeSkillsCache.get(playerName) != null) {
-				prestigeSkills = new HashSet<>(this.prestigeSkillsCache.get(playerName));
-				prestigeLevel = prestigeSkills.size();
-				containsPrestige = true;
-			}
-			
-			playerData.setContainsPrestige(containsPrestige);
-			playerData.setPrestigeLevel(prestigeLevel);
-			playerData.setPrestigeSkills(prestigeSkills);
-			playerData.setExpRank(this.getExpRankLeaderboardByPlayer().get(record.getPlayer()));
-			
-			DecimalFormat format = new DecimalFormat("##.#########");
-			String percentageOfTotalGil = format.format(this.dumpReportsService.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
-			playerData.setPercentageOfGlobalGil(percentageOfTotalGil);
-			
-			if(record.getLastActive() != null) {
-				playerData.setTimezoneFormattedDateString(this.createDateStringWithTimezone(timezone, record.getLastActive()));
-			}
-			if(record.getLastFightActive() != null) {
-				playerData.setTimezoneFormattedLastFightActiveDateString(this.createDateStringWithTimezone(timezone, record.getLastFightActive()));
-			}
-			
-			Integer leaderboardRank = this.dumpReportsService.getLeaderboardPosition(playerName);
-			playerData.setLeaderboardPosition(leaderboardRank);
-			
-			Set<String> classBonuses = this.getClassBonusCache().get(playerName);
-			playerData.setClassBonuses(classBonuses);
-			
-			Set<String> skillBonuses = this.getSkillBonusCache().get(playerName);
-			playerData.setSkillBonuses(skillBonuses);
-		} else {
-			playerData = new PlayerData();
-			playerData.setNotFound(true);
-			playerData.setPlayerRecord(new PlayerRecord());
-			playerData.getPlayerRecord().setPlayer(GambleUtil.cleanString(playerName));
-		}
-			
-		return playerData;
-	}
-	
-	protected String createDateStringWithTimezone(TimeZone zone, Date date) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
-
-		//Here you say to java the initial timezone. This is the secret
-		sdf.setTimeZone(zone);
-		//Will print in UTC
-		String result = sdf.format(calendar.getTime());    
-
-		return result;
 	}
 	
 }

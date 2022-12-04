@@ -4,13 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -24,6 +20,7 @@ import lombok.SneakyThrows;
 @Data
 @NoArgsConstructor
 public class BotlandLeaderboard {
+	private static final int WINNER_LIMIT = 10;
 	private List<GenericElementOrdering<BotlandLeaderboardEntry>> botlandEntries;
 	private List<GenericElementOrdering<BotlandWinner>> botlandWinners;
 	
@@ -67,7 +64,9 @@ public class BotlandLeaderboard {
 	}
 	
 	private List<GenericElementOrdering<BotlandWinner>> calculateBotlandWinners(Map<String, BotlandWinner> dateStringWinnersMap) {
-		List<BotlandWinner> pairedWinnerList = new ArrayList<>(dateStringWinnersMap.values());
+		List<BotlandWinner> pairedWinnerList = dateStringWinnersMap.values().stream()
+				.filter(botlandWinner -> botlandWinner.getWinners().size() < WINNER_LIMIT)
+				.collect(Collectors.toList());
 		var botlandWinners = GenericElementOrdering.<BotlandWinner>convertToOrderedList(pairedWinnerList, new Comparator<BotlandWinner>() {
 			@Override
 			@SneakyThrows

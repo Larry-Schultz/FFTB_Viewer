@@ -1,5 +1,6 @@
 package fft_battleground.repo;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,7 @@ import fft_battleground.repo.repository.PrestigeSkillsRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.repo.util.UpdateSource;
+import fft_battleground.skill.SkillUtils;
 import fft_battleground.skill.model.SkillType;
 import fft_battleground.util.GambleUtil;
 
@@ -148,7 +150,9 @@ public class RepoTransactionManager {
 				log.warn(errorMessage, dive);
 				this.errorWebhookManager.sendException(dive, errorMessage);
 			}
-		} 
+		}
+		
+		log.info("Successfully reported {} bet losses", bets.size());;
 		
 	}
 	
@@ -192,6 +196,7 @@ public class RepoTransactionManager {
 				this.errorWebhookManager.sendException(dive, errorMessage);
 			}
 		}
+		
 	}
 	
 	@Transactional
@@ -234,6 +239,7 @@ public class RepoTransactionManager {
 			}
 		}
 		
+		log.info("Successfully reported {} bet wins", bets.size());
 	}
 	
 	@Transactional
@@ -547,6 +553,10 @@ public class RepoTransactionManager {
 	@Transactional(propagation=Propagation.REQUIRED)
 	public void updatePrestigeSkills(PrestigeSkillsEvent event) throws BattleGroundDataIntegrityViolationException {
 		String cleanedName = this.cleanString(event.getPlayer());
+		if(event.getPlayerSkills().size() > SkillUtils.PRESTIGE_SKILLS.size()) {
+			throw new DataIntegrityViolationException(MessageFormat.format("Attempting to push {0} prestige skills for user {1}, but the limit is {3}", 
+					event.getPlayerSkills().size(), cleanedName, SkillUtils.PRESTIGE_SKILLS.size()));
+		}
 		try {
 			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
 			if(maybeRecord.isPresent()) {

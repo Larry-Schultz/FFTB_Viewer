@@ -13,6 +13,4 @@ import lombok.NoArgsConstructor;
 public class MusicPayload {
 	private Collection<MusicData> musicData;
 	private Date firstOccurence;
-	private long totalOccurences;
-	private long songWithOccurencesCount;
 }

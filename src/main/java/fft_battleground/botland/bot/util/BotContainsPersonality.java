@@ -1,6 +1,6 @@
 package fft_battleground.botland.bot.util;
 
-import fft_battleground.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.BotConfigException;
 
 public interface BotContainsPersonality {
 	public static final String PERSONALITY_PARAM = "personality";

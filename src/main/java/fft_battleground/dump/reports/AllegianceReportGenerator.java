@@ -1,5 +1,7 @@
 package fft_battleground.dump.reports;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -8,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -28,20 +31,21 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpReportsService;
+import fft_battleground.dump.DumpReportsServiceImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.AllegianceLeaderboard;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardEntry;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
+import fft_battleground.dump.service.BalanceHistoryServiceImpl;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.DumpException;
-import fft_battleground.image.Images;
+import fft_battleground.image.model.Images;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
-import fft_battleground.repo.repository.PlayerSkillRepo;
+import fft_battleground.repo.repository.PrestigeSkillsRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
 import fft_battleground.tournament.ChampionService;
 import fft_battleground.util.FunctionCallableListResult;
@@ -53,18 +57,30 @@ import lombok.extern.slf4j.Slf4j;
 public class AllegianceReportGenerator extends AbstractReportGenerator<AllegianceLeaderboardWrapper> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.ALLEGIANCE_LEADERBOARD;
 	private static final String reportName = "Allegiance Leaderboard";
+	private static int GIL_CAP = 0;
+	
+	static {
+		try {
+			GIL_CAP = NumberFormat.getNumberInstance(Locale.US).parse("1,000,000").intValue();
+		} catch (ParseException e) {
+			log.error("Error parsing GIL_CAP", e);
+		}
+	}
 	
 	@Autowired
-	private DumpReportsService dumpReportsService;
+	private DumpReportsServiceImpl dumpReportsService;
 	
 	@Autowired
 	private DumpService dumpService;
 	
 	@Autowired
+	private BalanceHistoryServiceImpl balanceHistoryUtil;
+	
+	@Autowired
 	private ChampionService championService;
 	
 	@Autowired
-	private PlayerSkillRepo playerSkillRepo;
+	private PrestigeSkillsRepo prestigeSkillsRepo;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
@@ -95,31 +111,13 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 			this.errorWebhookManager.sendException(exception, "Error getting high score data from the dump has stopped the generation of allegiance data");
 			throw exception;
 		}
-		
-		Map<String, Integer> topTenPlayers = new HashMap<>();
-		try {
-			Map<String, Integer> topTenPlayersResults = this.dumpReportsService.getTopPlayers(DumpReportsService.HIGHEST_PLAYERS);
-			topTenPlayers.putAll(topTenPlayersResults);
-		} catch(CacheBuildException e) {
-			log.error("error getting top ten players", e);
-			this.errorWebhookManager.sendException(e, "Error generating top player data has stopped the generation of the allegiance report");
-			throw e;
-		}
 
-		Future<List<Optional<String>>> topTenFilter = executor
-				.submit(new FunctionCallableListResult<String, Optional<String>>(highScoreDataFromDump.keySet(),
-						(playerName -> {
-							Optional<String> result = null;
-							boolean isTopTenPlayer = topTenPlayers.containsKey(playerName);
-							result = isTopTenPlayer ? Optional.<String>of(playerName) : Optional.<String>empty();
-							return result;
-						})));
 		Future<List<Optional<String>>> activeFilter = executor
 				.submit(new FunctionCallableListResult<String, Optional<String>>(highScoreDataFromDump.keySet(),
 						(playerName -> {
 							Optional<String> result = null;
 							Date lastActive = this.dumpService.getLastActiveDateFromCache(playerName);
-							boolean active = this.dumpReportsService.isPlayerActiveInLastMonth(lastActive);
+							boolean active = this.balanceHistoryUtil.isPlayerActiveInLastMonth(lastActive);
 							result = active ? Optional.<String>empty() : Optional.<String>of(playerName);
 							return result;
 						})));
@@ -142,8 +140,6 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 						})));
 
 		Set<String> filteredPlayers = new HashSet<>();
-		List<String> topTenFiltered = this.filterConversionFunction(topTenFilter);
-		filteredPlayers.addAll(topTenFiltered);
 		List<String> botFiltered = this.filterConversionFunction(botFilter);
 		filteredPlayers.addAll(botFiltered);
 		List<String> activeFiltered = this.filterConversionFunction(activeFilter);
@@ -236,6 +232,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		log.info("Allegiance Leaderboard rebuild complete");
 		
 		AllegianceLeaderboardWrapper wrapper = new AllegianceLeaderboardWrapper(leaderboard);
+		wrapper.setGilCap(GIL_CAP);
 		
 		return wrapper;
 	}
@@ -299,10 +296,11 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		Integer totalFightWins = (new CountingCallable<PlayerRecord>(teamPlayers, (playerRecord -> playerRecord.getFightWins()))).call();
 		Integer totalFightLosses =(new CountingCallable<PlayerRecord>(teamPlayers, (playerRecord -> playerRecord.getFightLosses()))).call();
 		Integer totalLevels = (new CountingCallable<PlayerRecord>(teamPlayers,(playerRecord -> playerRecord.getLastKnownLevel()))).call();
-		Integer totalGil = (new CountingCallable<PlayerRecord>(teamPlayers,(playerRecord -> playerRecord.getLastKnownAmount()))).call();
+		Integer totalGil = (new CountingCallable<PlayerRecord>(teamPlayers,(playerRecord -> playerRecord.getLastKnownAmount() < GIL_CAP ? playerRecord.getLastKnownAmount() : GIL_CAP))).call();
+		Integer totalMillionaires = (new CountingCallable<PlayerRecord>(teamPlayers, (playerRecord -> playerRecord.getLastKnownAmount() >= GIL_CAP ? 1 : 0))).call();
 
 		// perform the prestige lookup in this thread
-		Integer numberOfPrestigeSkills = this.playerSkillRepo.getPrestigeSkillsCount(
+		Integer numberOfPrestigeSkills = this.prestigeSkillsRepo.getPrestigeSkillsCount(
 				teamPlayers.stream().map(PlayerRecord::getPlayer).collect(Collectors.toList())
 			);
 		
@@ -339,6 +337,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		data.setTotalPrestiges(numberOfPrestigeSkills);
 		data.setTotalGil(totalGil);
 		data.setTotalPlayers(teamData.keySet().size());
+		data.setTotalMillionaires(totalMillionaires);
 
 		Integer gilPerPlayer = data.getTotalGil() / data.getTotalPlayers();
 		data.setGilPerPlayer(gilPerPlayer);

@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import fft_battleground.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.BotConfigException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

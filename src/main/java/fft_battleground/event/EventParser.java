@@ -26,6 +26,7 @@ import fft_battleground.event.detector.model.BuySkillRandomEvent;
 import fft_battleground.event.detector.model.FightBeginsEvent;
 import fft_battleground.event.detector.model.FightEntryEvent;
 import fft_battleground.event.detector.model.GiftSkillEvent;
+import fft_battleground.event.detector.model.HypeEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.MusicEvent;
 import fft_battleground.event.detector.model.PrestigeAscensionEvent;
@@ -280,6 +281,10 @@ public class EventParser extends Thread {
 					MusicEvent musicEvent = (MusicEvent) event;
 					this.musicService.addOccurence(musicEvent);
 					this.eventRouter.sendDataToQueues(musicEvent);
+					break;
+				case HYPE:
+					HypeEvent hypeEvent = (HypeEvent) event;
+					this.eventRouter.sendDataToQueues(hypeEvent);
 					break;
 				case BETTING_ENDS:
 					this.handleBettingEndsEvent(event);

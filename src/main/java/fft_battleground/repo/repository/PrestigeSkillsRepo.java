@@ -19,4 +19,7 @@ public interface PrestigeSkillsRepo extends JpaRepository<PrestigeSkills, Long> 
 	
 	@Query("SELECT playerRecord.player AS player FROM PrestigeSkills prestigeSkills LEFT JOIN prestigeSkills.player_record playerRecord")
 	public List<String> getPlayersWithPrestigeSkills();
+	
+	@Query("SELECT COUNT(prestigeSkills) FROM PrestigeSkills prestigeSkills LEFT JOIN prestigeSkills.player_record playerRecord WHERE playerRecord.player IN :players")
+	public Integer getPrestigeSkillsCount(@Param("players") List<String> players);
 }

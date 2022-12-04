@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
+import fft_battleground.dump.DumpScheduledTasksManager;
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.model.BattleGroundEvent;

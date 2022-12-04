@@ -5,8 +5,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.model.BotParam;
-import fft_battleground.exception.BotConfigException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -28,9 +28,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class MusicListenCount {
 	@Id
-	@Column(name = "song_id", nullable = false)
-	private Long songId;
-	
 	@Column(name = "song", nullable = false)
 	private String song;
 	
@@ -48,10 +45,16 @@ public class MusicListenCount {
 	
     public MusicListenCount() {}
     
-    public MusicListenCount(Long songId, String song) {
-    	this.songId = songId;
+    public MusicListenCount(String song) {
     	this.song = song;
-    	this.occurences = 1;
+    	this.occurences = 0;
+    	this.createDateTime = Timestamp.from(Instant.now());
+    	this.updateDateTime = Timestamp.from(Instant.now());
+    }
+    
+    public MusicListenCount(String song, long occurences) {
+    	this.song = song;
+    	this.occurences = occurences;
     	this.createDateTime = Timestamp.from(Instant.now());
     	this.updateDateTime = Timestamp.from(Instant.now());
     }

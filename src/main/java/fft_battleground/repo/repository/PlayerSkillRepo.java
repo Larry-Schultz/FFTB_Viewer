@@ -30,7 +30,4 @@ public interface PlayerSkillRepo extends JpaRepository<PlayerSkills, Long> {
 	
 	@Query("Select playerSkills FROM PlayerSkills playerSkills LEFT JOIN playerSkills.player_record playerRecord WHERE playerRecord.player = :player AND playerSkills.skill = :skillName")
 	public PlayerSkills getSkillsByPlayerAndSkillName(@Param("player") String player, @Param("skillName") String skillName);
-	
-	@Query("SELECT COUNT(playerSkills) FROM PlayerSkills playerSkills LEFT JOIN playerSkills.player_record playerRecord WHERE playerSkills.skillType = 'PRESTIGE' AND playerRecord.player IN :players")
-	public Integer getPrestigeSkillsCount(@Param("players") List<String> players);
 }

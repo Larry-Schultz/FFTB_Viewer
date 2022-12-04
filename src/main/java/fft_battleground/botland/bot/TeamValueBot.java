@@ -6,6 +6,8 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.MissingTeamValueException;
 import fft_battleground.botland.bot.model.Bet;
 import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.botland.bot.util.BotCanInverse;
@@ -13,7 +15,6 @@ import fft_battleground.botland.bot.util.BotCanUseBetExpressions;
 import fft_battleground.botland.bot.util.BotContainsPersonality;
 import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
-import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.util.GambleUtil;
 
@@ -55,14 +56,24 @@ implements BotContainsPersonality, BotCanInverse, BotCanUseBetExpressions{
 	}
 
 	@Override
-	protected Float generateLeftScore() {
-		Float result = super.teamData.getLeftTeamData().getTeamValue().floatValue();
+	protected Float generateLeftScore() throws BotConfigException {
+		Float result = 0f;
+		try {
+			result = super.teamData.getLeftTeamData().getTeamValue().floatValue();
+		} catch(NullPointerException e) {
+			throw new MissingTeamValueException("Missing left team's value", e);
+		}
 		return result;
 	}
 
 	@Override
-	protected Float generateRightScore() {
-		Float result = super.teamData.getRightTeamData().getTeamValue().floatValue();
+	protected Float generateRightScore() throws BotConfigException {
+		Float result = 0f;
+		try {
+			result = super.teamData.getRightTeamData().getTeamValue().floatValue();
+		} catch(NullPointerException e) {
+			throw new MissingTeamValueException("Missing right team's value", e);
+		}
 		return result;
 	}
 

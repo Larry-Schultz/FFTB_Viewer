@@ -4,13 +4,18 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.repo.model.MusicListenCount;
@@ -21,29 +26,31 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 class MusicOccurencesCacheImpl implements MusicOccurencesCache {
+	private static final int DISTANCE_LIMIT = 2;
 	private Date firstOccurence;
 	private long totalOccurences = 0;
 	private long songsWithOccurencesCount = 0;
 	private List<MusicListenCount> occurences;
-	private Map<Long, MusicListenCount> occurencesIdView;
 	private Map<String, MusicListenCount> songNameView;
 	
 	public MusicOccurencesCacheImpl() {
 		this.occurences = new ArrayList<>();
-		this.occurencesIdView = new HashMap<>();
 		this.songNameView = new HashMap<>();
 	}
 	
 	@Override
-	public MusicListenCount getOccurencesById(Long id) {
-		MusicListenCount mlc = this.occurencesIdView.get(id);
+	public MusicListenCount getOccurencesbySong(String songName) {
+		MusicListenCount mlc = this.songNameView.get(songName);
 		return mlc;
 	}
 	
 	@Override
-	public MusicListenCount getOccurencesbySong(String songName) {
-		String cleanedSongName = cleanSongNameKey(songName);
-		MusicListenCount mlc = this.songNameView.get(cleanedSongName);
+	public MusicListenCount getOccurencesByClosestSong(String songName) {
+		MusicListenCount mlc = this.getOccurencesbySong(songName);
+		if(mlc == null) {
+			mlc = this.findClosestMatch(songName);
+		}
+		
 		return mlc;
 	}
 	
@@ -55,14 +62,13 @@ class MusicOccurencesCacheImpl implements MusicOccurencesCache {
 	
 	private void addNewOccurence(MusicListenCount mlc) {
 		this.occurences.add(mlc);
-		this.occurencesIdView.put(mlc.getSongId(), mlc);
 		this.songNameView.put(mlc.getSong(), mlc);
 	}
 	
 	@Override
-	public boolean updateExistingOccurence(Long songId, Long additionalOccurences) {
+	public boolean updateExistingOccurence(String songName, Long additionalOccurences) {
 		boolean success = false;
-		MusicListenCount mlc = this.occurencesIdView.get(songId);
+		MusicListenCount mlc = this.getOccurencesbySong(songName);
 		if(mlc != null) {
 			Long occurences = mlc.getOccurences() + additionalOccurences;
 			mlc.setOccurences(occurences);
@@ -88,18 +94,9 @@ class MusicOccurencesCacheImpl implements MusicOccurencesCache {
 	}
 	
 	@Override
-	public long getTotalOccurences() {
-		return this.totalOccurences;
-	}
-	
-	@Override
-	public long songCountWithOccurences() {
-		return this.songsWithOccurencesCount;
-	}
-	
-	private static String cleanSongNameKey(String song) {
-		String name = StringUtils.lowerCase(song);
-		return name;
+	public long totalOccurences() {
+		long count = this.occurences.stream().mapToLong(occurence -> occurence.getOccurences()).sum();
+		return count;
 	}
 	
 	private Date calculateFirstOccurence() {
@@ -145,4 +142,24 @@ class MusicOccurencesCacheImpl implements MusicOccurencesCache {
 		
 		return result;
 	}
+	
+	private MusicListenCount findClosestMatch(String songToFindMatchFor) {
+		LevenshteinDistance distanceCalculator = LevenshteinDistance.getDefaultInstance();
+		Function<String, Pair<String, Integer>> songDistancePair = song -> Pair.<String, Integer>of(song, distanceCalculator.apply(songToFindMatchFor, song));
+		Optional<Pair<String, Integer>> maybeSongDistance = songNameView.keySet().stream().map(songDistancePair)
+			.sorted(Comparator.comparingInt(Pair::getRight))
+			.filter(pair -> pair.getRight() <= DISTANCE_LIMIT)
+			.findFirst();
+		MusicListenCount musicListenCount = null;
+		if(maybeSongDistance.isPresent()) {
+			String songKey = maybeSongDistance.get().getKey();
+			musicListenCount = this.songNameView.get(songKey);
+			log.info("Closest song for {} was {}", songToFindMatchFor, songKey);
+		} else {
+			log.warn("No song match found for \"{}\" in occurences cache", songToFindMatchFor);
+		}
+		
+		return musicListenCount;
+	}
+
 }

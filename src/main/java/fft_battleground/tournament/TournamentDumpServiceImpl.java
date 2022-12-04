@@ -17,7 +17,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
-import fft_battleground.dump.DumpResourceManager;
+import fft_battleground.dump.data.AbstractDataProvider;
+import fft_battleground.dump.data.DumpResourceManagerImpl;
 import fft_battleground.event.detector.model.BetInfoEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
@@ -27,7 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class TournamentDumpServiceImpl implements TournamentDumpService {
+public class TournamentDumpServiceImpl
+extends AbstractDataProvider
+implements TournamentDumpService 
+{
 	private static final String prestigeSkillsMasterListUri = "http://www.fftbattleground.com/fftbg/PrestigeSkills.txt";
 	private static final String raidBossUrlTemplateForTournament = "http://www.fftbattleground.com/fftbg/tournament_%s/raidboss.txt";
 	private static final String tournamentPotUrlTemplate = "http://www.fftbattleground.com/fftbg/tournament_%1$s/pot%2$s.txt";
@@ -35,21 +39,19 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 	private static final String winnersTxtUrlFormat = "http://www.fftbattleground.com/fftbg/tournament_%s/winner.txt";
 	private static final String teamValueUrlFormat =  "http://www.fftbattleground.com/fftbg/tournament_%s/teamvalue.txt";
 	private static final String streakUrlFormat =  "http://www.fftbattleground.com/fftbg/tournament_%s/streak.txt";
+	private static final String memeUrlFormat = "http://www.fftbattleground.com/fftbg/tournament_%s/meme.txt";
 	
-	@Autowired
-	private DumpResourceManager dumpResourceManager;
+	private static final String defaultMemeTourneySetting = "normal";
+	
+	public TournamentDumpServiceImpl(@Autowired DumpResourceManagerImpl dumpResourceManager) {
+		super(dumpResourceManager);
+		// TODO Auto-generated constructor stub
+	}
 	
 	@Override
 	public List<BattleGroundTeam> getWinnersFromTournament(Long id) throws DumpException {
 		List<BattleGroundTeam> winners = new LinkedList<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(String.format(winnersTxtUrlFormat, id.toString()));
-		} catch (MalformedURLException e) {
-			log.error("malformed url", e);
-			return new ArrayList<>();
-		}
-		try(BufferedReader raidBossReader = this.dumpResourceManager.openDumpResource(resource)) {
+		try(BufferedReader raidBossReader = this.getReaderForDumpTournamentUrlTemplate(winnersTxtUrlFormat, id)) {
 			String line;
 			while((line = raidBossReader.readLine()) != null) {
 				if(StringUtils.isNotBlank(line)) {
@@ -67,14 +69,7 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 	@Override
 	public List<String> getRaidBossesFromTournament(Long id) throws DumpException {
 		List<String> raidbosses = new LinkedList<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(String.format(raidBossUrlTemplateForTournament, id.toString()));
-		} catch (MalformedURLException e) {
-			log.error("malformed url", e);
-			return new ArrayList<>();
-		}
-		try(BufferedReader raidBossReader = this.dumpResourceManager.openDumpResource(resource)) {
+		try(BufferedReader raidBossReader = this.getReaderForDumpTournamentUrlTemplate(raidBossUrlTemplateForTournament, id)) {
 			String line;
 			while((line = raidBossReader.readLine()) != null) {
 				if(StringUtils.isNotBlank(line)) {
@@ -134,13 +129,7 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 	@Override
 	public Set<String> parseEntrantFile(Long tournamentId) throws DumpException {
 		Set<String> entrants = new HashSet<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(String.format(entrantUrlTemplateForTournament, tournamentId.toString()));
-		} catch (MalformedURLException e1) {
-			throw new DumpException(e1);
-		}
-		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+		try(BufferedReader botReader = this.getReaderForDumpTournamentUrlTemplate(entrantUrlTemplateForTournament, tournamentId)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
 				String cleanedString = line;
@@ -158,13 +147,7 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 	@Override
 	public Map<BattleGroundTeam, Integer> parseTeamValueFile(Long tournamentId) throws DumpException {
 		Map<BattleGroundTeam, Integer> teamValues = new HashMap<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(String.format(teamValueUrlFormat, tournamentId.toString()));
-		} catch (MalformedURLException e1) {
-			throw new DumpException(e1);
-		}
-		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+		try(BufferedReader botReader = this.getReaderForDumpTournamentUrlTemplate(teamValueUrlFormat, tournamentId)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
 				String cleanedString = line;
@@ -195,13 +178,7 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 	@Override
 	public Integer getChampionStreak(Long tournamentId) throws DumpException {
 		Integer streak = null;
-		Resource resource;
-		try {
-			resource = new UrlResource(String.format(streakUrlFormat, tournamentId.toString()));
-		} catch (MalformedURLException e1) {
-			throw new DumpException(e1);
-		}
-		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+		try(BufferedReader botReader = this.getReaderForDumpTournamentUrlTemplate(streakUrlFormat, tournamentId)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
 				String cleanedString = line;
@@ -218,13 +195,7 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 	@Override
 	public Set<String> getPrestigeSkillList() throws DumpException {
 		Set<String> entrants = new HashSet<>();
-		Resource resource;
-		try {
-			resource = new UrlResource(prestigeSkillsMasterListUri);
-		} catch (MalformedURLException e1) {
-			throw new DumpException(e1);
-		}
-		try(BufferedReader botReader = this.dumpResourceManager.openDumpResource(resource)) {
+		try(BufferedReader botReader = this.getReaderForUrl(prestigeSkillsMasterListUri)) {
 			String line;
 			while((line = botReader.readLine()) != null) {
 				String cleanedString = GambleUtil.cleanString(line);
@@ -235,6 +206,39 @@ public class TournamentDumpServiceImpl implements TournamentDumpService {
 		}
 		
 		return entrants;
+	}
+	
+	@Override
+	public List<String> getMemeTournamentSettings(Long id) throws DumpException {
+		List<String> memeSettings = new LinkedList<>();
+		try(BufferedReader memeReader = this.getReaderForDumpTournamentUrlTemplate(memeUrlFormat, id)) {
+			String line;
+			while((line = memeReader.readLine()) != null) {
+				if(StringUtils.isNotBlank(line)) {
+					memeSettings.add(GambleUtil.cleanString(line));
+				}
+			}
+		} catch (IOException e) {
+			log.debug("reading raidboss data for tournament {} has failed", id);
+			return new ArrayList<>();
+		}
+		
+		if(memeSettings.isEmpty()) {
+			memeSettings.add(defaultMemeTourneySetting);
+		}
+		
+		return memeSettings;
+	}
+	
+	protected BufferedReader getReaderForDumpTournamentUrlTemplate(String template, Long id) throws DumpException, IOException {
+		String url = this.processTournamentUrlTemplate(template, id);
+		BufferedReader reader = this.getReaderForUrl(url);
+		return reader;
+	}
+	
+	protected String processTournamentUrlTemplate(String template, Long id) {
+		String url = String.format(template, id.toString());
+		return url;
 	}
 
 }

@@ -19,6 +19,4 @@ public interface MusicService {
 	Set<Music> loadMusicDataFromDump() throws DumpException;
 	List<MusicListenCount> loadMusicListenCountFromRepo();
 	Date getFirstOccurenceDate();
-	long getTotalOccurences();
-	long getSongsWithOccurencesCount();
 }

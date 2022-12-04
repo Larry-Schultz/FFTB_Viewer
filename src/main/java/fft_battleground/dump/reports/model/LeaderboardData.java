@@ -11,6 +11,7 @@ import lombok.SneakyThrows;
 @Data
 @AllArgsConstructor
 public class LeaderboardData implements Comparable<LeaderboardData> {
+	public static final String LEADERBOARD_ACTIVE_PLAYER_DATE_FORMAT = "MM-dd-yyyy";
 	private String name;
 	private Integer rank;
 	private String gil;

@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 import com.google.common.math.Quantiles;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpReportsService;
+import fft_battleground.dump.DumpReportsServiceImpl;
+import fft_battleground.dump.service.BalanceHistoryServiceImpl;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
@@ -27,7 +28,7 @@ public class BetPercentileReportGenerator extends AbstractReportGenerator<Map<In
 	private static final String reportName = "Bet Percentiles";
 	
 	@Autowired
-	private DumpReportsService dumpReportsService;
+	private BalanceHistoryServiceImpl balanceHistoryUtil;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
@@ -43,9 +44,9 @@ public class BetPercentileReportGenerator extends AbstractReportGenerator<Map<In
 		List<Double> ratios = allPlayers.stream()
 				.filter(playerRecord -> playerRecord.getWins() != null && playerRecord.getLosses() != null)
 				.filter(playerRecord -> playerRecord.getLastActive() != null
-						&& this.dumpReportsService.isPlayerActiveInLastMonth(playerRecord.getLastActive()))
+						&& this.balanceHistoryUtil.isPlayerActiveInLastMonth(playerRecord.getLastActive()))
 				.filter(playerRecord -> (playerRecord.getWins()
-						+ playerRecord.getLosses()) > DumpReportsService.PERCENTILE_THRESHOLD)
+						+ playerRecord.getLosses()) > DumpReportsServiceImpl.PERCENTILE_THRESHOLD)
 				.map(playerRecord -> ((double) playerRecord.getWins() + 1)
 						/ ((double) playerRecord.getWins() + playerRecord.getLosses() + 1))
 				.collect(Collectors.toList());

@@ -31,6 +31,7 @@ import fft_battleground.dump.scheduled.tournament.UpdateDetectorAuditTableTourna
 import fft_battleground.dump.scheduled.tournament.UpdateExperienceDataTournamentTask;
 import fft_battleground.dump.scheduled.tournament.UpdateLastActiveDataTournamentTask;
 import fft_battleground.dump.scheduled.tournament.UpdateMusicDataTournamentTask;
+import fft_battleground.dump.scheduled.tournament.UpdateMusicOccurenceHistoryTournamentTask;
 import fft_battleground.dump.scheduled.tournament.UpdatePrestigeSkillsTournamentTask;
 import fft_battleground.dump.scheduled.tournament.UpdateSkillBonusCacheTournamentTask;
 import fft_battleground.dump.scheduled.tournament.UpdateUserSkillsTournamentTask;
@@ -39,6 +40,8 @@ import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.mustadio.MustadioService;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
+import fft_battleground.repo.repository.MusicListenCountHistoryRepo;
+import fft_battleground.repo.repository.MusicListenCountRepo;
 import fft_battleground.skill.SkillUtils;
 import fft_battleground.util.Router;
 
@@ -72,6 +75,12 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 	
 	@Autowired
 	@Getter private MustadioService mustadioService;
+	
+	@Autowired
+	@Getter private MusicListenCountRepo musicListenCountRepo;
+	
+	@Autowired
+	@Getter private MusicListenCountHistoryRepo musicListenCountHistoryRepo;
 	
 	@Value("${server.ssl.key-store-password}")
 	@Getter private String keyStorePass;
@@ -108,6 +117,7 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 				new UpdateUserSkillsTournamentTask(this),
 				new UpdatePrestigeSkillsTournamentTask(this),
 				new UpdateMusicDataTournamentTask(this),
+				new UpdateMusicOccurenceHistoryTournamentTask(this),
 				new UpdateDetectorAuditTableTournamentTask(this)
 				);
 		return tasks;

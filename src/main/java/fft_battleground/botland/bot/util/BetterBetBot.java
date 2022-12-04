@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.bot.model.Bet;
 import fft_battleground.botland.bot.model.BetType;
 import fft_battleground.botland.bot.model.TeamData;
@@ -16,7 +17,6 @@ import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.model.PersonalityResponse;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
-import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.tournament.model.Unit;

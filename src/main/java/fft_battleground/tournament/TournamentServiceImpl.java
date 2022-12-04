@@ -78,6 +78,9 @@ public class TournamentServiceImpl implements TournamentService {
 		Integer streak = this.tournamentDumpService.getChampionStreak(latestTournament.getID());
 		currentTournament.setChampionStreak(streak);
 		
+		List<String> memeTournamentSettings = this.tournamentDumpService.getMemeTournamentSettings(latestTournament.getID());
+		currentTournament.setMemeTournamentSettings(memeTournamentSettings);
+		
 		this.currentTournamentReference.set(currentTournament);
 		
 		return this.currentTournamentReference.get();

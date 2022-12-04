@@ -356,6 +356,15 @@
 		<param id="personality" description="personality of bot">inverse_percentile</param>
 		<param id="inverse" description="reverse team chosen">true</param>
 	</bot>
+	<bot id="genebotv1-10-25-22" classname="genebot"
+		canPrimary="true"
+		description="Bot that uses genetic attributes to find a winner">
+		<param id="geneFile"
+			description="file location that contains the genes">genebotv1-10-25-22.txt</param>
+		<param id="betExpression"
+			description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">nerd</param>
+	</bot>
 	<bot id="bravebot" classname="bravefaithbot" canPrimary="true"
 		description="Bot that looks at bravery">
 		<param id="bravefaith"

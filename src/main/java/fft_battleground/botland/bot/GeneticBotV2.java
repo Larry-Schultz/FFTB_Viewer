@@ -10,6 +10,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.math.NumberUtils;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.MissingGeneException;
+import fft_battleground.botland.bot.exception.MissingPlayerMetadataException;
+import fft_battleground.botland.bot.exception.MissingTeamInfoException;
 import fft_battleground.botland.bot.genetic.GeneFileCache;
 import fft_battleground.botland.bot.genetic.model.BotGenome;
 import fft_battleground.botland.bot.genetic.model.BraveFaithAttributes;
@@ -30,8 +34,6 @@ import fft_battleground.discord.WebhookManager;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.MatchInfoEvent;
 import fft_battleground.event.detector.model.TeamInfoEvent;
-import fft_battleground.exception.BotConfigException;
-import fft_battleground.exception.MissingGeneException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.tournament.classifier.UnitAttributeClassifier;
@@ -204,9 +206,14 @@ implements BotCanBetBelowMinimum, BotContainsPersonality, BotCanInverse, BotUses
 		return supplier;
 	}
 	
-	protected Double scoreFighters(TeamInfoEvent teamInfoEvent) {
+	protected Double scoreFighters(TeamInfoEvent teamInfoEvent) throws MissingTeamInfoException, MissingPlayerMetadataException {
 		Double score = 0d;
 		PlayerDataGeneAttributes playerDataGeneAttributes = this.genes.getPlayerDataGeneAttributes();
+		if(teamInfoEvent == null) {
+			throw new MissingTeamInfoException("Missing team info data in GeneticBotV2");
+		} else if(teamInfoEvent.getMetaData() == null) {
+			throw new MissingPlayerMetadataException("Missing player metadata from team info data in GeneticBotV2");
+		}
 		score += teamInfoEvent.getMetaData().stream()
 				.filter(metadata -> metadata != null)
 				.mapToDouble((metadata) -> {

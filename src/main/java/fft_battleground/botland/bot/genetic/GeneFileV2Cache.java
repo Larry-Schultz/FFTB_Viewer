@@ -4,8 +4,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.bot.genetic.model.GeneTrainerV2BotData;
-import fft_battleground.exception.BotConfigException;
 
 @Component
 public class GeneFileV2Cache extends GeneFileCache<GeneTrainerV2BotData> {
@@ -38,7 +38,6 @@ public class GeneFileV2Cache extends GeneFileCache<GeneTrainerV2BotData> {
 	}
 	
 	@Override
-	@Cacheable("genefileV2")
 	public GeneFile<GeneTrainerV2BotData> loadGeneDataFromFile(String filename) throws BotConfigException {
 		GeneFile<GeneTrainerV2BotData> botData = super.loadGeneDataFromFile(filename);
 		botData.getData().init();

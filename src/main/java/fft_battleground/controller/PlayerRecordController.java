@@ -3,12 +3,9 @@ package fft_battleground.controller;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,10 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +27,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.controller.response.model.GilDateGraphEntry;
 import fft_battleground.dump.DumpReportsService;
-import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.LeaderboardBalanceData;
 import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
+import fft_battleground.dump.service.BalanceHistoryServiceImpl;
+import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.GlobalGilHistory;
@@ -72,19 +68,10 @@ public class PlayerRecordController {
 	private TournamentService tournamentService;
 	
 	@Autowired
-	private DumpService dumpService;
-	
-	@Autowired
 	private DumpReportsService dumpReportsService;
 	
-	@Scheduled(cron = "0 30 0 * * ?")
-	public void clearPlayerLeaderboard() {
-		synchronized(this.playerLeaderboardData) {
-			this.playerLeaderboardData.clear();
-		}
-	}
-	
-	private Map<String, LeaderboardBalanceData> playerLeaderboardData = new HashMap<>();
+	@Autowired
+	private BalanceHistoryServiceImpl balanceHistoryUtil;
 	
 	@ApiIgnore
 	@GetMapping("/playerRecord/{playerName}")
@@ -123,7 +110,7 @@ public class PlayerRecordController {
 		
 		List<LeaderboardBalanceHistoryEntry> entries = Arrays.asList(new LeaderboardBalanceHistoryEntry[] {new LeaderboardBalanceHistoryEntry(player, balanceHistories)});
 		
-		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(entries, count);
+		LeaderboardBalanceData data = this.balanceHistoryUtil.getLabelsAndSetRelevantBalanceHistories(entries, count);
 		
 		return GenericResponse.createGenericResponseEntity(data);
 	}
@@ -131,40 +118,18 @@ public class PlayerRecordController {
 	@ApiIgnore
 	@GetMapping("/botLeaderboardBalanceHistory")
 	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>> 
-	getBotBalanceHistory(@RequestParam(name="count", required=true) Integer count) {
-		LeaderboardBalanceData data = this.generateBotBalanceHistory(count);
+	getBotBalanceHistory(@RequestParam(name="count", required=true) Integer maxHistoryEntries, 
+			@RequestParam(name="bots", required=false, defaultValue="10") int maxNumberOfActiveBots) throws CacheMissException {
+		LeaderboardBalanceData data = this.dumpReportsService.getBotLeaderboardBalanceHistory();
 		
 		return GenericResponse.createGenericResponseEntity(data);
-	}
-	
-	@Cacheable("botBalanceHistory")
-	public LeaderboardBalanceData generateBotBalanceHistory(Integer count) {
-		Map<String, List<BalanceHistory>> botBalanceHistories = this.dumpService.getBotNames().parallelStream()
-				.collect(Collectors.toMap(Function.identity(), botName -> this.balanceHistoryRepo.getTournamentBalanceHistoryFromPastWeek(botName)));
-		List<LeaderboardBalanceHistoryEntry> botBalanceHistoryEntries = botBalanceHistories.keySet().parallelStream()
-				.map(playerName -> new LeaderboardBalanceHistoryEntry(playerName, botBalanceHistories.get(playerName)))
-				.filter(leaderboardBalanceHistory -> leaderboardBalanceHistory.getBalanceHistory().size() >= count).collect(Collectors.toList());
-		
-		//Map<LeaderboardBalanceHistoryEntry, Integer> balanceHistorySizes = botBalanceHistoryEntries.stream().collect(Collectors.toMap(Function.identity(), balanceHistoryEntry -> balanceHistoryEntry.getBalanceHistory().size()));
-		
-		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(botBalanceHistoryEntries, count);
-		
-		return data;
 	}
 	
 	@ApiIgnore
 	@GetMapping("/playerLeaderboardBalanceHistory")
 	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>>
-	getPlayerBalanceHistories(@RequestParam(name="players", required=true) String players, @RequestParam(name="count", required=true) int count) {
-		LeaderboardBalanceData data;
-		synchronized(this.playerLeaderboardData) {
-			if(this.playerLeaderboardData.get(players) == null) {
-				data = this.generatePlayerBalanceHistory(players, count);
-				this.playerLeaderboardData.put(players, data);
-			} else {
-				data = this.playerLeaderboardData.get(players);
-			}
-		}
+	getPlayerBalanceHistories(@RequestParam(name="players", required=true) String players, @RequestParam(name="count", required=true) int count) throws CacheMissException {
+		LeaderboardBalanceData data = this.dumpReportsService.getPlayerLeaderboardBalanceHistory();
 		
 		return GenericResponse.createGenericResponseEntity(data);
 	}
@@ -202,19 +167,5 @@ public class PlayerRecordController {
 		
 		return GenericResponse.createGenericResponseEntity(results);
 		
-	}
-	
-	@Cacheable("playerBalanceHistory")
-	public LeaderboardBalanceData generatePlayerBalanceHistory(String players, int count) {
-		List<String> playerList = Arrays.asList(StringUtils.split(players, ","));
-		Map<String, LinkedList<BalanceHistory>> playerBalanceHistories = playerList.parallelStream()
-				.collect(Collectors.toMap(Function.identity(), playerName -> new LinkedList<BalanceHistory>(this.balanceHistoryRepo.getTournamentBalanceHistoryFromPastWeek(playerName))));
-		
-		List<LeaderboardBalanceHistoryEntry> playerBalanceHistoryEntries = playerBalanceHistories.keySet().parallelStream().map(playerName -> new LeaderboardBalanceHistoryEntry(playerName, playerBalanceHistories.get(playerName)))
-				.collect(Collectors.toList());
-		
-		LeaderboardBalanceData data = this.dumpReportsService.getLabelsAndSetRelevantBalanceHistories(playerBalanceHistoryEntries, count);
-		
-		return data;
 	}
 }

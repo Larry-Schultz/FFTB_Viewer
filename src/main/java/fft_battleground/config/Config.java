@@ -1,6 +1,5 @@
 package fft_battleground.config;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 
@@ -31,6 +30,7 @@ import fft_battleground.event.detector.DontFightDetector;
 import fft_battleground.event.detector.FightBeginsDetector;
 import fft_battleground.event.detector.FightEntryDetector;
 import fft_battleground.event.detector.GiftSkillDetector;
+import fft_battleground.event.detector.HypeDetector;
 import fft_battleground.event.detector.LevelUpDetector;
 import fft_battleground.event.detector.MusicDetector;
 import fft_battleground.event.detector.OtherPlayerBalanceDetector;
@@ -48,7 +48,7 @@ import fft_battleground.event.detector.ResultEventDetector;
 import fft_battleground.event.detector.RiserSkillWinDetector;
 import fft_battleground.event.detector.SkillDropDetector;
 import fft_battleground.event.detector.SkillWinEventDetector;
-import fft_battleground.image.Images;
+import fft_battleground.image.model.Images;
 import fft_battleground.event.detector.OtherPlayerSnubEventDetector;
 import fft_battleground.irc.TwirkChatListenerAdapter;
 import fft_battleground.model.ChatMessage;
@@ -93,14 +93,14 @@ public class Config {
 	
 	@Bean
 	public List<EventDetector<?>> detectors(@Value("${irc.username}") String username) {
-		return Arrays.asList(new EventDetector[]{
+		return List.of(new EventDetector<?>[]{
 			new BetDetector(), new LevelUpDetector(), new ResultEventDetector(), new SkillWinEventDetector(), new RiserSkillWinDetector(),
 			new BalanceDetector(username), new OtherPlayerBalanceDetector(), new PlayerSkillDetector(), new MusicDetector(),
 			new BettingBeginsDetector(), new AllegianceDetector(), new BetInfoEventDetector(), new SkillDropDetector(), new DontFightDetector(),
 			new BettingEndsDetector(), new BadBetDetector(), new BuySkillDetector(), new PortraitEventDetector(), new OtherPlayerSkillOnCooldownDetector(),
 			new FightEntryDetector(), new FightBeginsDetector(), new OtherPlayerInvalidFightCombinationDetector(), new OtherPlayerInvalidFightEntryClassDetector(),
 			new OtherPlayerUnownedSkillDetector(), new OtherPlayerExpDetector(), new GiftSkillDetector(), new PrestigeAscensionDetector(), new OtherPlayerSnubEventDetector(),
-			new OtherPlayerInvalidFightEntrySexDetector(), new OtherPlayerInvalidFightEntryTournamentStartedDetector(), new BonusDetector()
+			new OtherPlayerInvalidFightEntrySexDetector(), new OtherPlayerInvalidFightEntryTournamentStartedDetector(), new BonusDetector(), new HypeDetector()
 		});
 	}
 	

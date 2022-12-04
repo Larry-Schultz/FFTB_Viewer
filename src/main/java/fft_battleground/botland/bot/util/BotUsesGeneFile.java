@@ -1,6 +1,6 @@
 package fft_battleground.botland.bot.util;
 
-import fft_battleground.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.BotConfigException;
 
 public interface BotUsesGeneFile {
 	public static final String GENE_FILE_PARAMETER = "geneFile";

@@ -22,6 +22,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @Controller
 @RequestMapping("/chat")
 @Slf4j
+@ApiIgnore
 public class ChatMessageController {
 
 	@Autowired

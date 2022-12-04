@@ -1,5 +1,7 @@
 package fft_battleground.event.detector.model;
 
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import fft_battleground.event.model.BattleGroundEvent;
@@ -18,13 +20,16 @@ public class MatchInfoEvent extends BattleGroundEvent {
 	private BattleGroundTeam team2;
 	private Integer mapNumber;
 	private String mapName;
+	private List<String> memeTournamentSettings;
 
-	public MatchInfoEvent(Pair<BattleGroundTeam, BattleGroundTeam> teamPair, Pair<Integer, String> mapData) {
+	public MatchInfoEvent(Pair<BattleGroundTeam, BattleGroundTeam> teamPair, Pair<Integer, String> mapData, 
+			List<String> memeTournamentSettings) {
 		super(type);
 		this.team1 = teamPair.getLeft();
 		this.team2 = teamPair.getRight();
 		this.mapNumber = mapData.getLeft();
 		this.mapName = mapData.getRight();
+		this.memeTournamentSettings = memeTournamentSettings;
 	}
 
 

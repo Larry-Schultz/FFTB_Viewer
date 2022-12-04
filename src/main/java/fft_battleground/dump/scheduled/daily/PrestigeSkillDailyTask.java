@@ -20,6 +20,7 @@ import fft_battleground.exception.TournamentApiException;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.util.BatchDataEntryType;
+import fft_battleground.skill.SkillUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -41,7 +42,7 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 		final AtomicInteger playersAnalyzed = new AtomicInteger();
 		final AtomicInteger playersUpdated = new AtomicInteger(0);
 		try {
-			log.info("updating user and prestige skills caches");
+			log.info("updating prestige skills caches");
 			Set<String> prestigeSkillPlayers = Sets.newConcurrentHashSet(this.dumpDataProviderRef.getPlayersForPrestigeSkillsDump()); //use the larger set of names from the leaderboard
 			
 			//filter userSkillPlayers by lastActiveDate
@@ -102,13 +103,27 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 			if(prestigeCacheResult != null) {
 				this.dumpServiceRef.getPrestigeSkillsCache().remove(player);
 			}
-			List<String> prestigeSkillNames = prestigeSkills.stream().map(PrestigeSkills::getSkill).collect(Collectors.toList());
+			List<String> prestigeSkillNames = prestigeSkills.stream().map(PrestigeSkills::getSkill)
+					.collect(Collectors.toList());
+			
+			boolean nonPrestigeFound = false;
+			for(String skill : prestigeSkillNames) {
+				if(!SkillUtils.isPrestigeSkill(skill)) {
+					nonPrestigeFound = true;
+					break;
+				}
+			}
+			if(nonPrestigeFound) {
+				ascensionLogger.error("Non Prestige Skill Found, filtering out");
+				prestigeSkillNames = prestigeSkillNames.stream().filter(SkillUtils::isPrestigeSkill).collect(Collectors.toList());
+			}
+			
 			this.dumpServiceRef.getPrestigeSkillsCache().put(player, prestigeSkillNames);
 			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(prestigeSkills, player);
 			this.betResultsRouterRef.sendDataToQueues(prestigeEvent);
 		}
 		
-		log.info("refreshed skills for player: {}", player);
+		log.info("refreshed prestige skills for player: {}", player);
 	}
 
 }

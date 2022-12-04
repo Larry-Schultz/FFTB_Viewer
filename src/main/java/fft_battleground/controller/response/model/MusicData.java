@@ -11,12 +11,14 @@ public class MusicData {
 	private String duration;
 	private long occurences;
 	private Date mostRecentOccurence;
+	private Date dateAdded;
 	
 	public MusicData(Music music) {
 		this.songName = music.getSongName();
 		this.duration = this.buildDurationString(music.getMinutes(), music.getSeconds());
 		this.occurences = music.getOccurences();
 		this.mostRecentOccurence = music.getMostRecentOccurence();
+		this.dateAdded = music.getDateAdded();
 	}
 	
 	protected String buildDurationString(String minutes, String seconds) {

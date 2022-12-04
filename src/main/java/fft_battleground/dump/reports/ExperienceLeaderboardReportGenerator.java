@@ -12,10 +12,11 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpReportsService;
+import fft_battleground.dump.DumpReportsServiceImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboardEntry;
+import fft_battleground.dump.service.BalanceHistoryServiceImpl;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
@@ -35,7 +36,7 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 	private DumpService dumpService;
 	
 	@Autowired
-	private DumpReportsService dumpReportsService;
+	private BalanceHistoryServiceImpl balanceHistoryUtil;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
@@ -48,11 +49,11 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 	@Override
 	public ExpLeaderboard generateReport() throws CacheBuildException {
 		List<ExpLeaderboardEntry> results = new ArrayList<>();
-		for (int rank = 1; rank <= DumpReportsService.TOP_PLAYERS; rank++) {
+		for (int rank = 1; rank <= DumpReportsServiceImpl.TOP_PLAYERS; rank++) {
 			ExpLeaderboardEntry result = null;
 			String player = this.dumpService.getExpRankLeaderboardByRank().get(rank);
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(player);
-			if (maybePlayer.isPresent() && this.dumpReportsService.isPlayerActiveInLastMonth(maybePlayer.get().getLastActive())) {
+			if (maybePlayer.isPresent() && this.balanceHistoryUtil.isPlayerActiveInLastMonth(maybePlayer.get().getLastActive())) {
 				Short level = maybePlayer.get().getLastKnownLevel();
 				Short exp = maybePlayer.get().getLastKnownRemainingExp();
 				SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");

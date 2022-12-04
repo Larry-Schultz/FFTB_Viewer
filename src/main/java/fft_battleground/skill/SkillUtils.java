@@ -54,7 +54,7 @@ public class SkillUtils {
 	private static final List<String> ENTRY_SKILLS  = Arrays.asList(new String[] {"BraveBoost","FaithBoost","FashionSense","PreferredArms","NeutralZodiac","GearedUp","HighlySkilled",
 			"GilgameHeart","EXPBoost",});
 	
-	private static final List<String> PRESTIGE_SKILLS = Arrays.asList(new String[] {"RaidBoss","MathSkill","EquipPerfume","Teleport2","BladeGrasp","Doppelganger",});
+	public static final List<String> PRESTIGE_SKILLS = Arrays.asList(new String[] {"RaidBoss","MathSkill","EquipPerfume","Teleport2","BladeGrasp","Doppelganger",});
 	
 	private static final List<String> LEGENDARY_SKILLS = Arrays.asList(new String[] {"BirbBrain", "ProgrammingUp"});
 	
@@ -87,6 +87,11 @@ public class SkillUtils {
 				.filter(className -> !StringUtils.contains(className, Gender.FEMALE.toString()))
 				.collect(Collectors.toSet());
 		return monsterList;
+	}
+	
+	public static boolean isPrestigeSkill(String skill) {
+		boolean isPrestige = PRESTIGE_SKILLS.contains(skill);
+		return isPrestige;
 	}
 	
 	/**

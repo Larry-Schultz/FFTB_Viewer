@@ -29,15 +29,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.model.BotData;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
+import fft_battleground.controller.response.model.BotLeaderboardData;
 import fft_battleground.controller.response.model.ExpLeaderboardData;
 import fft_battleground.controller.response.model.MusicData;
 import fft_battleground.controller.response.model.MusicPayload;
 import fft_battleground.controller.response.model.PlayerData;
 import fft_battleground.controller.response.model.PlayerLeaderboardData;
-import fft_battleground.controller.response.model.botland.BotLeaderboardData;
 import fft_battleground.controller.response.model.botland.BotResponseData;
 import fft_battleground.controller.response.model.botland.BotlandData;
 import fft_battleground.dump.DumpReportsService;
+import fft_battleground.dump.DumpReportsServiceImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.dump.reports.model.AllegianceLeaderboardWrapper;
@@ -46,6 +47,9 @@ import fft_battleground.dump.reports.model.BotLeaderboard;
 import fft_battleground.dump.reports.model.ExpLeaderboard;
 import fft_battleground.dump.reports.model.LeaderboardData;
 import fft_battleground.dump.reports.model.PlayerLeaderboard;
+import fft_battleground.dump.service.GlobalGiServiceImpl;
+import fft_battleground.dump.service.GlobalGilService;
+import fft_battleground.dump.service.PlayerPageDataService;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.metrics.AccessTracker;
@@ -86,6 +90,12 @@ public class HomeController {
 	private DumpReportsService dumpReportsService;
 	
 	@Autowired
+	private GlobalGilService globalGilService;
+	
+	@Autowired
+	private PlayerPageDataService playerDataUtil;
+	
+	@Autowired
 	private BetBotFactory betBotFactory;
 	
 	@Autowired
@@ -123,7 +133,7 @@ public class HomeController {
 			this.logAccess(playerName + " search page ", userAgent, request);
 		}
 		
-		PlayerData playerData = this.dumpService.getDataForPlayerPage(playerName, timezone);
+		PlayerData playerData = this.playerDataUtil.getDataForPlayerPage(playerName, timezone);
 		return GenericResponse.createGenericResponseEntity(playerData);
 	}
 	
@@ -138,9 +148,7 @@ public class HomeController {
 		}
 		Collection<MusicData> data = music.parallelStream().map(musicEntry -> new MusicData(musicEntry)).collect(Collectors.toList());
 		Date firstOccurence = this.musicService.getFirstOccurenceDate();
-		long totalOccurences = this.musicService.getTotalOccurences();
-		long songWithOccurencesCount = this.musicService.getSongsWithOccurencesCount();
-		MusicPayload payload = new MusicPayload(data, firstOccurence, totalOccurences, songWithOccurencesCount);
+		MusicPayload payload = new MusicPayload(data, firstOccurence);
 		return GenericResponse.createGenericResponseEntity(payload);
 	}
 	
@@ -157,22 +165,22 @@ public class HomeController {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
 		DecimalFormat decimalformat = new DecimalFormat("##.#########");
 		
-		List<LeaderboardData> output = botLeaderboard.keySet().stream().map(
+		List<LeaderboardData> completeLeaderboard = botLeaderboard.keySet().stream().map(
 				botName -> { 
 					String player = botName;
 					String gil = myFormat.format(botLeaderboard.get(botName));
 					String activeDate = dateFormat.format(this.dumpService.getLastActiveDateFromCache(botName));
-					String percentageOfGlobalGil = decimalformat.format(this.dumpReportsService.percentageOfGlobalGil(botLeaderboard.get(botName)) * (double)100);
+					String percentageOfGlobalGil = decimalformat.format(this.globalGilService.percentageOfGlobalGil(botLeaderboard.get(botName)) * (double)100);
 					LeaderboardData data = new LeaderboardData(player, gil, activeDate); 
 					data.setPercentageOfGlobalGil(percentageOfGlobalGil);
 					return data;
 				}).sorted().collect(Collectors.toList());
-		Collections.reverse(output);
-		for(int i = 0; i < output.size(); i++) { 
-			output.get(i).setRank(i + 1); 
+		Collections.reverse(completeLeaderboard);
+		for(int i = 0; i < completeLeaderboard.size(); i++) { 
+			completeLeaderboard.get(i).setRank(i + 1); 
 		}
 
-		BotLeaderboardData data = new BotLeaderboardData(output, leaderboardData.formattedGenerationDate());
+		BotLeaderboardData data = new BotLeaderboardData(completeLeaderboard, leaderboardData.formattedGenerationDate());
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
@@ -231,7 +239,7 @@ public class HomeController {
 	@GetMapping("/gilCount")
 	public @ResponseBody ResponseEntity<GenericResponse<GlobalGilPageData>> gilCountPage(@RequestHeader(value = "User-Agent") String userAgent, Model model, HttpServletRequest request) {
 		this.logAccess("global gil count", userAgent, request);
-		GlobalGilPageData data = this.dumpReportsService.getGlobalGilData();
+		GlobalGilPageData data = this.globalGilService.getGlobalGilData();
 		model.addAttribute("globalGilData", data);
 		return GenericResponse.createGenericResponseEntity(data);
 		

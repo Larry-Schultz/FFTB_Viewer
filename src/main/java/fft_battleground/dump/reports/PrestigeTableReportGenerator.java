@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PrestigeTableReportGenerator extends AbstractReportGenerator<AscensionData> {
 	private static final BattleGroundCacheEntryKey key = BattleGroundCacheEntryKey.PRESTIGE_TABLE;
 	private static final String reportName = "Prestige Table";
-	private static final long fixedDelay = BattleGroundCacheEntryKey.PRESTIGE_TABLE.millis();
 	
 	@Autowired
 	private DumpService dumpService;

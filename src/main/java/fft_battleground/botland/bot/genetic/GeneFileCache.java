@@ -3,11 +3,7 @@ package fft_battleground.botland.bot.genetic;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -16,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import fft_battleground.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.BotConfigException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -43,6 +39,18 @@ public abstract class GeneFileCache<T> {
 		T result = this.genefileWithMostRecentData != null ? this.getGeneData(this.genefileWithMostRecentData.getRight()) : null; 
 		
 		return result;
+	}
+	
+	public boolean hasFile(String filename) {
+		String path = baseFolder() + "/" + filename;
+		URL resourceUrl = this.getClass().getClassLoader().getResource(path);
+		boolean fileExists = false;
+		try {
+			File file = new File(resourceUrl.getFile());
+			fileExists = file.exists();
+		}catch(Exception e) {}
+		
+		return fileExists;
 	}
 	
 	public GeneFile<T> loadGeneDataFromFile(String filename) throws BotConfigException {

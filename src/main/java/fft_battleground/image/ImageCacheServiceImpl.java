@@ -13,6 +13,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import fft_battleground.image.model.Images;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -46,7 +47,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
 	public byte[] getPortaitImage(String characterName) {
 		String basePath = "/static/img/portraits";
 		String imagePath = "/" + characterName;
-		String path = basePath + imagePath;
+		String path = basePath + imagePath + ".gif";
 		byte[] data = this.loadFileData(path);
 		
 		return data;

@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fft_battleground.exception.BotConfigException;
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

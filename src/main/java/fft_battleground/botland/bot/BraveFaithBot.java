@@ -8,6 +8,7 @@ import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Constant;
 import org.mariuszgromada.math.mxparser.Expression;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.bot.model.Bet;
 import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.botland.bot.util.BotCanInverse;
@@ -16,7 +17,6 @@ import fft_battleground.botland.bot.util.BotContainsPersonality;
 import fft_battleground.botland.bot.util.BotParameterReader;
 import fft_battleground.botland.model.BotParam;
 import fft_battleground.botland.personality.model.BraveFaith;
-import fft_battleground.exception.BotConfigException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.tournament.model.Unit;
 import fft_battleground.util.GambleUtil;

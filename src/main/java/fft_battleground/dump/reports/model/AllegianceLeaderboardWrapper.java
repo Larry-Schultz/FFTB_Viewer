@@ -16,6 +16,7 @@ public class AllegianceLeaderboardWrapper {
 	private static final String generationDateFormatString = "yyyy-MM-dd hh:mm:ss aa zzz";
 	
 	private List<AllegianceLeaderboard> leaderboards;
+	private int gilCap;
 	private Date generationDate;
 	
 	public AllegianceLeaderboardWrapper() {}

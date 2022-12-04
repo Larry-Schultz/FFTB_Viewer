@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.personality.model.Personalities;
-import fft_battleground.exception.BotConfigException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

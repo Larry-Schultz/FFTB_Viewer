@@ -53,9 +53,6 @@ public class MusicServiceImpl implements MusicService {
 	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
-	private MusicSongNameMap musicSongNameMap;
-	
-	@Autowired
 	private MusicOccurencesCache occurencesCache;
 	
 	private Collection<Music> musicList;
@@ -87,9 +84,9 @@ public class MusicServiceImpl implements MusicService {
 			if(this.currentMusicEvent == null || !this.currentMusicEvent.equals(event)) {
 				this.currentMusicEvent = event;
 				this.newSongOccurenceQueue.add(event);
-				log.info("New Song Found!  Song is {}", event.getSongName());
+				log.info("New Song Found!  Song is \"{}.\"", event.getSongName());
 			} else {
-				log.info("Duplicate song {}", event.getSongName());
+				log.info("Duplicate song \"{}\"", event.getSongName());
 			}
 		} catch(Exception e) { 
 			log.error("Error calling addOccurence", e);
@@ -105,20 +102,30 @@ public class MusicServiceImpl implements MusicService {
 
 		Set<Music> dumpMusicData = this.loadMusicDataFromDump();
 		Collection<Music> musicList = dumpMusicData.stream().collect(Collectors.toList()).stream().sorted().collect(Collectors.toList());
+		List<MusicListenCount> countsToAdd = new ArrayList<>();
+		Timestamp now = Timestamp.from(Instant.now());
 		for(Music music: musicList) {
-			MusicListenCount occurences = this.occurencesCache.getOccurencesIdView().get(music.getId());
+			MusicListenCount occurences = this.occurencesCache.getOccurencesbySong(music.getSongName());
 			if(occurences != null) {
 				music.setOccurences(occurences.getOccurences());
 				music.setMostRecentOccurence(occurences.getUpdateDateTime());
+				music.setDateAdded(occurences.getCreateDateTime());
 			} else {
 				music.setOccurences(0L);
-				music.setMostRecentOccurence(Timestamp.from(Instant.now()));
+				music.setMostRecentOccurence(now);
+				music.setDateAdded(now);
+				MusicListenCount newOccurence = new MusicListenCount(music.getSongName());
+				countsToAdd.add(newOccurence);
 			}
 		}
 		Lock writeLock = this.musicReadWriteLock.writeLock();
 		try {
 			writeLock.lock();
 			this.musicList = musicList;
+			this.occurencesCache.addNewOccurence(countsToAdd);
+			for(MusicListenCount mlc : countsToAdd) {
+				this.updateMusicListenCountRepo(mlc);
+			}
 		} catch(Exception e) { 
 			log.error("Error calling updatePlaylist", e);
 		} finally {
@@ -135,28 +142,22 @@ public class MusicServiceImpl implements MusicService {
 			if(this.newSongOccurenceQueue.isEmpty()) {
 				log.warn("No songs found to add to music listen count!");
 			}
+			List<MusicListenCount> countsToAdd = new ArrayList<>();
 			while(!this.newSongOccurenceQueue.isEmpty()) {
 				MusicEvent event = this.newSongOccurenceQueue.poll();
-				Long id = this.musicSongNameMap.getMusicIdBySong(event.getSongName());
-				List<MusicListenCount> countsToAdd = new ArrayList<>();
-				if(id != null) {
-					this.occurencesCache.updateExistingOccurence(id, 1L);
-					MusicListenCount mlc= this.occurencesCache.getOccurencesById(id);
-					if(mlc == null) {
-						mlc = new MusicListenCount(id, event.getSongName());
-						mlc.setCreateDateTime(new Timestamp(event.getEventTime().getTime()));
-						mlc.setUpdateDateTime(new Timestamp(event.getEventTime().getTime()));
-						countsToAdd.add(mlc);
-					} else {
-						mlc.setUpdateDateTime(new Timestamp(event.getEventTime().getTime()));
-					}
-					this.updateMusicListenCountRepo(mlc);
-					this.occurencesCache.addNewOccurence(countsToAdd);
+				MusicListenCount mlc= this.occurencesCache.getOccurencesByClosestSong(event.getSongName());
+				if(mlc == null) {
+					mlc = new MusicListenCount(event.getSongName(), 1);
+					mlc.setCreateDateTime(new Timestamp(event.getEventTime().getTime()));
+					mlc.setUpdateDateTime(new Timestamp(event.getEventTime().getTime()));
+					countsToAdd.add(mlc);
 				} else {
-					log.warn("Could not find music id while adding music occurences for song {}", event.getSongName());
+					mlc.setUpdateDateTime(new Timestamp(event.getEventTime().getTime()));
+					mlc.setOccurences(mlc.getOccurences() + 1);
 				}
+				this.updateMusicListenCountRepo(mlc);
 			}
-			//this.occurencesCache.updateOccurenceCounts();
+			this.occurencesCache.addNewOccurence(countsToAdd);
 			log.info("The music cache currently has {} entries", this.musicList.size());
 		} catch(Exception e) { 
 			log.error("Error calling updateOccurences", e);
@@ -171,17 +172,24 @@ public class MusicServiceImpl implements MusicService {
 		try {
 			writeLock.lock();
 			this.occurencesCache.addNewOccurence(occurrenceData);
-			this.musicSongNameMap.refreshCache(dumpMusicData);
+			List<MusicListenCount> countsToAdd = new ArrayList<>();
+			Timestamp now = Timestamp.from(Instant.now());
 			for(Music music: dumpMusicData) {
-				MusicListenCount occurences = this.occurencesCache.getOccurencesById(music.getId());
+				MusicListenCount occurences = this.occurencesCache.getOccurencesbySong(music.getSongName());
 				if(occurences != null) {
 					music.setOccurences(occurences.getOccurences());
 					music.setMostRecentOccurence(occurences.getUpdateDateTime());
+					music.setDateAdded(occurences.getCreateDateTime());
 				} else {
 					music.setOccurences(0L);
-					music.setMostRecentOccurence(Timestamp.from(Instant.now()));
+					music.setMostRecentOccurence(now);
+					music.setDateAdded(now);
+					MusicListenCount newOccurence = new MusicListenCount(music.getSongName());
+					countsToAdd.add(newOccurence);
+					this.updateMusicListenCountRepo(newOccurence);
 				}
 			}
+			this.occurencesCache.addNewOccurence(countsToAdd);
 			this.musicList = dumpMusicData;
 			log.info("The music cache currently has {} entries", this.musicList.size());
 		} catch(Exception e) { 
@@ -233,16 +241,6 @@ public class MusicServiceImpl implements MusicService {
 	@Override
 	public Date getFirstOccurenceDate() {
 		return this.occurencesCache.getFirstOccurence();
-	}
-	
-	@Override
-	public long getTotalOccurences() {
-		return this.occurencesCache.getTotalOccurences();
-	}
-	
-	@Override
-	public long getSongsWithOccurencesCount() {
-		return this.occurencesCache.songCountWithOccurences();
 	}
 	
 	@Transactional

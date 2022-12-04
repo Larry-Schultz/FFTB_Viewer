@@ -14,6 +14,7 @@ public class Music implements Comparable<Music> {
 	private String seconds;
 	private Long occurences;
 	private Date mostRecentOccurence;
+	private Date dateAdded;
 
 	public Music(String name, String id, String duration) {
 		this.songName = name;

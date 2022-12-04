@@ -1,12 +1,6 @@
 package fft_battleground.dump.reports.model;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fft_battleground.model.BattleGroundTeam;
 
@@ -33,6 +27,7 @@ public class AllegianceLeaderboard implements Comparable<AllegianceLeaderboard> 
 	private Integer fightWins;
 	private Integer fightLosses;
 	private Integer currentSeasonFightWinsAsChampion = 0;
+	private Integer totalMillionaires = 0;
 	
 	private Double betRatio;
 	private Double fightRatio;

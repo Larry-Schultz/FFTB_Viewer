@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled.tournament;
+ package fft_battleground.dump.scheduled.tournament;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;

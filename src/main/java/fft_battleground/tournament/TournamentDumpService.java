@@ -16,4 +16,5 @@ public interface TournamentDumpService {
 	Map<BattleGroundTeam, Integer> parseTeamValueFile(Long tournamentId) throws DumpException;
 	Integer getChampionStreak(Long tournamentId) throws DumpException;
 	Set<String> getPrestigeSkillList() throws DumpException;
+	List<String> getMemeTournamentSettings(Long tournamentId) throws DumpException;
 }

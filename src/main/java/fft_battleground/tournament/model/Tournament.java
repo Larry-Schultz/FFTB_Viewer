@@ -60,6 +60,7 @@ public class Tournament {
 	private Map<BattleGroundTeam, Integer> teamValue;
 	private Map<BattleGroundTeam, TournamentWinData> tournamentWinTracker = new HashMap<>();
 	private Integer championStreak = null;
+	private List<String> memeTournamentSettings;
 	
 	public Tournament() {}
 	
@@ -117,7 +118,7 @@ public class Tournament {
 			String mapName = StringUtils.substringAfter(map, ") ");
 			Pair<BattleGroundTeam, BattleGroundTeam> teamPair = new ImmutablePair<BattleGroundTeam, BattleGroundTeam>(team1, team2);
 			Pair<Integer, String> mapData = new ImmutablePair<Integer, String>(mapNumberInt, mapName);
-			event = new MatchInfoEvent(teamPair, mapData);
+			event = new MatchInfoEvent(teamPair, mapData, this.memeTournamentSettings);
 		} else {
 			log.error("The winnersCount was greater than 7, somehow");
 		}

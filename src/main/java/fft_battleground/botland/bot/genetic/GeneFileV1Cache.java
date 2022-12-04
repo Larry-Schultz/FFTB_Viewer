@@ -3,8 +3,8 @@ package fft_battleground.botland.bot.genetic;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import fft_battleground.botland.bot.exception.BotConfigException;
 import fft_battleground.botland.bot.genetic.model.ResultData;
-import fft_battleground.exception.BotConfigException;
 
 @Component
 public class GeneFileV1Cache extends GeneFileCache<ResultData> {
@@ -18,7 +18,6 @@ public class GeneFileV1Cache extends GeneFileCache<ResultData> {
 		return ResultData.class;
 	}
 	
-	@Cacheable("genefileV1")
 	@Override
 	public ResultData getGeneData(String filename) throws BotConfigException {
 		ResultData data = super.getGeneData(filename);
