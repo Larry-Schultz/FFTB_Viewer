@@ -47,6 +47,8 @@ import fft_battleground.repo.repository.PrestigeSkillsRepo;
 import fft_battleground.repo.repository.SkillBonusRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
+import fft_battleground.reports.BotlandLeaderboardReportGenerator;
+import fft_battleground.reports.ReportGenerator;
 import fft_battleground.skill.SkillUtils;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
@@ -74,9 +76,6 @@ public class DumpService {
 	
 	@Autowired
 	@Getter private DumpScheduledTasksManager dumpScheduledTasks;
-	
-	@Autowired
-	@Getter private DumpReportsServiceImpl dumpReportsService;
 	
 	@Autowired
 	@Getter private TournamentService tournamentService;
@@ -120,6 +119,12 @@ public class DumpService {
 	@Autowired
 	@Getter private MusicService musicService;
 	
+	@Autowired
+	@Getter private List<ReportGenerator<?>> allReportGenerators;
+	
+	@Autowired
+	@Getter private BotlandLeaderboardReportGenerator botlandLeaderboardReportGenerator;
+	
 	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, Date> lastActiveCache = new ConcurrentHashMap<>();
@@ -153,7 +158,7 @@ public class DumpService {
 	private void loadCache() throws CacheBuildException {
 		log.info("loading player data cache");
 		
-		this.dumpReportsService.getBotlandLeaderboardReportGenerator().writeReport();
+		this.getBotlandLeaderboardReportGenerator().writeReport();
 		
 		List<PlayerRecord> playerRecords = this.playerRecordRepo.findAll();
 		playerRecords.parallelStream().filter(playerRecord -> playerRecord.getLastKnownAmount() == null)

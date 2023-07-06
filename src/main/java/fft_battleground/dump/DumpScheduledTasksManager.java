@@ -8,7 +8,7 @@ import fft_battleground.repo.model.BatchDataEntry;
 
 public interface DumpScheduledTasksManager {
 	void runAllUpdates();
-	List<DumpTournamentScheduledTask> getTournamentTasks();
-	DumpMatchScheduledTask getGlobalGilUpdateTask();
+	List<DumpTournamentScheduledTask> tournamentTasks();
+	DumpMatchScheduledTask globalGilUpdateTask();
 	void writeToBatchDataEntryRepo(BatchDataEntry batchDataEntry);
 }

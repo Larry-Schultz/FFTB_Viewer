@@ -427,12 +427,12 @@ public class EventParser extends Thread {
 	}
 	
 	protected void startEventUpdate() {
-		List<DumpTournamentScheduledTask> tournamentTasks = this.dumpScheduledTasks.getTournamentTasks();
+		List<DumpTournamentScheduledTask> tournamentTasks = this.dumpScheduledTasks.tournamentTasks();
 		tournamentTasks.forEach(task -> this.eventTimer.submit(task));
 	}
 	
 	protected void sendEventToDetectorAudit(BattleGroundEvent event) {
-		this.eventTimer.submit(() -> this.detectorAuditManager.addEvent(event.getEventType()));
+		//this.eventTimer.submit(() -> this.detectorAuditManager.addEvent(event.getEventType()));
 	}
 	
 	protected void createAndSendTournamentTracker(BettingBeginsEvent bettingBeginsEvent, Tournament currentTournament) {

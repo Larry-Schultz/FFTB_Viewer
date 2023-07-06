@@ -16,7 +16,9 @@ public enum BattleGroundCacheEntryKey {
 	PRESTIGE_TABLE("prestigetable", ChronoUnit.HOURS, 1),
 	BOTLAND_LEADERBOARD("botlandleaderboard", ChronoUnit.HOURS, 8),
 	PLAYER_LEADERBOARD_BALANCE_HISTORY("playerleaderboardbalancehistory", ChronoUnit.HOURS, 8),
-	BOT_LEADERBOARD_BALANCE_HISTORY("botleaderboardbalancehistory", ChronoUnit.HOURS, 8);
+	BOT_LEADERBOARD_BALANCE_HISTORY("botleaderboardbalancehistory", ChronoUnit.HOURS, 8),
+	PLAYLIST_SONG_COUNT_HISTORY("playlistsongcounthistory", ChronoUnit.HOURS, 8),
+	PLAYLIST_SONG_OCCURENCE_COUNT_HISTORY("playlistsongoccurencecounthistory", ChronoUnit.HOURS, 8);
 	
 	BattleGroundCacheEntryKey(String key, TemporalUnit timeUnit, Integer timeValue) {
 		this.key = key;
