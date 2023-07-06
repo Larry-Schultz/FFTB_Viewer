@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BettingEndsDetector implements EventDetector<BettingEndsEvent> {
 
-	protected static final String findString = "Betting is closed. Final bets:";
+	protected static final String findString = "Betting is closed. The final bets were:";
 	
 	@Override
 	public BettingEndsEvent detect(ChatMessage message) {
