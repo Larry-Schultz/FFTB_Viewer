@@ -346,7 +346,7 @@ public class DetectorTests {
 	
 	@Test
 	public void testBettingEndsEventDetector() {
-		String test1 = "Betting is closed. The final bets were: Red - 12 bets for 9,403G, Blue - 16 bets for 13,655G... Good luck!";
+		String test1 = "Betting is closed. The final bets were: Green - 7 bets for 7,003G (54.1%, x0.85), Yellow - 8 bets for 5,939G (45.9%, x1.18)";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		BettingEndsDetector detector = new BettingEndsDetector();
 		BattleGroundEvent event = detector.detect(message);

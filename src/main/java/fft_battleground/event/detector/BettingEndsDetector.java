@@ -10,15 +10,14 @@ import fft_battleground.model.ChatMessage;
 
 public class BettingEndsDetector implements EventDetector<BettingEndsEvent> {
 
-	protected static final String findString = "Betting is closed. The final bets were:";
+	protected static final String findString = "Betting is closed. The final bets were: ";
 	
 	@Override
 	public BettingEndsEvent detect(ChatMessage message) {
 		if(StringUtils.equals(StringUtils.lowerCase(message.getUsername()), StringUtils.lowerCase("FFTBattleground"))
 				&& StringUtils.contains(message.getMessage(), findString)) {
 			String removeStart = StringUtils.substringAfter(message.getMessage(), findString);
-			String removeEnd = StringUtils.substringBefore(removeStart, "... Good luck!");
-			String[] twoPieces = StringUtils.splitByWholeSeparator(removeEnd, ", ");
+			String[] twoPieces = StringUtils.splitByWholeSeparator(removeStart, "), ");
 			
 			String[] partOneWhitespaceSplit = StringUtils.split(twoPieces[0], ' ');
 			String team1Name = partOneWhitespaceSplit[0];
