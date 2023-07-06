@@ -128,7 +128,7 @@ public class EventManager extends Thread {
 							this.botLand.setBettingEndsEvent(bettingEndsEvent);
 						}
 						if(bettingEndsEvent.getTeam1() == BattleGroundTeam.RED && bettingEndsEvent.getTeam2() == BattleGroundTeam.BLUE) {
-							DumpMatchScheduledTask task = this.dumpScheduledTasks.getGlobalGilUpdateTask();
+							DumpMatchScheduledTask task = this.dumpScheduledTasks.globalGilUpdateTask();
 							this.globalGilTimer.schedule(task, 5L, TimeUnit.SECONDS);
 						}
 						break;

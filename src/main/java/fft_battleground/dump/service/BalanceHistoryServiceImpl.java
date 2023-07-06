@@ -14,11 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.reports.model.LeaderboardBalanceData;
-import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.reports.model.LeaderboardBalanceData;
+import fft_battleground.reports.model.LeaderboardBalanceHistoryEntry;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

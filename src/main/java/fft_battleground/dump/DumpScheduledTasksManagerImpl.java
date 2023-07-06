@@ -107,7 +107,7 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 		
 	}
 	
-	public List<DumpTournamentScheduledTask> getTournamentTasks() {
+	public List<DumpTournamentScheduledTask> tournamentTasks() {
 		List<DumpTournamentScheduledTask> tasks = List.of(
 				new UpdateBalanceDataTournamentTask(this),
 				new UpdateExperienceDataTournamentTask(this),
@@ -123,7 +123,7 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 		return tasks;
 	}
 	
-	public DumpMatchScheduledTask getGlobalGilUpdateTask() {
+	public DumpMatchScheduledTask globalGilUpdateTask() {
 		return new UpdateGlobalGilCount(this.eventRouter, this);
 	}
 	

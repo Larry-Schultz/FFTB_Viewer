@@ -4,8 +4,8 @@ import java.util.List;
 
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.cache.startup.BuilderTask;
-import fft_battleground.dump.reports.ReportGenerator;
 import fft_battleground.exception.DumpException;
+import fft_battleground.reports.ReportGenerator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -15,7 +15,7 @@ extends BuilderTask {
 	
 	public ReportBuilder(DumpService dumpService) {
 		super(dumpService);
-		this.reportGenerators = dumpService.getDumpReportsService().allReportGenerators();
+		this.reportGenerators = dumpService.getAllReportGenerators();
 	}
 	
 	@Override

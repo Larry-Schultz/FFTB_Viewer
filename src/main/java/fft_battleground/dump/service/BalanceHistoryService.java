@@ -3,8 +3,8 @@ package fft_battleground.dump.service;
 import java.util.Date;
 import java.util.List;
 
-import fft_battleground.dump.reports.model.LeaderboardBalanceData;
-import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
+import fft_battleground.reports.model.LeaderboardBalanceData;
+import fft_battleground.reports.model.LeaderboardBalanceHistoryEntry;
 
 public interface BalanceHistoryService {
 

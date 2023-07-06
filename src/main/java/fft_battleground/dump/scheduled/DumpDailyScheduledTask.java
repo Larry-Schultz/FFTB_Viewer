@@ -39,6 +39,20 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 		this.betResultsRouterRef = this.dumpScheduledTasksRef.getBetResultsRouter();
 		this.eventRouterRef = dumpScheduledTasks.getEventRouter();
 	}
+	
+	public DumpDailyScheduledTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService,
+			BatchDataEntryRepo batchDataEntryRepo, DumpDataProvider dumpDataProvider, 
+			WebhookManager errorWebhookManager, SkillUtils skillUtils, Router<DatabaseResultsData> betResultsRouterRef,
+			Router<BattleGroundEvent> eventRouterRef) 
+	{
+		super(dumpScheduledTasks, dumpService);
+		this.batchDataEntryRepoRef = batchDataEntryRepo;
+		this.dumpDataProviderRef = dumpDataProvider;
+		this.errorWebhookManagerRef = errorWebhookManager;
+		this.monsterUtilsRef = skillUtils;
+		this.betResultsRouterRef = betResultsRouterRef;
+		this.eventRouterRef = eventRouterRef;
+	}
 
 	protected abstract void task();
 	

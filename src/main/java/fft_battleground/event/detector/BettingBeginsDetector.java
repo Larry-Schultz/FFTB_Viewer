@@ -15,12 +15,12 @@ public class BettingBeginsDetector implements EventDetector<BettingBeginsEvent> 
 		if(StringUtils.equals(StringUtils.lowerCase(message.getUsername()), StringUtils.lowerCase("FFTBattleground")) &&
 				StringUtils.contains(message.getMessage(), "Betting is open for")) {
 			String removeBeginningText = StringUtils.substringAfter(message.getMessage(), "Betting is open for ");
-			String removeEndText = StringUtils.substringBefore(removeBeginningText, ". Use !bet [amount] [team] to place a wager!");
-			String[] splitRemainingText = StringUtils.split(removeEndText, ' ');
+			String removeEndText = StringUtils.substringBefore(removeBeginningText, ". Use the !bet command to place a wager!");
+			String[] splitRemainingText = StringUtils.split(removeEndText, " vs ");
 			
 			String team1Text = splitRemainingText[0];
 			BattleGroundTeam team1 = BattleGroundTeam.parse(team1Text);
-			String team2Text = splitRemainingText[2];
+			String team2Text = splitRemainingText[1];
 			BattleGroundTeam team2 = BattleGroundTeam.parse(team2Text);
 			
 			return new BettingBeginsEvent(team1, team2);

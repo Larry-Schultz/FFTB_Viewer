@@ -44,6 +44,7 @@ import fft_battleground.exception.AscensionException;
 import fft_battleground.exception.BattleGroundDataIntegrityViolationException;
 import fft_battleground.exception.IncorrectTypeException;
 import fft_battleground.model.BattleGroundTeam;
+import fft_battleground.repo.dao.RepoTransactionManager;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.util.GambleUtil;
 

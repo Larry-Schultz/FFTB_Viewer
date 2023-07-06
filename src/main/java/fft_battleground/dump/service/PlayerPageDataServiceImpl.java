@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.controller.response.model.PlayerData;
-import fft_battleground.dump.DumpReportsServiceImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
@@ -25,6 +25,8 @@ import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.repository.PlayerRecordRepo;
+import fft_battleground.reports.BetPercentileReportGenerator;
+import fft_battleground.reports.FightPercentileReportGenerator;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
 import lombok.Getter;
@@ -39,15 +41,18 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 	
 	@Autowired
 	private DumpService dumpService;
-
-	@Autowired
-	@Getter private DumpReportsServiceImpl dumpReportsService;
 	
 	@Autowired
 	@Getter private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
 	private GlobalGiServiceImpl globalGilUtil;
+	
+	@Autowired
+	@Getter private BetPercentileReportGenerator betPercentileReportGenerator;
+	
+	@Autowired
+	@Getter private FightPercentileReportGenerator fightPercentileReportGenerator;
 	
 	@Autowired
 	private Images images;
@@ -94,8 +99,8 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 			String fightRatioString = df.format(fightRatio);
 			playerData.setBetRatio(betRatioString);
 			playerData.setFightRatio(fightRatioString);
-			Integer betPercentile = this.dumpReportsService.getBetPercentile(betRatio);
-			Integer fightPercentile = this.dumpReportsService.getFightPercentile(fightRatio);
+			Integer betPercentile = this.getBetPercentile(betRatio);
+			Integer fightPercentile = this.getFightPercentile(fightRatio);
 			playerData.setBetPercentile(betPercentile);
 			playerData.setFightPercentile(fightPercentile);
 			
@@ -141,6 +146,45 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 		}
 			
 		return playerData;
+	}
+	
+
+	@Override
+	public Integer getBetPercentile(Double ratio) throws CacheMissException {
+		Map<Integer, Double> betPercentiles = this.betPercentileReportGenerator.getReport();
+
+		Integer result = null;
+		for (Map.Entry<Integer, Double> entry: betPercentiles.entrySet()) {
+			Double currentPercentile = entry.getValue();
+			try {
+				if (ratio < currentPercentile) {
+					Integer key = Integer.valueOf(entry.getKey());
+					result = key - 1;
+					break;
+				}
+			}catch(NullPointerException e) {
+				log.error("NullPointerException caught", e);
+			} catch(ClassCastException e) {
+				log.error("ClassCast exception caught", e);
+			}
+		}
+
+		return result;
+	}
+
+	@Override
+	public Integer getFightPercentile(Double ratio) throws CacheMissException {
+		Map<Integer, Double> fightPercentiles = this.fightPercentileReportGenerator.getReport();
+
+		Integer result = null;
+		for (int i = 0; result == null && i <= 100; i++) {
+			Double currentPercentile = fightPercentiles.get(i);
+			if (ratio < currentPercentile) {
+				result = i - 1;
+			}
+		}
+
+		return result;
 	}
 	
 	protected String createDateStringWithTimezone(TimeZone zone, Date date) {
