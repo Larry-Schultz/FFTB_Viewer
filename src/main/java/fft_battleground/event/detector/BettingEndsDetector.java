@@ -10,7 +10,7 @@ import fft_battleground.model.ChatMessage;
 
 public class BettingEndsDetector implements EventDetector<BettingEndsEvent> {
 
-	protected static final String findString = "Betting is closed. Final bets:";
+	protected static final String findString = "Betting is closed. The final bets were:";
 	
 	@Override
 	public BettingEndsEvent detect(ChatMessage message) {
