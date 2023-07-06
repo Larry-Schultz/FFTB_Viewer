@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BettingEndsDetector implements EventDetector<BettingEndsEvent> {
 
-	protected static final String findString = "Betting is closed. The final bets were:";
+	protected static final String findString = "Betting is closed. The final bets were: ";
 	
 	@Override
 	public BettingEndsEvent detect(ChatMessage message) {
@@ -19,7 +19,7 @@ public class BettingEndsDetector implements EventDetector<BettingEndsEvent> {
 				&& StringUtils.contains(message.getMessage(), findString)) {
 			try {
 			String removeStart = StringUtils.substringAfter(message.getMessage(), findString);
-			String[] twoPieces = StringUtils.splitByWholeSeparator(removeStart, ", ");
+			String[] twoPieces = StringUtils.splitByWholeSeparator(removeStart, "), ");
 			
 			String[] partOneWhitespaceSplit = StringUtils.split(twoPieces[0], ' ');
 			String team1Name = partOneWhitespaceSplit[0];
