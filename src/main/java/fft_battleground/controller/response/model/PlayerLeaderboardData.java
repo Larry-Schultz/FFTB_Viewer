@@ -1,6 +1,6 @@
 package fft_battleground.controller.response.model;
 
-import fft_battleground.dump.reports.model.PlayerLeaderboard;
+import fft_battleground.reports.model.PlayerLeaderboard;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

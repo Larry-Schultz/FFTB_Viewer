@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import fft_battleground.dump.reports.model.LeaderboardData;
+import fft_battleground.reports.model.LeaderboardData;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

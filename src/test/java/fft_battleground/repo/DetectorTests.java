@@ -15,6 +15,7 @@ import fft_battleground.botland.bot.model.BetType;
 import fft_battleground.event.detector.AllegianceDetector;
 import fft_battleground.event.detector.BetDetector;
 import fft_battleground.event.detector.BetInfoEventDetector;
+import fft_battleground.event.detector.BettingBeginsDetector;
 import fft_battleground.event.detector.BettingEndsDetector;
 import fft_battleground.event.detector.BonusDetector;
 import fft_battleground.event.detector.BuySkillDetector;
@@ -39,6 +40,7 @@ import fft_battleground.event.detector.TeamInfoDetector;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BetInfoEvent;
+import fft_battleground.event.detector.model.BettingBeginsEvent;
 import fft_battleground.event.detector.model.BettingEndsEvent;
 import fft_battleground.event.detector.model.BonusEvent;
 import fft_battleground.event.detector.model.BuySkillEvent;
@@ -345,8 +347,18 @@ public class DetectorTests {
 	}
 	
 	@Test
+	public void testBettingBeginsEventDetector() {
+		String test1 = "Betting is open for Blue vs White. Use the !bet command to place a wager!";
+		ChatMessage message = this.createBotChatMessage(test1);
+		BettingBeginsDetector detector = new BettingBeginsDetector();
+		BettingBeginsEvent event = detector.detect(message);
+		assertNotNull(event.getTeam1());
+		assertNotNull(event.getTeam2());
+	}
+	
+	@Test
 	public void testBettingEndsEventDetector() {
-		String test1 = "Betting is closed. Final bets: Red - 12 bets for 9,403G, Blue - 16 bets for 13,655G... Good luck!";
+		String test1 = "Betting is closed. Final bets: Red - 16 bets for 17,462G, Blue - 11 bets for 6,190G.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		BettingEndsDetector detector = new BettingEndsDetector();
 		BattleGroundEvent event = detector.detect(message);

@@ -1,8 +1,6 @@
 package fft_battleground.controller;
 
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -25,23 +23,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import fft_battleground.controller.response.model.GilDateGraphEntry;
-import fft_battleground.dump.DumpReportsService;
-import fft_battleground.dump.reports.model.LeaderboardBalanceData;
-import fft_battleground.dump.reports.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.dump.service.BalanceHistoryServiceImpl;
-import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.repo.model.BalanceHistory;
-import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.model.PlayerSkills;
 import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.repository.BalanceHistoryRepo;
-import fft_battleground.repo.repository.GlobalGilHistoryRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
 import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
+import fft_battleground.reports.model.LeaderboardBalanceData;
+import fft_battleground.reports.model.LeaderboardBalanceHistoryEntry;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GenericResponse;
 import io.swagger.annotations.ApiOperation;
@@ -62,13 +55,7 @@ public class PlayerRecordController {
 	private BalanceHistoryRepo balanceHistoryRepo;
 	
 	@Autowired
-	private GlobalGilHistoryRepo globalGilHistoryRepo;
-	
-	@Autowired
 	private TournamentService tournamentService;
-	
-	@Autowired
-	private DumpReportsService dumpReportsService;
 	
 	@Autowired
 	private BalanceHistoryServiceImpl balanceHistoryUtil;
@@ -115,25 +102,6 @@ public class PlayerRecordController {
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	
-	@ApiIgnore
-	@GetMapping("/botLeaderboardBalanceHistory")
-	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>> 
-	getBotBalanceHistory(@RequestParam(name="count", required=true) Integer maxHistoryEntries, 
-			@RequestParam(name="bots", required=false, defaultValue="10") int maxNumberOfActiveBots) throws CacheMissException {
-		LeaderboardBalanceData data = this.dumpReportsService.getBotLeaderboardBalanceHistory();
-		
-		return GenericResponse.createGenericResponseEntity(data);
-	}
-	
-	@ApiIgnore
-	@GetMapping("/playerLeaderboardBalanceHistory")
-	public @ResponseBody ResponseEntity<GenericResponse<LeaderboardBalanceData>>
-	getPlayerBalanceHistories(@RequestParam(name="players", required=true) String players, @RequestParam(name="count", required=true) int count) throws CacheMissException {
-		LeaderboardBalanceData data = this.dumpReportsService.getPlayerLeaderboardBalanceHistory();
-		
-		return GenericResponse.createGenericResponseEntity(data);
-	}
-	
 	@ApiOperation(value="Returns a list of all players recorded in the Viewer database")
 	@GetMapping("/playerList")
 	public ResponseEntity<GenericResponse<List<String>>> playerNames() {
@@ -142,30 +110,4 @@ public class PlayerRecordController {
 		return GenericResponse.createGenericResponseEntity(playerNames);
 	}
 	
-	@ApiIgnore
-	@GetMapping("/globalGilHistoryGraphData")
-	public ResponseEntity<GenericResponse<List<GilDateGraphEntry>>> 
-	getGlobalGilHistoryGraphData(@RequestParam("timeUnit") String unit) {
-		List<GilDateGraphEntry> results = null;
-		ChronoUnit timeUnit = null;
-		if(StringUtils.equalsIgnoreCase(unit, "day")) {
-			timeUnit = ChronoUnit.DAYS;
-		} else if(StringUtils.equalsIgnoreCase(unit, "week")) {
-			timeUnit = ChronoUnit.WEEKS;
-		} else if(StringUtils.equalsIgnoreCase(unit, "month")) {
-			timeUnit = ChronoUnit.MONTHS;
-		} else if(StringUtils.equalsIgnoreCase(unit, "year")) {
-			timeUnit = ChronoUnit.YEARS;
-		}
-		
-		if(timeUnit != null) {
-			List<GlobalGilHistory> globalGilHistoryList = this.globalGilHistoryRepo.getGlobalGilHistoryByCalendarTimeType(timeUnit);
-			Collections.sort(globalGilHistoryList);
-			results = globalGilHistoryList.parallelStream().map(globalGilHistory -> new GilDateGraphEntry(globalGilHistory.getGlobal_gil_count(), globalGilHistory.getDate()))
-					.collect(Collectors.toList());
-		}
-		
-		return GenericResponse.createGenericResponseEntity(results);
-		
-	}
 }
