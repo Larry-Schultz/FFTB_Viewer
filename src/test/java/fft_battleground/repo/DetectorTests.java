@@ -367,7 +367,7 @@ public class DetectorTests {
 
 	@Test
 	public void testFightBeginsEventDetector() {
-		String test1 = "You may now !fight to enter the tournament! This tournament's Skill Drop is: Dragon. One random user using !fight (or !dontfight) will receive this skill. Alternately, you can buy the skill for 1,000G.";
+		String test1 = "The !fight command can now be used to enter the upcoming tournament! This tournament's Skill Drop is: Abandon. At least one random entrant will receive this skill free of charge from the Skill Drop raffle, while other users can purchase it for 1,000G.";
 		ChatMessage message = new ChatMessage("fftbattleground", test1);
 		FightBeginsDetector detector = new FightBeginsDetector();
 		BattleGroundEvent event = detector.detect(message);
