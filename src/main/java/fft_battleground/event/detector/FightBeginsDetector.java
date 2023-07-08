@@ -13,8 +13,8 @@ import fft_battleground.model.ChatMessage;
 public class FightBeginsDetector implements EventDetector<FightBeginsEvent> {
 	private static final Integer THRESHOLD = 10;
 	
-	private static final String SEARCH_STRING = "You may now !fight to enter the tournament! This tournament's Skill Drop is: ";
-	private static final String SEARCH_STRING_2 = ". One random user using !fight (or !dontfight) will receive this skill. Alternatively, you can buy the skill for 1,000G.";
+	private static final String SEARCH_STRING = "The !fight command can now be used to enter the upcoming tournament! This tournament's Skill Drop is: ";
+	private static final String SEARCH_STRING_2 = ". At least one random entrant will receive this skill free of charge from the Skill Drop raffle, while other users can purchase it for 1,000G.";
 	
 	@Override
 	public FightBeginsEvent detect(ChatMessage message) {
