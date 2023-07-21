@@ -31,6 +31,7 @@ import fft_battleground.dump.scheduled.daily.BadAccountsDailyTask;
 import fft_battleground.dump.scheduled.daily.BotListDailyTask;
 import fft_battleground.dump.scheduled.daily.CheckCertificateDailyTask;
 import fft_battleground.dump.scheduled.daily.ClassBonusDailyTask;
+import fft_battleground.dump.scheduled.daily.MissingPortraitCheckDailyTask;
 import fft_battleground.dump.scheduled.daily.PortraitsDailyTask;
 import fft_battleground.dump.scheduled.daily.PrestigeSkillDailyTask;
 import fft_battleground.dump.scheduled.daily.SkillBonusDailyTask;
@@ -111,20 +112,9 @@ public class DumpCacheBuilder {
 	}
 	
 	public void forceSpecificDailyTasks(DumpService dumpService) {
-		//this.dumpScheduledTasks.forceScheduleAllegianceBatch();
-		//.dumpScheduledTasks.forceScheduleUserSkillsTask(this, true);
 		this.forceCertificateCheck(dumpService);
-		//this.forceScheduleUserSkillsTask(false, dumpService);
-		//this.forceScheduleClassBonusTask(dumpService);
-		//this.forceScheduleSkillBonusTask(dumpService);
 		this.forceScheduledPrestigeSkillTask(dumpService);
-		//this.dumpScheduledTasks.forceScheduledBadAccountsTask();
-		/*
-		 * 
-		 * 
-		 * 
-		 * 
-		 */
+		this.forceScheduledMissingPortraitCheck(dumpService);	
 	}
 	
 	protected void forceCertificateCheck(DumpService dumpService) {
@@ -163,6 +153,10 @@ public class DumpCacheBuilder {
 	
 	protected void forceScheduledPrestigeSkillTask(DumpService dumpService) {
 		this.forceSchedule(new PrestigeSkillDailyTask(this.dumpScheduledTasks, dumpService));
+	}
+	
+	protected void forceScheduledMissingPortraitCheck(DumpService dumpService) {
+		this.forceSchedule(new MissingPortraitCheckDailyTask(this.dumpScheduledTasks, dumpService));
 	}
 	
 	protected void forceSchedule(ScheduledTask task) {
