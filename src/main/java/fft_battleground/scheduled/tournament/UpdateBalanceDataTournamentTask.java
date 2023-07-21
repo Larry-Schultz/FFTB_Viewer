@@ -1,11 +1,11 @@
-package fft_battleground.dump.scheduled.tournament;
+package fft_battleground.scheduled.tournament;
 
 import java.util.Collection;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
-import fft_battleground.dump.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
+import fft_battleground.scheduled.DumpTournamentScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

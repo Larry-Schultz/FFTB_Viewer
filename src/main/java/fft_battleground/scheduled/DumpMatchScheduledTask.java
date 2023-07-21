@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled;
+package fft_battleground.scheduled;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;

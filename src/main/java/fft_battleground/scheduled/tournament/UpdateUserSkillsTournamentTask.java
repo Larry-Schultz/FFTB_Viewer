@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled.tournament;
+package fft_battleground.scheduled.tournament;
 
 import java.util.List;
 import java.util.Set;
@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
-import fft_battleground.dump.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
 import fft_battleground.repo.model.PlayerSkills;
+import fft_battleground.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.skill.model.Skill;
 import lombok.extern.slf4j.Slf4j;
 

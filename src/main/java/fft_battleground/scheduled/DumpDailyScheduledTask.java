@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled;
+package fft_battleground.scheduled;
 
 import java.util.Calendar;
 import java.util.Date;

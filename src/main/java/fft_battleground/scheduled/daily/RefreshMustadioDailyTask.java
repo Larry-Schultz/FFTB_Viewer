@@ -1,9 +1,9 @@
-package fft_battleground.dump.scheduled.daily;
+package fft_battleground.scheduled.daily;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.scheduled.ScheduledTask;
 import fft_battleground.mustadio.MustadioService;
+import fft_battleground.scheduled.ScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

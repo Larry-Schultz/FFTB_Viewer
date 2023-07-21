@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled.tournament;
+package fft_battleground.scheduled.tournament;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
-import fft_battleground.dump.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.event.detector.model.fake.SkillBonusEvent;
+import fft_battleground.scheduled.DumpTournamentScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled.daily;
+package fft_battleground.scheduled.daily;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,11 +8,11 @@ import org.springframework.util.StringUtils;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.scheduled.DumpDailyScheduledTask;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.MissingPortraitsException;
 import fft_battleground.image.ImageCacheService;
 import fft_battleground.image.ImageDumpDataProvider;
+import fft_battleground.scheduled.DumpDailyScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

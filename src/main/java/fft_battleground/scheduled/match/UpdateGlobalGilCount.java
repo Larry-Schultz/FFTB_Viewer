@@ -1,14 +1,14 @@
-package fft_battleground.dump.scheduled.match;
+package fft_battleground.scheduled.match;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
-import fft_battleground.dump.scheduled.DumpMatchScheduledTask;
 import fft_battleground.event.detector.model.fake.GlobalGilHistoryUpdateEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.repo.model.GlobalGilHistory;
+import fft_battleground.scheduled.DumpMatchScheduledTask;
 import fft_battleground.util.Router;
 
 public class UpdateGlobalGilCount extends DumpMatchScheduledTask {

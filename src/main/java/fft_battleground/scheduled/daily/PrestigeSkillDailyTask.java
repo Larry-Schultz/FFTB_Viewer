@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled.daily;
+package fft_battleground.scheduled.daily;
 
 import java.util.Date;
 import java.util.List;
@@ -13,13 +13,13 @@ import com.google.common.collect.Sets;
 
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.scheduled.DumpDailyScheduledTask;
 import fft_battleground.event.detector.model.PrestigeSkillsEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.model.PrestigeSkills;
 import fft_battleground.repo.util.BatchDataEntryType;
+import fft_battleground.scheduled.DumpDailyScheduledTask;
 import fft_battleground.skill.SkillUtils;
 import lombok.extern.slf4j.Slf4j;
 

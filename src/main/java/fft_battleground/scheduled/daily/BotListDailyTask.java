@@ -1,4 +1,4 @@
-package fft_battleground.dump.scheduled.daily;
+package fft_battleground.scheduled.daily;
 
 import java.util.Date;
 import java.util.Set;
@@ -7,10 +7,10 @@ import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.scheduled.ScheduledTask;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.repo.util.BatchDataEntryType;
+import fft_battleground.scheduled.ScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

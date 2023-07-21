@@ -1,10 +1,10 @@
- package fft_battleground.dump.scheduled.tournament;
+ package fft_battleground.scheduled.tournament;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpScheduledTasksManagerImpl;
-import fft_battleground.dump.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.exception.DumpException;
 import fft_battleground.music.MusicService;
+import fft_battleground.scheduled.DumpTournamentScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
