@@ -31,6 +31,7 @@ public class MissingPortraitCheckDailyTask extends DumpDailyScheduledTask {
 
 	@Override
 	protected void task() {
+		log.info("Starting MissingPortraitCheck");
 		List<String> activePortraits = List.of();
 		try {
 			activePortraits = this.imageDumpDataProvider.getActivePortraits();
@@ -50,7 +51,7 @@ public class MissingPortraitCheckDailyTask extends DumpDailyScheduledTask {
 			String exceptionMessage = "Missing portrait count: " + missingPortraits.size();
 			this.errorWebhookManager.sendWarningException(new MissingPortraitsException(exceptionMessage), warningMessage);		
 		}
-		
+		log.info("MissingPortraitCheck complete");
 	}
 
 }
