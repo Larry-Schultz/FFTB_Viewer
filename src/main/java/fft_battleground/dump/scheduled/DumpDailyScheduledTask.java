@@ -12,6 +12,7 @@ import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.DatabaseResultsData;
+import fft_battleground.image.ImageDumpDataProvider;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.skill.SkillUtils;
@@ -26,6 +27,7 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 	protected SkillUtils monsterUtilsRef;
 	protected Router<DatabaseResultsData> betResultsRouterRef;
 	protected Router<BattleGroundEvent> eventRouterRef;
+	protected ImageDumpDataProvider imageDumpDataProvider;
 	
 	@Getter @Setter private boolean checkAllUsers = false;
 	
@@ -38,6 +40,7 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 		this.monsterUtilsRef = this.dumpScheduledTasksRef.getMonsterUtils();
 		this.betResultsRouterRef = this.dumpScheduledTasksRef.getBetResultsRouter();
 		this.eventRouterRef = dumpScheduledTasks.getEventRouter();
+		this.imageDumpDataProvider = this.dumpScheduledTasksRef.getImageDumpDataProvider();	
 	}
 	
 	public DumpDailyScheduledTask(DumpScheduledTasksManagerImpl dumpScheduledTasks, DumpService dumpService,
@@ -52,6 +55,7 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 		this.monsterUtilsRef = skillUtils;
 		this.betResultsRouterRef = betResultsRouterRef;
 		this.eventRouterRef = eventRouterRef;
+		this.imageDumpDataProvider = this.dumpScheduledTasksRef.getImageDumpDataProvider();	
 	}
 
 	protected abstract void task();

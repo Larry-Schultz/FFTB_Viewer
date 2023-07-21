@@ -34,7 +34,9 @@ implements ImageDumpDataProvider {
 	@Cacheable("activePortraits")
 	public List<String> getActivePortraits() throws DumpException {
 		Set<FolderListData> activePortraitFolderListData = this.getFolderDataFromList(GFX_URL, "gif");
-		List<String> activePortraits = activePortraitFolderListData.stream().map(FolderListData::getEntityName)
+		List<String> activePortraits = activePortraitFolderListData.stream()
+				.map(FolderListData::getEntityName)
+				.map(portraitName -> StringUtils.replace(portraitName, "%20", " "))
 				.sorted().collect(Collectors.toList());
 		return activePortraits;
 	}

@@ -19,6 +19,7 @@ import fft_battleground.dump.scheduled.daily.BadAccountsDailyTask;
 import fft_battleground.dump.scheduled.daily.BotListDailyTask;
 import fft_battleground.dump.scheduled.daily.CheckCertificateDailyTask;
 import fft_battleground.dump.scheduled.daily.ClassBonusDailyTask;
+import fft_battleground.dump.scheduled.daily.MissingPortraitCheckDailyTask;
 import fft_battleground.dump.scheduled.daily.PortraitsDailyTask;
 import fft_battleground.dump.scheduled.daily.PrestigeSkillDailyTask;
 import fft_battleground.dump.scheduled.daily.RefreshMustadioDailyTask;
@@ -37,6 +38,8 @@ import fft_battleground.dump.scheduled.tournament.UpdateSkillBonusCacheTournamen
 import fft_battleground.dump.scheduled.tournament.UpdateUserSkillsTournamentTask;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.DatabaseResultsData;
+import fft_battleground.image.ImageCacheService;
+import fft_battleground.image.ImageDumpDataProvider;
 import fft_battleground.mustadio.MustadioService;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
@@ -82,6 +85,12 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 	@Autowired
 	@Getter private MusicListenCountHistoryRepo musicListenCountHistoryRepo;
 	
+	@Autowired
+	@Getter private ImageDumpDataProvider imageDumpDataProvider;
+	
+	@Autowired
+	@Getter private ImageCacheService imageCacheService;
+	
 	@Value("${server.ssl.key-store-password}")
 	@Getter private String keyStorePass;
 	
@@ -100,6 +109,7 @@ public class DumpScheduledTasksManagerImpl implements DumpScheduledTasksManager 
 				new ClassBonusDailyTask(this, this.dumpService),
 				new SkillBonusDailyTask(this, this.dumpService),
 				new RefreshMustadioDailyTask(this, this.dumpService),
+				new MissingPortraitCheckDailyTask(this, this.dumpService)
 			};
 		for(ScheduledTask task : dumpScheduledTasks) {
 			this.batchTimer.submit(task);
