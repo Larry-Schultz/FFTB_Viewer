@@ -84,13 +84,7 @@ public class EventParser extends Thread {
 	private TournamentTracker tournamentTracker;
 	
 	@Autowired
-	private DumpService dumpService;
-	
-	@Autowired
 	private DumpScheduledTasksManagerImpl dumpScheduledTasks;
-	
-	@Autowired
-	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
@@ -127,9 +121,6 @@ public class EventParser extends Thread {
 	
 	@Autowired
 	private BattleGroundEventAnnotator<FightEntryEvent> fightEntryEventAnnotator;
-	
-	@Autowired
-	private DetectorAuditManager detectorAuditManager;
 	
 	@Autowired
 	private MusicService musicService;
@@ -183,6 +174,7 @@ public class EventParser extends Thread {
 			BattleGroundEvent event = null;
 			try {
 				event = detector.detect(message);
+				event.setEventTime(message.getMessageTime()); // this sets the event time to when the message was read, not parsed;
 			} catch(Exception e) {
 				String errorMessage = "exception found while running detector " + detector.getClass().getCanonicalName();
 				log.warn(errorMessage, e);
