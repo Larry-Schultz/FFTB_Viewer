@@ -20,7 +20,6 @@ import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
 import fft_battleground.botland.bot.model.BetResults;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BalanceEvent;
@@ -38,7 +37,8 @@ import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
-import fft_battleground.scheduled.DumpMatchScheduledTask;
+import fft_battleground.scheduled.DumpScheduledTasksManagerImpl;
+import fft_battleground.scheduled.tasks.DumpMatchScheduledTask;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.Router;
 

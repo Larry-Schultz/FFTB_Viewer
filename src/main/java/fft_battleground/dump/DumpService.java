@@ -1,6 +1,5 @@
 package fft_battleground.dump;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
@@ -37,7 +35,6 @@ import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.music.MusicService;
 import fft_battleground.music.model.Music;
 import fft_battleground.repo.RepoManager;
-import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.repository.ClassBonusRepo;
@@ -49,6 +46,8 @@ import fft_battleground.repo.util.BalanceType;
 import fft_battleground.repo.util.BalanceUpdateSource;
 import fft_battleground.reports.BotlandLeaderboardReportGenerator;
 import fft_battleground.reports.ReportGenerator;
+import fft_battleground.scheduled.DumpScheduledTasksForceStartup;
+import fft_battleground.scheduled.DumpScheduledTasksManager;
 import fft_battleground.skill.SkillUtils;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.util.GambleUtil;
@@ -76,6 +75,9 @@ public class DumpService {
 	
 	@Autowired
 	@Getter private DumpScheduledTasksManager dumpScheduledTasks;
+	
+	@Autowired
+	@Getter private DumpScheduledTasksForceStartup dumpScheduledTasksForceStartup;
 	
 	@Autowired
 	@Getter private TournamentService tournamentService;
@@ -177,7 +179,7 @@ public class DumpService {
 
 		log.info("player data cache load complete");
 		
-		builder.forceSpecificDailyTasks(this);
+		this.dumpScheduledTasksForceStartup.forceSpecificDailyTasks();
 		
 		Date latestDate = this.getLatestActiveDate();
 	}
@@ -297,18 +299,6 @@ public class DumpService {
 		log.info("snub data update complete");
 		
 		return data;
-	}
-	
-	public GlobalGilHistory recalculateGlobalGil() throws DumpException {
-		Pair<Integer, Long> globalGilData = this.dumpDataProvider.getHighScoreTotal();
-		Long globalGilCount = globalGilData.getRight();
-		Integer globalPlayerCount = globalGilData.getLeft();
-		
-		SimpleDateFormat sdf = new SimpleDateFormat(GlobalGilHistory.dateFormatString);
-		String currentDateString = sdf.format(new Date());
-		GlobalGilHistory globalGilHistory = new GlobalGilHistory(currentDateString, globalGilCount, globalPlayerCount);
-		
-		return globalGilHistory;
 	}
 	
 	public Date getLastActiveDateFromCache(String player) {

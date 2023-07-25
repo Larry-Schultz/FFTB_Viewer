@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
 import fft_battleground.dump.cache.startup.task.AllegianceCacheTask;
 import fft_battleground.dump.cache.startup.task.BalanceCacheTask;
@@ -30,17 +29,18 @@ import fft_battleground.exception.CacheBuildException;
 import fft_battleground.exception.DumpException;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.repo.model.PlayerRecord;
-import fft_battleground.scheduled.ScheduledTask;
-import fft_battleground.scheduled.daily.AllegianceDailyTask;
-import fft_battleground.scheduled.daily.BadAccountsDailyTask;
-import fft_battleground.scheduled.daily.BotListDailyTask;
-import fft_battleground.scheduled.daily.CheckCertificateDailyTask;
-import fft_battleground.scheduled.daily.ClassBonusDailyTask;
-import fft_battleground.scheduled.daily.MissingPortraitCheckDailyTask;
-import fft_battleground.scheduled.daily.PortraitsDailyTask;
-import fft_battleground.scheduled.daily.PrestigeSkillDailyTask;
-import fft_battleground.scheduled.daily.SkillBonusDailyTask;
-import fft_battleground.scheduled.daily.UserSkillsDailyTask;
+import fft_battleground.scheduled.DumpScheduledTasksManagerImpl;
+import fft_battleground.scheduled.tasks.ScheduledTask;
+import fft_battleground.scheduled.tasks.daily.AllegianceDailyTask;
+import fft_battleground.scheduled.tasks.daily.BadAccountsDailyTask;
+import fft_battleground.scheduled.tasks.daily.BotListDailyTask;
+import fft_battleground.scheduled.tasks.daily.CheckCertificateDailyTask;
+import fft_battleground.scheduled.tasks.daily.ClassBonusDailyTask;
+import fft_battleground.scheduled.tasks.daily.MissingPortraitCheckDailyTask;
+import fft_battleground.scheduled.tasks.daily.PortraitsDailyTask;
+import fft_battleground.scheduled.tasks.daily.PrestigeSkillDailyTask;
+import fft_battleground.scheduled.tasks.daily.SkillBonusDailyTask;
+import fft_battleground.scheduled.tasks.daily.UserSkillsDailyTask;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -109,58 +109,6 @@ public class DumpCacheBuilder {
 		builderTasks.add(new ReportBuilder(this.dumpService));
 		builderTasks.add(new MusicBuilder(this.dumpService));
 		builderTasks.forEach(builderTask -> this.threadPool.submit(builderTask));
-	}
-	
-	public void forceSpecificDailyTasks(DumpService dumpService) {
-		this.forceCertificateCheck(dumpService);
-		this.forceScheduledPrestigeSkillTask(dumpService);
-		this.forceScheduledMissingPortraitCheck(dumpService);	
-	}
-	
-	protected void forceCertificateCheck(DumpService dumpService) {
-		this.forceSchedule(new CheckCertificateDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduleAllegianceBatch(DumpService dumpService) {
-		this.forceSchedule(new AllegianceDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduleBotListTask(DumpService dumpService) {
-		this.forceSchedule(new BotListDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceSchedulePortraitsBatch(DumpService dumpService) {
-		this.forceSchedule(new PortraitsDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduleUserSkillsTask(boolean runAll, DumpService dumpService) {
-		UserSkillsDailyTask task = new UserSkillsDailyTask(this.dumpScheduledTasks, dumpService);
-		task.setCheckAllUsers(runAll);
-		this.forceSchedule(task);
-	}
-	
-	protected void forceScheduleClassBonusTask(DumpService dumpService) {
-		this.forceSchedule(new ClassBonusDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduleSkillBonusTask(DumpService dumpService) {
-		this.forceSchedule(new SkillBonusDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduledBadAccountsTask(DumpService dumpService) {
-		this.forceSchedule(new BadAccountsDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduledPrestigeSkillTask(DumpService dumpService) {
-		this.forceSchedule(new PrestigeSkillDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceScheduledMissingPortraitCheck(DumpService dumpService) {
-		this.forceSchedule(new MissingPortraitCheckDailyTask(this.dumpScheduledTasks, dumpService));
-	}
-	
-	protected void forceSchedule(ScheduledTask task) {
-		this.threadPool.submit(task);
 	}
 	
 }
