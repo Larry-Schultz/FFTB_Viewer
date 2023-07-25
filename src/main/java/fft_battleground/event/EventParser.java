@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpScheduledTasksManagerImpl;
 import fft_battleground.dump.DumpService;
-import fft_battleground.dump.scheduled.DumpTournamentScheduledTask;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
 import fft_battleground.event.annotate.TeamInfoEventAnnotator;
 import fft_battleground.event.annotate.UnitInfoEventAnnotator;
@@ -51,6 +49,8 @@ import fft_battleground.metrics.DetectorAuditManager;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.music.MusicService;
+import fft_battleground.scheduled.DumpScheduledTasksManagerImpl;
+import fft_battleground.scheduled.tasks.DumpTournamentScheduledTask;
 import fft_battleground.tournament.TournamentService;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.tournament.tracker.TournamentTracker;
