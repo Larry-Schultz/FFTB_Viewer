@@ -174,13 +174,14 @@ public class EventParser extends Thread {
 			BattleGroundEvent event = null;
 			try {
 				event = detector.detect(message);
-				event.setEventTime(message.getMessageTime()); // this sets the event time to when the message was read, not parsed;
+				;
 			} catch(Exception e) {
 				String errorMessage = "exception found while running detector " + detector.getClass().getCanonicalName();
 				log.warn(errorMessage, e);
 				this.errorWebhookManager.sendWarningException(e, errorMessage);
 			}
 			if(event != null) {
+				event.setEventTime(message.getMessageTime()); // this sets the event time to when the message was read, not parsed
 				events.add(event);
 			}
 		}
