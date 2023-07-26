@@ -18,6 +18,13 @@ import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 
 import fft_battleground.discord.WebhookManager;
+import fft_battleground.dump.cache.AllegianceCache;
+import fft_battleground.dump.cache.BalanceCache;
+import fft_battleground.dump.cache.ExpCache;
+import fft_battleground.dump.cache.LastActiveCache;
+import fft_battleground.dump.cache.LastFightActiveCache;
+import fft_battleground.dump.cache.PortraitCache;
+import fft_battleground.dump.cache.SnubCache;
 import fft_battleground.dump.cache.startup.DumpCacheBuilder;
 import fft_battleground.event.detector.model.BalanceEvent;
 import fft_battleground.event.detector.model.ExpEvent;
@@ -127,13 +134,26 @@ public class DumpService {
 	@Autowired
 	@Getter private BotlandLeaderboardReportGenerator botlandLeaderboardReportGenerator;
 	
-	@Getter @Setter private Map<String, Integer> balanceCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, ExpEvent> expCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, Date> lastActiveCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, Integer> snubCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, Date> lastFightActiveCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, String> portraitCache = new ConcurrentHashMap<>();
-	@Getter @Setter private Map<String, BattleGroundTeam> allegianceCache = new ConcurrentHashMap<>();
+	@Autowired
+	@Getter @Setter private BalanceCache balanceCache;
+	
+	@Getter @Setter private ExpCache expCache;
+	
+	@Autowired
+	@Getter @Setter private LastActiveCache lastActiveCache;
+	
+	@Autowired
+	@Getter @Setter private SnubCache snubCache;
+	
+	@Autowired
+	@Getter @Setter private LastFightActiveCache lastFightActiveCache;
+	
+	@Autowired
+	@Getter @Setter private PortraitCache portraitCache;
+	
+	@Autowired
+	@Getter @Setter private AllegianceCache allegianceCache;
+	
 	@Getter @Setter private Map<String, List<String>> userSkillsCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Map<String, List<String>> prestigeSkillsCache = new ConcurrentHashMap<>();
 	@Getter @Setter private Set<String> botCache;
