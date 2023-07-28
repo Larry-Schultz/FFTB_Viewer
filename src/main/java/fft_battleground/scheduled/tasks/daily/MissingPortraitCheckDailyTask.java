@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.exception.DumpException;
 import fft_battleground.exception.MissingPortraitsException;
 import fft_battleground.image.ImageCacheService;
@@ -29,8 +30,9 @@ public class MissingPortraitCheckDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
-	public MissingPortraitCheckDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	public MissingPortraitCheckDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 
 	@Override

@@ -19,7 +19,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.scheduled.tasks.DumpDailyScheduledTask;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,8 +34,9 @@ public class CheckCertificateDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
-	public CheckCertificateDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	public CheckCertificateDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {

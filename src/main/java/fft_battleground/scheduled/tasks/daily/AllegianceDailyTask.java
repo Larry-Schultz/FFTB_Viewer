@@ -16,7 +16,9 @@ import com.google.common.collect.MapDifference.ValueDifference;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.AllegianceCache;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.model.BattleGroundTeam;
@@ -47,8 +49,12 @@ public class AllegianceDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpScheduledTasksManager dumpScheduledTaskManager;
 	
-	public AllegianceDailyTask(@Autowired DumpService dumpService) { 
-		super(dumpService);
+	@Autowired
+	private AllegianceCache allegianceCache;
+	
+	public AllegianceDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {
@@ -87,24 +93,24 @@ public class AllegianceDailyTask extends DumpDailyScheduledTask {
 
 		});
 		
-		Map<String, ValueDifference<BattleGroundTeam>> balanceDelta = Maps.difference(this.dumpServiceRef.getAllegianceCache(), allegiancesFromDump).entriesDiffering();
+		Map<String, ValueDifference<BattleGroundTeam>> balanceDelta = Maps.difference(this.allegianceCache.getMap(), allegiancesFromDump).entriesDiffering();
 		List<BattleGroundEvent> allegianceEvents = new LinkedList<>();
 		//find differences
 		for(String key: balanceDelta.keySet()) {
 			AllegianceEvent event = new AllegianceEvent(key, balanceDelta.get(key).rightValue());
 			allegianceEvents.add(event);
 			//update cache with new data
-			this.dumpServiceRef.getAllegianceCache().put(key, balanceDelta.get(key).rightValue());
+			this.allegianceCache.put(key, balanceDelta.get(key).rightValue());
 			//increment players updated
 			numberOfPlayersUpdated++;
 		}
 		
 		//add missing players
 		for(String key: allegiancesFromDump.keySet()) {
-			if(!this.dumpServiceRef.getAllegianceCache().containsKey(key)) {
+			if(!this.allegianceCache.containsKey(key)) {
 				AllegianceEvent event = new AllegianceEvent(key, allegiancesFromDump.get(key));
 				allegianceEvents.add(event);
-				this.dumpServiceRef.getAllegianceCache().put(key, allegiancesFromDump.get(key));
+				this.allegianceCache.put(key, allegiancesFromDump.get(key));
 				//increment players updated
 				numberOfPlayersUpdated++;
 				//increment players analyzed

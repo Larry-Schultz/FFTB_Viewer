@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.event.detector.model.PortraitEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.repo.model.BatchDataEntry;
@@ -42,8 +43,9 @@ public class PortraitsDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpScheduledTasksManager dumpScheduledTaskManager;
 	
-	public PortraitsDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	public PortraitsDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {

@@ -35,6 +35,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import fft_battleground.dump.DumpDataProvider;
+import fft_battleground.dump.cache.set.MusicCache;
 import fft_battleground.event.detector.model.MusicEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.music.model.Music;
@@ -55,7 +56,8 @@ public class MusicServiceImpl implements MusicService {
 	@Autowired
 	private MusicOccurencesCache occurencesCache;
 	
-	private Collection<Music> musicList;
+	@Autowired
+	private MusicCache musicCache;
 	
 	private final ReadWriteLock musicReadWriteLock = new ReentrantReadWriteLock();
 	private final BlockingQueue<MusicEvent> newSongOccurenceQueue = new LinkedBlockingQueue<>();
@@ -68,7 +70,7 @@ public class MusicServiceImpl implements MusicService {
 		Lock musicReadLock = musicReadWriteLock.readLock();
 		try {
 			musicReadLock.lock();
-			musicList = this.musicList;
+			musicList = this.musicCache.getSet();
 		} finally {
 			musicReadLock.unlock();
 		}
@@ -121,7 +123,7 @@ public class MusicServiceImpl implements MusicService {
 		Lock writeLock = this.musicReadWriteLock.writeLock();
 		try {
 			writeLock.lock();
-			this.musicList = musicList;
+			this.musicCache.reload(musicList);
 			this.occurencesCache.addNewOccurence(countsToAdd);
 			for(MusicListenCount mlc : countsToAdd) {
 				this.updateMusicListenCountRepo(mlc);
@@ -158,7 +160,7 @@ public class MusicServiceImpl implements MusicService {
 				this.updateMusicListenCountRepo(mlc);
 			}
 			this.occurencesCache.addNewOccurence(countsToAdd);
-			log.info("The music cache currently has {} entries", this.musicList.size());
+			log.info("The music cache currently has {} entries", this.musicCache.size());
 		} catch(Exception e) { 
 			log.error("Error calling updateOccurences", e);
 		} finally {
@@ -190,8 +192,8 @@ public class MusicServiceImpl implements MusicService {
 				}
 			}
 			this.occurencesCache.addNewOccurence(countsToAdd);
-			this.musicList = dumpMusicData;
-			log.info("The music cache currently has {} entries", this.musicList.size());
+			this.musicCache.reload(dumpMusicData);
+			log.info("The music cache currently has {} entries", this.musicCache.size());
 		} catch(Exception e) { 
 			log.error("Error calling freshLoad", e);
 		}  finally {

@@ -12,7 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.exception.DumpException;
 import fft_battleground.repo.dao.RepoTransactionManager;
 import fft_battleground.repo.model.PlayerRecord;
@@ -33,8 +34,9 @@ public class BadAccountsDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
-	public BadAccountsDailyTask(@Autowired DumpService dumpService) { 
-		super(dumpService);
+	public BadAccountsDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {

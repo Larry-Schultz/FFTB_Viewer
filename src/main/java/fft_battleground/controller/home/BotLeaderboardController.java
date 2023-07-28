@@ -15,11 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import fft_battleground.controller.response.model.BotLeaderboardData;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.DumpCacheManager;
 import fft_battleground.dump.service.GlobalGilService;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.metrics.AccessTracker;
@@ -37,15 +36,15 @@ public class BotLeaderboardController extends AbstractHomeController {
 
 	@Autowired
 	private BotLeaderboardReportGenerator botLeaderboardReportGenerator;
-	
-	@Autowired
-	private DumpService dumpService;
-	
+
 	@Autowired
 	private GlobalGilService globalGilService;
 	
 	@Autowired
 	private BotLeaderboardBalanceHistoryReportGenerator botLeaderboardBalanceHistoryReportGenerator;
+	
+	@Autowired
+	private DumpCacheManager dumpCacheManager;
 	
 	@Autowired
 	public BotLeaderboardController(AccessTracker accessTracker) {
@@ -70,7 +69,7 @@ public class BotLeaderboardController extends AbstractHomeController {
 				botName -> { 
 					String player = botName;
 					String gil = myFormat.format(botLeaderboard.get(botName));
-					String activeDate = dateFormat.format(this.dumpService.getLastActiveDateFromCache(botName));
+					String activeDate = dateFormat.format(this.dumpCacheManager.getLastActiveDateFromCache(botName));
 					String percentageOfGlobalGil = decimalformat.format(this.globalGilService.percentageOfGlobalGil(botLeaderboard.get(botName)) * (double)100);
 					LeaderboardData data = new LeaderboardData(player, gil, activeDate); 
 					data.setPercentageOfGlobalGil(percentageOfGlobalGil);

@@ -1,6 +1,7 @@
 package fft_battleground.reports;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.BalanceCache;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
 import fft_battleground.repo.util.BattleGroundCacheEntryKey;
@@ -27,7 +29,10 @@ public class BotLeaderboardReportGenerator extends AbstractReportGenerator<BotLe
 	private static final String reportName = "Bot Leaderboard";
 	
 	@Autowired
-	private DumpService dumpService;
+	private BalanceCache balanceCache;
+	
+	@Autowired
+	private BotCache botCache;
 	
 	public BotLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer ) {
@@ -37,9 +42,10 @@ public class BotLeaderboardReportGenerator extends AbstractReportGenerator<BotLe
 	@Override
 	public BotLeaderboard generateReport() throws CacheBuildException {
 		BotLeaderboard leaderboard = null;
-		Map<String, Integer> botBalances = new TreeMap<String, Integer>(this.dumpService.getBotCache().parallelStream()
-				.filter(botName -> this.dumpService.getBalanceCache().containsKey(botName))
-				.collect(Collectors.toMap(Function.identity(), bot -> this.dumpService.getBalanceCache().get(bot))));
+		Set<String> botCacheSet = this.botCache.getSet();
+		Map<String, Integer> botBalances = new TreeMap<String, Integer>(botCacheSet.parallelStream()
+				.filter(botName -> this.balanceCache.containsKey(botName))
+				.collect(Collectors.toMap(Function.identity(), bot -> this.balanceCache.get(bot))));
 		leaderboard = new BotLeaderboard(botBalances);
 		return leaderboard;
 	}

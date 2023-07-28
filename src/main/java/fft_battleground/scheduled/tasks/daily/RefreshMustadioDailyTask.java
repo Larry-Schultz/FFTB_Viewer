@@ -3,7 +3,8 @@ package fft_battleground.scheduled.tasks.daily;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.mustadio.MustadioService;
 import fft_battleground.scheduled.tasks.DumpDailyScheduledTask;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +16,9 @@ public class RefreshMustadioDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private MustadioService mustadioServiceRef;
 	
-	public RefreshMustadioDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	public RefreshMustadioDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 
 	@Override

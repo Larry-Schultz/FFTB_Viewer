@@ -5,16 +5,9 @@ import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
-import fft_battleground.event.model.BattleGroundEvent;
-import fft_battleground.event.model.DatabaseResultsData;
-import fft_battleground.image.ImageDumpDataProvider;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.repo.model.BatchDataEntry;
-import fft_battleground.repo.repository.BatchDataEntryRepo;
-import fft_battleground.skill.SkillUtils;
-import fft_battleground.util.Router;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,10 +15,12 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 	
 	@Getter @Setter private boolean checkAllUsers = false;
 	
-	protected DumpService dumpServiceRef;
+	protected LastActiveCache lastActiveCache;
+	protected LastFightActiveCache lastFightActiveCache;
 	
-	public DumpDailyScheduledTask(DumpService dumpService) {
-		this.dumpServiceRef = dumpService;
+	public DumpDailyScheduledTask(LastActiveCache lastActiveCache, LastFightActiveCache lastFightActiveCache) {
+		this.lastActiveCache = lastActiveCache;
+		this.lastFightActiveCache = lastFightActiveCache;
 	}
 
 	protected abstract void task();
@@ -48,19 +43,19 @@ public abstract class DumpDailyScheduledTask extends ScheduledTask {
 		}
 		final Date compareToPerviousUpdateComplete = previousUpdateComplete; //because the compile complains that previousUpdateComplete was not a final variable
 		result = players.parallelStream()
-			.filter(player -> this.dumpServiceRef.getLastActiveCache().containsKey(player) || this.dumpServiceRef.getLastFightActiveCache().containsKey(player))
-			.filter(player -> this.dumpServiceRef.getLastActiveCache().get(player) != null || this.dumpServiceRef.getLastFightActiveCache().get(player) != null)
+			.filter(player -> this.lastActiveCache.containsKey(player) || this.lastFightActiveCache.containsKey(player))
+			.filter(player -> this.lastActiveCache.get(player) != null || this.lastFightActiveCache.get(player) != null)
 			.filter(player -> {
-				Date lastActiveDate = this.dumpServiceRef.getLastActiveCache().get(player);
-				Date lastFightActiveDate = this.dumpServiceRef.getLastFightActiveCache().get(player);
+				Date lastActiveDate = this.lastActiveCache.get(player);
+				Date lastFightActiveDate = this.lastFightActiveCache.get(player);
 				
 				boolean lastActiveBeforeLastSuccessfulRun = false;
-				if(this.dumpServiceRef.getLastActiveCache().get(player) != null) {
+				if(this.lastActiveCache.get(player) != null) {
 					lastActiveBeforeLastSuccessfulRun = lastActiveDate.compareTo(compareToPerviousUpdateComplete) > 0 || compareToPerviousUpdateComplete == null;
 				}
 				
 				boolean lastFightActiveBeforeLastSuccessfulRun = false;
-				if(this.dumpServiceRef.getLastFightActiveCache().get(player) != null) {
+				if(this.lastFightActiveCache.get(player) != null) {
 					lastFightActiveBeforeLastSuccessfulRun = lastFightActiveDate.compareTo(compareToPerviousUpdateComplete) > 0 || compareToPerviousUpdateComplete == null;
 				}
 				

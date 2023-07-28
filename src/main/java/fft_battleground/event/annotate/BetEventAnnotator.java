@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.exception.NotANumberBetException;
 import fft_battleground.repo.model.PlayerRecord;
@@ -22,13 +22,13 @@ public class BetEventAnnotator implements BattleGroundEventAnnotator<BetEvent> {
 	private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
-	private DumpService dumpService;
+	private BotCache botCache;
 	
 	@Override
 	public void annotateEvent(BetEvent event) throws NotANumberBetException {
 		this.annotePlayerMetadata(event);
 		String cleanedPlayerName = GambleUtil.cleanString(event.getPlayer());
-		if(this.dumpService.getBotNames().contains(cleanedPlayerName)) {
+		if(this.botCache.contains(cleanedPlayerName)) {
 			if(event.getBetAmountInteger() != event.getMetadata().getLastKnownAmount()) {
 				Integer botBet = Math.min(GambleUtil.MAX_BET, event.getBetAmountInteger());
 				event.setBetAmount(botBet.toString());

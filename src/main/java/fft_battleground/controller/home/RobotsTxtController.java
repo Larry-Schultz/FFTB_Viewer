@@ -1,6 +1,7 @@
 package fft_battleground.controller.home;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.BalanceCache;
 import fft_battleground.metrics.AccessTracker;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -20,9 +21,9 @@ public class RobotsTxtController extends AbstractHomeController {
 
 	private static final String[] sites = new String[] {"/", "/botland", "/gilCount", "/expLeaderboard", "/playerLeaderboard", "/leaderboard", "/botleaderboard", "/music", 
 			"/player", "/apidocs", "/allegianceLeaderboard", "/ascension", "/options", "/portraits", "/maps"};
-	
+
 	@Autowired
-	private DumpService dumpService;
+	private BalanceCache balanceCache;
 	
 	@Autowired
 	public RobotsTxtController(AccessTracker accessTracker) {
@@ -43,7 +44,8 @@ public class RobotsTxtController extends AbstractHomeController {
 		
 		Arrays.asList(sites).stream().forEach(site -> robotsBuilder.append(allowPrefix + site + " \n"));
 		
-		this.dumpService.getBalanceCache().keySet().stream().forEach(player -> robotsBuilder.append(allowPrefix + "/player/" + player + " \n"));
+		Map<String, Integer> balanceCacheMap = this.balanceCache.getMap();
+		balanceCacheMap.keySet().stream().forEach(player -> robotsBuilder.append(allowPrefix + "/player/" + player + " \n"));
 		
 		response = robotsBuilder.toString();
 		return new ResponseEntity<String>(response, HttpStatus.OK);

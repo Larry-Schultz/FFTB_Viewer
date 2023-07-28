@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
 import fft_battleground.event.annotate.TeamInfoEventAnnotator;
 import fft_battleground.event.annotate.UnitInfoEventAnnotator;
@@ -174,7 +173,6 @@ public class EventParser extends Thread {
 			BattleGroundEvent event = null;
 			try {
 				event = detector.detect(message);
-				;
 			} catch(Exception e) {
 				String errorMessage = "exception found while running detector " + detector.getClass().getCanonicalName();
 				log.warn(errorMessage, e);

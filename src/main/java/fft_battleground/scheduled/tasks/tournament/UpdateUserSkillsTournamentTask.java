@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.UserSkillsCache;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.repo.model.PlayerSkills;
@@ -27,10 +27,7 @@ public class UpdateUserSkillsTournamentTask extends DumpTournamentScheduledTask 
 
 	@Autowired
 	private Router<BattleGroundEvent> eventRouter;
-	
-	@Autowired
-	private DumpService dumpService;
-	
+
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
@@ -39,6 +36,9 @@ public class UpdateUserSkillsTournamentTask extends DumpTournamentScheduledTask 
 	
 	@Autowired
 	private SkillUtils monsterUtils;
+	
+	@Autowired
+	private UserSkillsCache userSkillsCache;
 	
 	public UpdateUserSkillsTournamentTask() {}
 
@@ -54,7 +54,7 @@ public class UpdateUserSkillsTournamentTask extends DumpTournamentScheduledTask 
 				this.monsterUtils.categorizeSkillsList(currentUserSkills);
 				this.monsterUtils.regulateMonsterSkillCooldowns(currentUserSkills);
 				List<String> skills = Skill.convertToListOfSkillStrings(currentUserSkills);
-				this.dumpService.getUserSkillsCache().put(player, skills);
+				this.userSkillsCache.put(player, skills);
 				PlayerSkillEvent playerSkillEvent = new PlayerSkillEvent(currentUserSkills, player);
 				this.eventRouter.sendDataToQueues(playerSkillEvent);
 				count.getAndIncrement();

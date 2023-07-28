@@ -18,7 +18,7 @@ import fft_battleground.controller.request.model.PlayerListRequest;
 import fft_battleground.controller.request.model.TournamentListRequest;
 import fft_battleground.controller.response.model.PlayerList;
 import fft_battleground.controller.response.model.PlayerWinRatio;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.repo.model.BotBetData;
 import fft_battleground.repo.repository.BotBetDataRepo;
 import fft_battleground.repo.repository.PlayerRecordRepo;
@@ -36,7 +36,7 @@ public class BetCountController {
 	private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
-	private DumpService dumpService;
+	private BotCache botCache;
 	
 	@ApiIgnore
 	@GetMapping("/first")
@@ -88,7 +88,7 @@ public class BetCountController {
 	@GetMapping("/bots")
 	public @ResponseBody ResponseEntity<GenericResponse<PlayerList>> 
 	getBots() {
-		PlayerList data = new PlayerList(new ArrayList<String>(this.dumpService.getBotCache()));
+		PlayerList data = new PlayerList(new ArrayList<String>(this.botCache.getSet()));
 		return GenericResponse.createGenericResponseEntity(data);
 	}
 	

@@ -3,6 +3,7 @@ package fft_battleground.reports;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.AllegianceCache;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.PrestigeSkillsCache;
 import fft_battleground.dump.model.PrestigeTableEntry;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.repo.repository.BattleGroundCacheEntryRepo;
@@ -28,7 +31,13 @@ public class PrestigeTableReportGenerator extends AbstractReportGenerator<Ascens
 	private static final String reportName = "Prestige Table";
 	
 	@Autowired
-	private DumpService dumpService;
+	private PrestigeSkillsCache prestigeSkillsCache;
+	
+	@Autowired
+	private LastActiveCache lastActiveCache;
+	
+	@Autowired
+	private AllegianceCache allegianceCache;
 	
 	public PrestigeTableReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer ) {
@@ -37,17 +46,18 @@ public class PrestigeTableReportGenerator extends AbstractReportGenerator<Ascens
 
 	@Override
 	public AscensionData generateReport() throws CacheBuildException {
-		List<PrestigeTableEntry> results = this.dumpService.getPrestigeSkillsCache().keySet().parallelStream()
-				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player) != null)
-				.filter(player -> !this.dumpService.getPrestigeSkillsCache().get(player).isEmpty()) 
-				.filter(player -> this.dumpService.getPrestigeSkillsCache().get(player).size() != 417)
+		Map<String, List<String>> prestigeSkillsMap = this.prestigeSkillsCache.getMap();
+		List<PrestigeTableEntry> results = prestigeSkillsMap.keySet().parallelStream()
+				.filter(player -> prestigeSkillsMap.get(player) != null)
+				.filter(player -> !prestigeSkillsMap.get(player).isEmpty()) 
+				.filter(player -> prestigeSkillsMap.get(player).size() != 417)
 				.map(player -> new PrestigeTableEntry(player,
-						this.dumpService.getPrestigeSkillsCache().get(player).size(), 
-						this.dumpService.getAllegianceCache().get(player)))
+						prestigeSkillsMap.get(player).size(), 
+						this.allegianceCache.get(player)))
 				.collect(Collectors.toList());
 		SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
 		results.stream().forEach(prestigeTableEntry -> prestigeTableEntry
-				.setLastActive(format.format(this.dumpService.getLastActiveCache().get(prestigeTableEntry.getName()))));
+				.setLastActive(format.format(this.lastActiveCache.get(prestigeTableEntry.getName()))));
 		Collections.sort(results);
 
 		AscensionData data = new AscensionData(results);

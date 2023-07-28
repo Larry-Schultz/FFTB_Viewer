@@ -15,7 +15,9 @@ import com.google.common.collect.Sets;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
+import fft_battleground.dump.cache.map.PrestigeSkillsCache;
 import fft_battleground.event.detector.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
@@ -50,8 +52,12 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpScheduledTasksManager dumpScheduledTaskManager;
 	
-	public PrestigeSkillDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	@Autowired
+	private PrestigeSkillsCache prestigeSkillsCache;
+	
+	public PrestigeSkillDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 
 	@Override
@@ -116,7 +122,7 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 			}
 		}
 		if(prestigeSkills != null && prestigeSkills.size() > 0) {
-			List<String> prestigeCacheResult = this.dumpServiceRef.getPrestigeSkillsCache().get(player);
+			List<String> prestigeCacheResult = this.prestigeSkillsCache.get(player);
 			int cacheSize = prestigeCacheResult != null ? prestigeCacheResult.size() : 0;
 			if(cacheSize < prestigeSkills.size()) {
 				ascensionLogger.info("New Ascension found for player {}!  From level {} to level {}", player, 
@@ -124,7 +130,7 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 			}
 			//store prestige skills
 			if(prestigeCacheResult != null) {
-				this.dumpServiceRef.getPrestigeSkillsCache().remove(player);
+				this.prestigeSkillsCache.remove(player);
 			}
 			List<String> prestigeSkillNames = prestigeSkills.stream().map(PrestigeSkills::getSkill)
 					.collect(Collectors.toList());
@@ -141,7 +147,7 @@ public class PrestigeSkillDailyTask extends DumpDailyScheduledTask {
 				prestigeSkillNames = prestigeSkillNames.stream().filter(SkillUtils::isPrestigeSkill).collect(Collectors.toList());
 			}
 			
-			this.dumpServiceRef.getPrestigeSkillsCache().put(player, prestigeSkillNames);
+			this.prestigeSkillsCache.put(player, prestigeSkillNames);
 			PrestigeSkillsEvent prestigeEvent = new PrestigeSkillsEvent(prestigeSkills, player);
 			this.eventRouter.sendDataToQueues(prestigeEvent);
 		}

@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
+import fft_battleground.dump.cache.map.SkillBonusCache;
 import fft_battleground.event.detector.model.fake.SkillBonusEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
@@ -39,8 +41,12 @@ public class SkillBonusDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpScheduledTasksManager dumpScheduledTaskManager;
 	
-	public SkillBonusDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	@Autowired
+	private SkillBonusCache skillBonusCache;
+	
+	public SkillBonusDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {
@@ -64,7 +70,7 @@ public class SkillBonusDailyTask extends DumpDailyScheduledTask {
 			int count = 0;
 			for(String player: skillBonusPlayers) {
 				Set<String> currentSkillBonuses = this.dumpDataProvider.getSkillBonus(player);
-				this.dumpServiceRef.getSkillBonusCache().put(player, currentSkillBonuses);
+				this.skillBonusCache.put(player, currentSkillBonuses);
 				SkillBonusEvent eventToSendToRepo = new SkillBonusEvent(player, currentSkillBonuses);
 				this.eventRouter.sendDataToQueues(eventToSendToRepo);
 				

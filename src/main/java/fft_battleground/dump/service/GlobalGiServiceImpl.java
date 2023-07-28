@@ -15,7 +15,9 @@ import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.DumpCacheManager;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.dump.model.GlobalGilPageData;
 import fft_battleground.repo.model.GlobalGilHistory;
 import fft_battleground.repo.repository.GlobalGilHistoryRepo;
@@ -27,10 +29,16 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalGiServiceImpl implements GlobalGilService {
 
 	@Autowired
-	private DumpService dumpService;
+	private DumpCacheManager dumpCacheManager;
 
 	@Autowired
 	private GlobalGilHistoryRepo globalGilHistoryRepo;
+	
+	@Autowired
+	private LastActiveCache lastActiveCache;
+	
+	@Autowired
+	private LastFightActiveCache lastFightActiveCache;
 	
 	@Override
 	public GlobalGilPageData getGlobalGilData() {
@@ -47,14 +55,14 @@ public class GlobalGiServiceImpl implements GlobalGilService {
 
 		Median medianCalculator = new Median();
 		Date oneMonthAgo = Date.from(LocalDate.now().minus(30, ChronoUnit.DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant());
-		double[] activeSortedPlayerBalances=Stream.of(this.dumpService.getLastActiveCache().entrySet(), this.dumpService.getLastFightActiveCache().entrySet())
+		double[] activeSortedPlayerBalances=Stream.of(this.lastActiveCache.getMap().entrySet(), this.lastFightActiveCache.getMap().entrySet())
 										.flatMap(Set::stream)
 										.filter(entry -> entry.getValue().after(oneMonthAgo))
 										.filter(entry -> entry.getKey() != null)
 										.collect(Collectors.groupingBy(Entry<String, Date>::getKey))
 										.keySet().stream()
 										.mapToDouble(player -> {
-											Integer balance = this.dumpService.getBalanceFromCache(player);
+											Integer balance = this.dumpCacheManager.getBalanceFromCache(player);
 											return balance != null ? balance.doubleValue() : 0d;
 										})
 										.sorted().toArray();

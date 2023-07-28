@@ -1,10 +1,8 @@
-package fft_battleground.dump.cache.startup.task;
+package fft_battleground.dump.cache.startup.builder;
 
 import java.util.Collection;
 import java.util.List;
 
-import fft_battleground.dump.DumpService;
-import fft_battleground.dump.cache.startup.BuilderTask;
 import fft_battleground.exception.DumpException;
 import fft_battleground.music.MusicService;
 import fft_battleground.music.model.Music;
@@ -13,12 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class MusicBuilder
-extends BuilderTask {
+implements Runnable {
 	private MusicService musicService;
 	
-	public MusicBuilder(DumpService dumpServiceRef) {
-		super(dumpServiceRef);
-		this.musicService = this.dumpService.getMusicService();
+	public MusicBuilder(MusicService musicService) {
+		this.musicService = musicService;
 	}
 	
 	@Override
