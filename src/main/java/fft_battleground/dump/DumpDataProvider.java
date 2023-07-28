@@ -23,6 +23,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import fft_battleground.dump.cache.map.leaderboard.ExpLeaderboardByRank;
+import fft_battleground.dump.cache.map.leaderboard.ExpRankLeaderboardByPlayer;
+import fft_battleground.dump.cache.map.leaderboard.PlayerLeaderboardCache;
 import fft_battleground.dump.data.AbstractDataProvider;
 import fft_battleground.dump.data.DumpResourceManager;
 import fft_battleground.event.detector.model.ExpEvent;
@@ -37,7 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class DumpDataProvider extends AbstractDataProvider {
-
+	public static final String dateActiveFormatString = "EEE MMM dd HH:mm:ss z yyyy";
+	
 	private static final String DUMP_HIGH_SCORE_URL = "http://www.fftbattleground.com/fftbg/highscores.txt";
 	private static final String DUMP_HIGH_EXP_URL = "http://www.fftbattleground.com/fftbg/highexp.txt";
 	private static final String DUMP_HIGH_LAST_ACTIVE_URL = "http://www.fftbattleground.com/fftbg/highdate.txt";
@@ -52,9 +56,15 @@ public class DumpDataProvider extends AbstractDataProvider {
 	private static final String DUMP_PRESTIGE_COOLDOWN_URL_FORMAT = "http://www.fftbattleground.com/fftbg/prestige/snubstreak/%s";
 	private static final String DUMP_CLASSBONUS_URL_FORMAT ="http://www.fftbattleground.com/fftbg/classbonus/%s";
 	private static final String DUMP_SKILLBONUS_URL_FORMAT = "http://www.fftbattleground.com/fftbg/skillbonus/%s";
+
+	@Autowired
+	private PlayerLeaderboardCache playerLeaderboardCache;
 	
 	@Autowired
-	private DumpService dumpService;
+	private ExpLeaderboardByRank expLeaderboardByRank;
+	
+	@Autowired
+	private ExpRankLeaderboardByPlayer expRankLeaderboardByPlayer;
 	
 	public DumpDataProvider(@Autowired DumpResourceManager dumpResourceManager) {
 		super(dumpResourceManager);
@@ -72,7 +82,7 @@ public class DumpDataProvider extends AbstractDataProvider {
 				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
 				Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
 				data.put(username, value);
-				this.dumpService.getLeaderboard().put(username, position);
+				this.playerLeaderboardCache.put(username, position);
 			}
 		} catch (DumpException e) {
 			log.error("Error getting high score dump");
@@ -122,8 +132,8 @@ public class DumpDataProvider extends AbstractDataProvider {
 				Short currentExp = Short.valueOf(StringUtils.substringBetween(line, "(EXP: ", ")"));
 				Short remainingExp = (short) (100 - currentExp);
 				data.put(username, new ExpEvent(username, level, remainingExp));
-				this.dumpService.getExpRankLeaderboardByRank().put(position, username);
-				this.dumpService.getExpRankLeaderboardByPlayer().put(username, position);
+				this.expLeaderboardByRank.put(position, username);
+				this.expRankLeaderboardByPlayer.put(username, position);
 			}
 		} catch (DumpException e) {
 			log.error("Error reading high exp dump", e);
@@ -138,7 +148,7 @@ public class DumpDataProvider extends AbstractDataProvider {
 	
 	public Map<String, Date> getLastActiveDump() throws DumpException {
 		Map<String, Date> data = new HashMap<>();
-		SimpleDateFormat dateFormatter = new SimpleDateFormat(DumpService.dateActiveFormatString);
+		SimpleDateFormat dateFormatter = new SimpleDateFormat(dateActiveFormatString);
 		try(BufferedReader highDateReader = this.getReaderForUrl(DUMP_HIGH_LAST_ACTIVE_URL)) {
 			String line;
 			highDateReader.readLine(); //ignore the header

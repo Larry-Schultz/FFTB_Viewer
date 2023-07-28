@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
 import fft_battleground.event.annotate.BattleGroundEventAnnotator;
 import fft_battleground.event.annotate.TeamInfoEventAnnotator;
 import fft_battleground.event.annotate.UnitInfoEventAnnotator;

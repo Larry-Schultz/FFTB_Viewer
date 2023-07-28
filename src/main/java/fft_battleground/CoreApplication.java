@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.controller.WebsocketThread;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
 import fft_battleground.dump.cache.startup.DumpCacheBuilder;
 import fft_battleground.event.EventManager;
 import fft_battleground.event.EventParser;

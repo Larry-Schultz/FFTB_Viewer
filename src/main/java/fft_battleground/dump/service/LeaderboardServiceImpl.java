@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import fft_battleground.dump.DumpService;
 import fft_battleground.dump.cache.map.BalanceCache;
+import fft_battleground.dump.cache.map.leaderboard.PlayerLeaderboardCache;
 import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.repo.repository.PlayerRecordRepo;
@@ -27,9 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class LeaderboardServiceImpl implements LeaderboardService {
-
-	@Autowired
-	private DumpService dumpService;
 	
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
@@ -43,10 +40,14 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 	@Autowired
 	private BotCache botCache;
 	
+	@Autowired
+	private PlayerLeaderboardCache playerLeaderboardCache;
+	
 	@Override
 	public Map<String, Integer> getTopPlayers(Integer count) throws CacheBuildException {
 		BiMap<String, Integer> topPlayers = HashBiMap.create();
-		Map<String, Integer> topPlayerDataMap = this.dumpService.getLeaderboard().keySet().parallelStream()
+		Map<String, Integer> playerLeaderboardMap = this.playerLeaderboardCache.getMap();
+		Map<String, Integer> topPlayerDataMap = playerLeaderboardMap.keySet().parallelStream()
 				.filter(player -> !this.botCache.contains(player))
 				.filter(player -> this.playerRecordRepo.findById(StringUtils.lowerCase(player)).isPresent())
 				.filter(player -> {
@@ -55,7 +56,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 					boolean result = lastActive != null && this.balanceHistoryUtil.isPlayerActiveInLastMonth(lastActive);
 					return result;
 				}).collect(Collectors.toMap(Function.identity(),
-						player -> this.dumpService.getLeaderboard().get(player)));
+						player -> playerLeaderboardMap.get(player)));
 		Map.Entry<String, Integer> currentEntry = null;
 		try {
 			for(Map.Entry<String, Integer> entry : topPlayerDataMap.entrySet()) {

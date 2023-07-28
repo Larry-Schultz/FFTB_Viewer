@@ -17,10 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.controller.response.model.PlayerData;
-import fft_battleground.dump.DumpService;
 import fft_battleground.dump.cache.map.ClassBonusCache;
 import fft_battleground.dump.cache.map.PrestigeSkillsCache;
 import fft_battleground.dump.cache.map.SkillBonusCache;
+import fft_battleground.dump.cache.map.leaderboard.ExpRankLeaderboardByPlayer;
+import fft_battleground.dump.cache.map.leaderboard.PlayerLeaderboardCache;
 import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
@@ -42,9 +43,6 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 	
 	@Autowired
 	@Getter private TournamentService tournamentService;
-	
-	@Autowired
-	private DumpService dumpService;
 	
 	@Autowired
 	@Getter private PlayerRecordRepo playerRecordRepo;
@@ -72,7 +70,13 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 	
 	@Autowired
 	private BotCache botCache;
-
+	
+	@Autowired
+	private PlayerLeaderboardCache playerLeaderboardCache;
+	
+	@Autowired
+	private ExpRankLeaderboardByPlayer expRankLeaderboardByPlayer;
+	
 	@Override
 	@Transactional(readOnly = true)
 	public PlayerData getDataForPlayerPage(String playerName, TimeZone timezone) throws CacheMissException, TournamentApiException {
@@ -133,7 +137,7 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 			playerData.setContainsPrestige(containsPrestige);
 			playerData.setPrestigeLevel(prestigeLevel);
 			playerData.setPrestigeSkills(prestigeSkills);
-			playerData.setExpRank(this.dumpService.getExpRankLeaderboardByPlayer().get(record.getPlayer()));
+			playerData.setExpRank(this.expRankLeaderboardByPlayer.get(record.getPlayer()));
 			
 			DecimalFormat format = new DecimalFormat("##.#########");
 			String percentageOfTotalGil = format.format(this.globalGilUtil.percentageOfGlobalGil(record.getLastKnownAmount()) * (double)100);
@@ -218,7 +222,7 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 	
 	protected Integer getLeaderboardPosition(String player) {
 		String lowercasePlayer = StringUtils.lowerCase(player);
-		Integer position = this.dumpService.getLeaderboard().get(lowercasePlayer);
+		Integer position = this.playerLeaderboardCache.get(lowercasePlayer);
 		return position;
 	}
 }

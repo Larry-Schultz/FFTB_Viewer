@@ -6,7 +6,6 @@ import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fft_battleground.dump.DumpService;
 import fft_battleground.scheduled.tasks.ScheduledTask;
 import fft_battleground.scheduled.tasks.daily.AllegianceDailyTask;
 import fft_battleground.scheduled.tasks.daily.BadAccountsDailyTask;

@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
 import fft_battleground.dump.cache.map.PrestigeSkillsCache;
+import fft_battleground.dump.cache.map.leaderboard.ExpLeaderboardByRank;
 import fft_battleground.dump.service.BalanceHistoryServiceImpl;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.model.BattleGroundTeam;
@@ -33,9 +33,6 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 	private static final String reportName = "Experience Leaderboard";
 	
 	@Autowired
-	private DumpService dumpService;
-	
-	@Autowired
 	private BalanceHistoryServiceImpl balanceHistoryUtil;
 	
 	@Autowired
@@ -43,6 +40,9 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 	
 	@Autowired
 	private PrestigeSkillsCache prestigeSkillsCache;
+	
+	@Autowired
+	private ExpLeaderboardByRank expLeaderboardByRank;
 	
 	public ExperienceLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer ) {
@@ -54,7 +54,7 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 		List<ExpLeaderboardEntry> results = new ArrayList<>();
 		for (int rank = 1; rank <= TOP_PLAYERS; rank++) {
 			ExpLeaderboardEntry result = null;
-			String player = this.dumpService.getExpRankLeaderboardByRank().get(rank);
+			String player = this.expLeaderboardByRank.get(rank);
 			Optional<PlayerRecord> maybePlayer = this.playerRecordRepo.findById(player);
 			if (maybePlayer.isPresent() && this.balanceHistoryUtil.isPlayerActiveInLastMonth(maybePlayer.get().getLastActive())) {
 				Short level = maybePlayer.get().getLastKnownLevel();
