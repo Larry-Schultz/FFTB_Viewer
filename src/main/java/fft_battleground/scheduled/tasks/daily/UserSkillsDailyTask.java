@@ -12,7 +12,9 @@ import com.google.common.collect.Sets;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
+import fft_battleground.dump.cache.map.UserSkillsCache;
 import fft_battleground.event.detector.model.PlayerSkillEvent;
 import fft_battleground.event.model.DatabaseResultsData;
 import fft_battleground.event.model.PlayerSkillRefresh;
@@ -51,8 +53,12 @@ public class UserSkillsDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private SkillUtils monsterUtils;
 	
-	public UserSkillsDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	@Autowired
+	private UserSkillsCache userSkillsCache;
+	
+	public UserSkillsDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {
@@ -106,7 +112,7 @@ public class UserSkillsDailyTask extends DumpDailyScheduledTask {
 	private void handlePlayerSkillUpdate(String player, Set<String> userSkillPlayers) throws DumpException, TournamentApiException {
 		PlayerSkillRefresh refresh = new PlayerSkillRefresh(player);
 		//delete all skills from cache
-		this.dumpServiceRef.getUserSkillsCache().remove(player);
+		this.userSkillsCache.remove(player);
 		
 		//get user skills
 		List<PlayerSkills> userPlayerSkills = this.dumpDataProvider.getSkillsForPlayer(player);
@@ -115,7 +121,7 @@ public class UserSkillsDailyTask extends DumpDailyScheduledTask {
 		List<String> userSkills = Skill.convertToListOfSkillStrings(userPlayerSkills);
 		
 		//store user skills
-		this.dumpServiceRef.getUserSkillsCache().put(player, userSkills);
+		this.userSkillsCache.put(player, userSkills);
 		PlayerSkillEvent userSkillsEvent = new PlayerSkillEvent(userPlayerSkills, player);
 		refresh.setPlayerSkillEvent(userSkillsEvent);
 		

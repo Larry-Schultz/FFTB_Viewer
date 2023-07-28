@@ -13,7 +13,10 @@ import org.springframework.stereotype.Service;
 import fft_battleground.botland.bot.model.BetResults;
 import fft_battleground.botland.bot.util.BetterBetBot;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.DumpCacheManager;
+import fft_battleground.dump.cache.map.AllegianceCache;
+import fft_battleground.dump.cache.map.PrestigeSkillsCache;
+import fft_battleground.dump.cache.map.UserSkillsCache;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.AllegianceEvent;
 import fft_battleground.event.detector.model.BalanceEvent;
@@ -65,13 +68,22 @@ public class RepoManager extends Thread {
 	private BattleGroundEventBackPropagation battleGroundEventBackPropagation;
 	
 	@Autowired
-	private DumpService dumpService;
+	private DumpCacheManager dumpCacheManager;
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
 	
 	@Autowired
 	private WebhookManager ascensionWebhookManager;
+	
+	@Autowired
+	private AllegianceCache allegianceCache;
+	
+	@Autowired
+	private UserSkillsCache userSkillsCache;
+	
+	@Autowired
+	private PrestigeSkillsCache prestigeSkillsCache;
 	
 	public RepoManager() {
 		this.setName("RepoManagerThread");
@@ -186,7 +198,7 @@ public class RepoManager extends Thread {
 			for(BalanceEvent balanceEvent : event.getOtherPlayerBalanceEvents()) {
 				this.repoTransactionManager.updatePlayerAmount(balanceEvent);
 				this.repoTransactionManager.addEntryToBalanceHistory(balanceEvent);
-				this.dumpService.updateBalanceCache(balanceEvent);
+				this.dumpCacheManager.updateBalanceCache(balanceEvent);
 			}
 		}
 	}
@@ -207,7 +219,7 @@ public class RepoManager extends Thread {
 	protected void handleAllegianceEvent(AllegianceEvent event) throws BattleGroundDataIntegrityViolationException {
 		this.repoTransactionManager.updatePlayerAllegiance(event);
 		String player = GambleUtil.cleanString(event.getPlayer());
-		this.dumpService.getAllegianceCache().put(player, event.getTeam());
+		this.allegianceCache.put(player, event.getTeam());
 	}
 	
 	protected void handlePrestigeSkillsEvent(PrestigeSkillsEvent event) throws BattleGroundDataIntegrityViolationException {
@@ -244,18 +256,18 @@ public class RepoManager extends Thread {
 		//use Timer to force update player skill.  May delay events behind this propagation
 		try {
 			this.handlePrestigeSkillsEvent(event.getPrestigeSkillsEvent());
-			int prestigeBefore = this.dumpService.getPrestigeSkillsCache().get(id) != null ? this.dumpService.getPrestigeSkillsCache().get(id).size() : 0;
+			int prestigeBefore = this.prestigeSkillsCache.get(id) != null ? this.prestigeSkillsCache.get(id).size() : 0;
 			this.ascensionWebhookManager.sendAscensionMessage(id, prestigeBefore, prestigeBefore + 1);
 			List<String> userSkills = new ArrayList<>();
-			Set<String> prestigeSkills = new HashSet<>(this.dumpService.getPrestigeSkillsCache().get(id));
+			Set<String> prestigeSkills = new HashSet<>(this.prestigeSkillsCache.get(id));
 			if(prestigeSkills != null && event.getPrestigeSkillsEvent() != null && event.getPrestigeSkillsEvent().getSkills() != null && event.getPrestigeSkillsEvent().getSkills().size() > 0) {
 				prestigeSkills.add(event.getPrestigeSkillsEvent().getSkills().get(0));
 			}
 			
 			List<String> uniquePrestigeSkillList = new ArrayList<>(prestigeSkills);
 			
-			this.dumpService.getUserSkillsCache().put(id, userSkills);
-			this.dumpService.getPrestigeSkillsCache().put(id, uniquePrestigeSkillList);
+			this.userSkillsCache.put(id, userSkills);
+			this.prestigeSkillsCache.put(id, uniquePrestigeSkillList);
 			
 			PlayerSkillRefresh refresh = new PlayerSkillRefresh(id, userSkills, uniquePrestigeSkillList, event);
 			this.handlePlayerSkillRefresh(refresh);

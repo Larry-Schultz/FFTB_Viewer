@@ -1,21 +1,20 @@
-package fft_battleground.dump.cache.startup.task;
+package fft_battleground.dump.cache.startup.builder;
 
 import java.util.List;
 
-import fft_battleground.dump.DumpService;
-import fft_battleground.dump.cache.startup.BuilderTask;
+import fft_battleground.dump.DumpDataProvider;
 import fft_battleground.exception.DumpException;
 import fft_battleground.reports.ReportGenerator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ReportBuilder
-extends BuilderTask {
+public class ReportBuilder implements Runnable {
 	private List<ReportGenerator<?>> reportGenerators;
+	private DumpDataProvider dumpDataProvider;
 	
-	public ReportBuilder(DumpService dumpService) {
-		super(dumpService);
-		this.reportGenerators = dumpService.getAllReportGenerators();
+	public ReportBuilder(List<ReportGenerator<?>> reportGenerators, DumpDataProvider dumpDataProvider) {
+		this.reportGenerators = reportGenerators;
+		this.dumpDataProvider = dumpDataProvider;
 	}
 	
 	@Override
@@ -23,8 +22,8 @@ extends BuilderTask {
 		// run this at startup so leaderboard data works properly
 		log.info("pre-cache leaderboard data");
 		try {
-			this.dumpService.getDumpDataProvider().getHighScoreDump();
-			this.dumpService.getDumpDataProvider().getHighExpDump();
+			this.dumpDataProvider.getHighScoreDump();
+			this.dumpDataProvider.getHighExpDump();
 		} catch(DumpException e) {
 			log.error("error getting high score dump", e);
 		}

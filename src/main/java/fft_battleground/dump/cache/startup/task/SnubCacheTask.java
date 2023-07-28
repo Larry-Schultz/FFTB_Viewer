@@ -23,7 +23,12 @@ implements Callable<Map<String, Integer>> {
 		Map<String, Integer> snubMap = new HashMap<>();
 		log.info("loading snub cache");
 		for(PlayerRecord record: this.playerRecords) {
-			snubMap.put(record.getPlayer(), record.getSnubStreak());
+			String player = record.getPlayer();
+			Integer snubStreak = record.getSnubStreak();
+			if(player != null && snubStreak != null) {
+				snubMap.put(player, snubStreak);
+			}
+			
 		}
 		log.info("finished loading snub cache");
 		return snubMap;

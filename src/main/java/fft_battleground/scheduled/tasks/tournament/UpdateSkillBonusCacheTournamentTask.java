@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.SkillBonusCache;
 import fft_battleground.event.detector.model.fake.SkillBonusEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.scheduled.tasks.DumpTournamentScheduledTask;
@@ -23,15 +23,15 @@ public class UpdateSkillBonusCacheTournamentTask extends DumpTournamentScheduled
 
 	@Autowired
 	private Router<BattleGroundEvent> eventRouter;
-	
-	@Autowired
-	private DumpService dumpService;
-	
+
 	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private SkillBonusCache skillBonusCache;
 	
 	public UpdateSkillBonusCacheTournamentTask() {}
 
@@ -43,7 +43,7 @@ public class UpdateSkillBonusCacheTournamentTask extends DumpTournamentScheduled
 		playersWithUpdatedSkillBonus.parallelStream().forEach(player -> {
 			try {
 				Set<String> currentSkillBonuses = this.dumpDataProvider.getSkillBonus(player);
-				this.dumpService.getSkillBonusCache().put(player, currentSkillBonuses);
+				this.skillBonusCache.put(player, currentSkillBonuses);
 				SkillBonusEvent skillBonus = new SkillBonusEvent(player, currentSkillBonuses);
 				this.eventRouter.sendDataToQueues(skillBonus);
 				count.getAndIncrement();

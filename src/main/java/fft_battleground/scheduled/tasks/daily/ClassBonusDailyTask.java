@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.ClassBonusCache;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.event.detector.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
@@ -42,10 +44,14 @@ public class ClassBonusDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpScheduledTasksManager dumpScheduledTaskManager;
 	
+	@Autowired
+	private ClassBonusCache classBonusCache;
+	
 	@Getter @Setter private boolean checkAllUsers = false;
 	
-	public ClassBonusDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	public ClassBonusDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {
@@ -70,7 +76,7 @@ public class ClassBonusDailyTask extends DumpDailyScheduledTask {
 			for(String player: classBonusPlayers) {
 				Set<String> currentClassBonuses = this.dumpDataProvider.getClassBonus(player);
 				currentClassBonuses = ClassBonus.convertToBotOutput(currentClassBonuses); //convert to bot output
-				this.dumpServiceRef.getClassBonusCache().put(player, currentClassBonuses);
+				this.classBonusCache.put(player, currentClassBonuses);
 				ClassBonusEvent eventToSendToRepo = new ClassBonusEvent(player, currentClassBonuses);
 				this.eventRouter.sendDataToQueues(eventToSendToRepo);
 				

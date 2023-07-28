@@ -13,7 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.repo.model.BalanceHistory;
 import fft_battleground.repo.model.PlayerRecord;
 import fft_battleground.repo.repository.PlayerRecordRepo;
@@ -27,15 +28,18 @@ import lombok.extern.slf4j.Slf4j;
 public class BalanceHistoryServiceImpl implements BalanceHistoryService {
 	
 	@Autowired
-	private DumpService dumpService;
+	private PlayerRecordRepo playerRecordRepo;
 	
 	@Autowired
-	private PlayerRecordRepo playerRecordRepo;
+	private LastActiveCache lastActiveCache;
+	
+	@Autowired
+	private LastFightActiveCache lastFightActiveCache;
 	
 	@Override
 	public boolean isPlayerActiveInLastMonth(String player) {
-		Date lastActive = this.dumpService.getLastActiveCache().get(player);
-		Date lastFightActive = this.dumpService.getLastFightActiveCache().get(player);
+		Date lastActive = this.lastActiveCache.get(player);
+		Date lastFightActive = this.lastFightActiveCache.get(player);
 		
 		boolean isLastActive = lastActive != null ? this.isPlayerActiveInLastMonth(lastActive) : false;
 		boolean isLastFightActive = lastFightActive != null ? this.isPlayerActiveInLastMonth(lastFightActive) : false;

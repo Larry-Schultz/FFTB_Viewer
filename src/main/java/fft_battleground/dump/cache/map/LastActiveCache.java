@@ -1,13 +1,15 @@
-package fft_battleground.dump.cache;
+package fft_battleground.dump.cache.map;
 
 import java.util.Date;
 
 import org.springframework.stereotype.Component;
 
+import fft_battleground.dump.cache.DumpCacheMap;
+
 @Component
 public class LastActiveCache 
 extends AbstractDumpCacheMap<String, Date>
-implements DumpCache<String, Date> 
+implements DumpCacheMap<String, Date> 
 {
 
 }

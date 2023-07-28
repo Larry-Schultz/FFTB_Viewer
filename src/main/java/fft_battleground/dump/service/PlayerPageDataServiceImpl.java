@@ -18,6 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fft_battleground.controller.response.model.PlayerData;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.ClassBonusCache;
+import fft_battleground.dump.cache.map.PrestigeSkillsCache;
+import fft_battleground.dump.cache.map.SkillBonusCache;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.exception.CacheMissException;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.image.model.Images;
@@ -56,6 +60,18 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 	
 	@Autowired
 	private Images images;
+	
+	@Autowired
+	private PrestigeSkillsCache prestigeSkillsCache;
+	
+	@Autowired
+	private ClassBonusCache classBonusCache;
+	
+	@Autowired
+	private SkillBonusCache skillBonusCache;
+	
+	@Autowired
+	private BotCache botCache;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -76,7 +92,7 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 			}
 			playerData.setPlayerRecord(record);
 			
-			boolean isBot = this.dumpService.getBotCache().contains(record.getPlayer());
+			boolean isBot = this.botCache.contains(record.getPlayer());
 			playerData.setBot(isBot);
 			
 			if(StringUtils.isNotBlank(record.getPortrait())) {
@@ -108,8 +124,8 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 			boolean containsPrestige = false;
 			int prestigeLevel = 0;
 			Set<String> prestigeSkills = null;
-			if(this.dumpService.getPrestigeSkillsCache().get(playerName) != null) {
-				prestigeSkills = new HashSet<>(this.dumpService.getPrestigeSkillsCache().get(playerName));
+			if(this.prestigeSkillsCache.get(playerName) != null) {
+				prestigeSkills = new HashSet<>(this.prestigeSkillsCache.get(playerName));
 				prestigeLevel = prestigeSkills.size();
 				containsPrestige = true;
 			}
@@ -133,10 +149,10 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 			Integer leaderboardRank = this.getLeaderboardPosition(playerName);
 			playerData.setLeaderboardPosition(leaderboardRank);
 			
-			Set<String> classBonuses = this.dumpService.getClassBonusCache().get(playerName);
+			Set<String> classBonuses = this.classBonusCache.get(playerName);
 			playerData.setClassBonuses(classBonuses);
 			
-			Set<String> skillBonuses = this.dumpService.getSkillBonusCache().get(playerName);
+			Set<String> skillBonuses = this.skillBonusCache.get(playerName);
 			playerData.setSkillBonuses(skillBonuses);
 		} else {
 			playerData = new PlayerData();

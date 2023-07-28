@@ -20,7 +20,7 @@ import fft_battleground.botland.BetBotFactory;
 import fft_battleground.botland.BotLand;
 import fft_battleground.botland.bot.model.BetResults;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
 import fft_battleground.event.detector.model.BadBetEvent;
 import fft_battleground.event.detector.model.BalanceEvent;
 import fft_battleground.event.detector.model.BetEvent;
@@ -64,9 +64,6 @@ public class EventManager extends Thread {
 	private BetBotFactory betBotFactory;
 	
 	@Autowired
-	private DumpService dumpService;
-	
-	@Autowired
 	private DumpScheduledTasksManagerImpl dumpScheduledTasks;
 	
 	@Autowired
@@ -74,6 +71,9 @@ public class EventManager extends Thread {
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private LastFightActiveCache lastFightActiveCache;
 	
 	@Value("${irc.username}") 
 	private String botUsername;
@@ -106,7 +106,7 @@ public class EventManager extends Thread {
 					case FIGHT_ENTRY: case DONT_FIGHT:
 						FightEntryEvent fightEntryEvent = (FightEntryEvent) event;
 						this.betResultsRouter.sendDataToQueues((DatabaseResultsData) event);
-						this.dumpService.getLastFightActiveCache().put(fightEntryEvent.getPlayer(), event.getEventTime());
+						this.lastFightActiveCache.put(fightEntryEvent.getPlayer(), event.getEventTime());
 						break;
 					case BETTING_BEGINS:
 						bettingCurrently = true;

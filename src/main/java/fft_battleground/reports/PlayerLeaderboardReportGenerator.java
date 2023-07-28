@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.DumpCacheManager;
+import fft_battleground.dump.cache.map.AllegianceCache;
 import fft_battleground.dump.service.GlobalGiServiceImpl;
 import fft_battleground.dump.service.LeaderboardService;
 import fft_battleground.exception.CacheBuildException;
@@ -34,13 +35,16 @@ public class PlayerLeaderboardReportGenerator extends AbstractReportGenerator<Pl
 	private static final String reportName = "Player Leaderboard";
 	
 	@Autowired
-	private DumpService dumpService;
+	private DumpCacheManager dumpCacheManager;
 	
 	@Autowired
 	private LeaderboardService leaderboardService;
 	
 	@Autowired
 	private GlobalGiServiceImpl globalGilUtil;
+	
+	@Autowired
+	private AllegianceCache allegianceCache;
 	
 	public PlayerLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer ) {
@@ -87,9 +91,9 @@ public class PlayerLeaderboardReportGenerator extends AbstractReportGenerator<Pl
 		DecimalFormat decimalFormat = new DecimalFormat("##.#########");
 
 		LeaderboardData data = null;
-		Integer gil = this.dumpService.getBalanceFromCache(player);
-		Date lastActive = this.dumpService.getLastActiveDateFromCache(player);
-		BattleGroundTeam allegiance = this.dumpService.getAllegianceCache().get(player);
+		Integer gil = this.dumpCacheManager.getBalanceFromCache(player);
+		Date lastActive = this.dumpCacheManager.getLastActiveDateFromCache(player);
+		BattleGroundTeam allegiance = this.allegianceCache.get(player);
 		if(allegiance == null) {
 			allegiance = BattleGroundTeam.NONE;
 		}

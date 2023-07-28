@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.LastActiveCache;
+import fft_battleground.dump.cache.map.LastFightActiveCache;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.repo.model.BatchDataEntry;
 import fft_battleground.repo.repository.BatchDataEntryRepo;
 import fft_battleground.repo.util.BatchDataEntryType;
@@ -32,8 +34,12 @@ public class BotListDailyTask extends DumpDailyScheduledTask {
 	@Autowired
 	private DumpScheduledTasksManager dumpScheduledTaskManager;
 	
-	public BotListDailyTask(@Autowired DumpService dumpService) {
-		super(dumpService);
+	@Autowired
+	private BotCache botCache;
+	
+	public BotListDailyTask(@Autowired LastActiveCache lastActiveCache, 
+			@Autowired LastFightActiveCache lastFightActiveCache) { 
+		super(lastActiveCache, lastFightActiveCache);
 	}
 	
 	protected void task() {
@@ -48,7 +54,7 @@ public class BotListDailyTask extends DumpDailyScheduledTask {
 		int numberOfPlayersUpdated = 0;
 		try {
 			Set<String> dumpBots = this.dumpDataProvider.getBots();
-			dumpBots.stream().forEach(botName -> this.dumpServiceRef.getBotCache().add(botName));
+			dumpBots.stream().forEach(botName -> this.botCache.add(botName));
 			numberOfPlayersAnalyzed = dumpBots.size();
 			numberOfPlayersUpdated = dumpBots.size();
 		} catch(Exception e) {
@@ -63,7 +69,7 @@ public class BotListDailyTask extends DumpDailyScheduledTask {
 		BatchDataEntry newBatchDataEntry = new BatchDataEntry(BatchDataEntryType.BOT, numberOfPlayersAnalyzed, numberOfPlayersUpdated, startDate, endDate);
 		this.dumpScheduledTaskManager.writeToBatchDataEntryRepo(newBatchDataEntry);
 		log.info("bot list update complete");
-		Set<String> result = this.dumpServiceRef.getBotCache();
+		Set<String> result = this.botCache.getSet();
 		return result;
 	}
 	

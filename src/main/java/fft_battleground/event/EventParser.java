@@ -174,7 +174,6 @@ public class EventParser extends Thread {
 			BattleGroundEvent event = null;
 			try {
 				event = detector.detect(message);
-				;
 			} catch(Exception e) {
 				String errorMessage = "exception found while running detector " + detector.getClass().getCanonicalName();
 				log.warn(errorMessage, e);

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.ClassBonusCache;
 import fft_battleground.event.detector.model.fake.ClassBonusEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
@@ -27,13 +27,13 @@ public class UpdateClassBonusCacheTournamentTask extends DumpTournamentScheduled
 	private Router<BattleGroundEvent> eventRouter;
 	
 	@Autowired
-	private DumpService dumpService;
-	
-	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private ClassBonusCache classBonusCache;
 	
 	public UpdateClassBonusCacheTournamentTask() {}
 
@@ -44,9 +44,9 @@ public class UpdateClassBonusCacheTournamentTask extends DumpTournamentScheduled
 		AtomicInteger count = new AtomicInteger(0);
 		playersWithUpdatedClassBonus.parallelStream().forEach(player -> {
 			try {
-				Set<String> currentClassBonuses = this.dumpService.getDumpDataProvider().getClassBonus(player);
+				Set<String> currentClassBonuses = this.dumpDataProvider.getClassBonus(player);
 				currentClassBonuses = ClassBonus.convertToBotOutput(currentClassBonuses);
-				this.dumpService.getClassBonusCache().put(player, currentClassBonuses);
+				this.classBonusCache.put(player, currentClassBonuses);
 				ClassBonusEvent classBonus = new ClassBonusEvent(player, currentClassBonuses);
 				this.eventRouter.sendDataToQueues(classBonus);
 				count.getAndIncrement();

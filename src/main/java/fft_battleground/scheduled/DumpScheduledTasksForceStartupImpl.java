@@ -16,7 +16,6 @@ import fft_battleground.scheduled.tasks.daily.ClassBonusDailyTask;
 import fft_battleground.scheduled.tasks.daily.MissingPortraitCheckDailyTask;
 import fft_battleground.scheduled.tasks.daily.PortraitsDailyTask;
 import fft_battleground.scheduled.tasks.daily.PrestigeSkillDailyTask;
-import fft_battleground.scheduled.tasks.daily.RefreshMustadioDailyTask;
 import fft_battleground.scheduled.tasks.daily.SkillBonusDailyTask;
 import fft_battleground.scheduled.tasks.daily.UserSkillsDailyTask;
 
@@ -51,9 +50,6 @@ public class DumpScheduledTasksForceStartupImpl implements DumpScheduledTasksFor
 	private SkillBonusDailyTask skillBonusDailyTask;
 	
 	@Autowired
-	private RefreshMustadioDailyTask refreshMustadioDailyTask;
-	
-	@Autowired
 	private MissingPortraitCheckDailyTask missingPortraitCheckDailyTask;
 	
 	private ExecutorService threadPool = Executors.newFixedThreadPool(1);
@@ -81,7 +77,7 @@ public class DumpScheduledTasksForceStartupImpl implements DumpScheduledTasksFor
 		this.forceSchedule(this.portraitsDailyTask);
 	}
 	
-	protected void forceScheduleUserSkillsTask(boolean runAll, DumpService dumpService) {
+	protected void forceScheduleUserSkillsTask(boolean runAll) {
 		UserSkillsDailyTask task = this.userSkillsDailyTask;
 		task.setCheckAllUsers(runAll);
 		this.forceSchedule(task);

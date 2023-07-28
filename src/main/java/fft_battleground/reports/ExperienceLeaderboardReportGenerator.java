@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.PrestigeSkillsCache;
 import fft_battleground.dump.service.BalanceHistoryServiceImpl;
 import fft_battleground.exception.CacheBuildException;
 import fft_battleground.model.BattleGroundTeam;
@@ -40,6 +41,9 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 	@Autowired
 	private PlayerRecordRepo playerRecordRepo;
 	
+	@Autowired
+	private PrestigeSkillsCache prestigeSkillsCache;
+	
 	public ExperienceLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer ) {
 		super(key, reportName, battleGroundCacheEntryRepo, errorWebhookManager, battlegroundCacheTimer);
@@ -63,7 +67,7 @@ public class ExperienceLeaderboardReportGenerator extends AbstractReportGenerato
 				}
 
 				Integer prestigeLevel = 0;
-				List<String> prestigeSkills = this.dumpService.getPrestigeSkillsCache().get(player);
+				List<String> prestigeSkills = this.prestigeSkillsCache.get(player);
 				if (prestigeSkills != null) {
 					prestigeLevel = prestigeSkills.size();
 				}

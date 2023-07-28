@@ -30,7 +30,11 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.DumpDataProvider;
+import fft_battleground.dump.cache.DumpCacheManager;
+import fft_battleground.dump.cache.map.AllegianceCache;
+import fft_battleground.dump.cache.map.PortraitCache;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.dump.service.BalanceHistoryServiceImpl;
 import fft_battleground.dump.service.PlayerPageDataService;
 import fft_battleground.exception.CacheBuildException;
@@ -67,7 +71,10 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 	}
 	
 	@Autowired
-	private DumpService dumpService;
+	private DumpCacheManager dumpCacheManager;
+	
+	@Autowired
+	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
 	private BalanceHistoryServiceImpl balanceHistoryUtil;
@@ -86,6 +93,15 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 	
 	@Autowired
 	private Images images;
+	
+	@Autowired
+	private AllegianceCache allegianceCache;
+	
+	@Autowired
+	private PortraitCache portraitCache;
+	
+	@Autowired
+	private BotCache botCache;
 		
 	public AllegianceReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer) {
@@ -103,7 +119,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 
 		Map<String, Integer> highScoreDataFromDump;
 		try {
-			highScoreDataFromDump = this.dumpService.getDumpDataProvider().getHighScoreDump();
+			highScoreDataFromDump = this.dumpDataProvider.getHighScoreDump();
 		} catch (DumpException e) {
 			log.error("Error getting high score data from the dump", e);
 			CacheBuildException exception = new CacheBuildException("Error getting high score data from the dump has stopped the generation of allegiance data", e);
@@ -115,7 +131,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 				.submit(new FunctionCallableListResult<String, Optional<String>>(highScoreDataFromDump.keySet(),
 						(playerName -> {
 							Optional<String> result = null;
-							Date lastActive = this.dumpService.getLastActiveDateFromCache(playerName);
+							Date lastActive = this.dumpCacheManager.getLastActiveDateFromCache(playerName);
 							boolean active = this.balanceHistoryUtil.isPlayerActiveInLastMonth(lastActive);
 							result = active ? Optional.<String>empty() : Optional.<String>of(playerName);
 							return result;
@@ -124,7 +140,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 				.submit(new FunctionCallableListResult<String, Optional<String>>(highScoreDataFromDump.keySet(),
 						(playerName -> {
 							Optional<String> result = null;
-							boolean isBot = this.dumpService.getBotCache().contains(playerName);
+							boolean isBot = this.botCache.contains(playerName);
 							result = isBot ? Optional.<String>of(playerName) : Optional.<String>empty();
 							return result;
 						})));
@@ -132,7 +148,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 				.submit(new FunctionCallableListResult<String, Optional<String>>(highScoreDataFromDump.keySet(),
 						(playerName -> {
 							boolean hasAllegiance = teams
-									.contains(this.dumpService.getAllegianceCache().get(playerName));
+									.contains(this.allegianceCache.get(playerName));
 							Optional<String> result = hasAllegiance ? Optional.<String>empty()
 									: Optional.<String>of(playerName);
 							return result;
@@ -152,7 +168,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		log.debug("The currentTime is {}", currentTimeOfCompletion);
 
 		highScoreDataFromDump.keySet().parallelStream().forEach(playerName -> {
-			BattleGroundTeam allegiance = this.dumpService.getAllegianceCache().get(playerName);
+			BattleGroundTeam allegiance = this.allegianceCache.get(playerName);
 			allegianceData.get(allegiance).put(playerName, highScoreDataFromDump.get(playerName));
 		});
 
@@ -315,7 +331,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		
 		log.info("Top5 player leaderboard complete for team {}", team);
 
-		String topPlayerPortrait = this.dumpService.getPortraitCache().get(top5Players.get(0).getName());
+		String topPlayerPortrait = this.portraitCache.get(top5Players.get(0).getName());
 		String portraitUrl = this.images.getPortraitByName(topPlayerPortrait, team);
 		if (StringUtils.isNotBlank(topPlayerPortrait)) {
 			portraitUrl = this.images.getPortraitByName(topPlayerPortrait, team);

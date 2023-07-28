@@ -40,7 +40,8 @@ import fft_battleground.botland.model.BotNames;
 import fft_battleground.botland.personality.PersonalityModule;
 import fft_battleground.botland.personality.PersonalityModuleFactory;
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.BalanceCache;
+import fft_battleground.dump.cache.set.BotCache;
 import fft_battleground.event.BattleGroundEventBackPropagation;
 import fft_battleground.event.detector.model.BetEvent;
 import fft_battleground.event.detector.model.BettingBeginsEvent;
@@ -109,7 +110,10 @@ public class BetBotFactory {
 	private WebhookManager noisyWebhookManager;
 	
 	@Autowired
-	private DumpService dumpService;
+	private BalanceCache balanceCache;
+	
+	@Autowired
+	private BotCache botCache;
 	
 	@Autowired
 	@Getter private GeneFileV1Cache geneFileCache;
@@ -143,7 +147,7 @@ public class BetBotFactory {
 		land.setBotlandTimerRef(this.botlandTimer);
 		land.setErrorWebhookManager(this.errorWebhookManager);
 		land.setNoisyWebhookManager(this.noisyWebhookManager);
-		land.setBalanceCacheRef(this.dumpService.getBalanceCache());
+		land.setBalanceCacheRef(this.balanceCache.getMap());
 		
 		this.attachBots(land, currentAmountToBetWith, otherPlayerBets, beginEvent);
 		
@@ -266,7 +270,7 @@ public class BetBotFactory {
 			break;
 		case GENE_V2:
 			betBot = new GeneticBotV2(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2(), this.geneFileV2Cache,
-					this.dumpService.getBotCache(), this.noisyWebhookManager);
+					this.botCache.getSet(), this.noisyWebhookManager);
 			break;
 		case BRAVEFAITH:
 			betBot = new BraveFaithBot(currentAmountToBetWith, beginEvent.getTeam1(), beginEvent.getTeam2());

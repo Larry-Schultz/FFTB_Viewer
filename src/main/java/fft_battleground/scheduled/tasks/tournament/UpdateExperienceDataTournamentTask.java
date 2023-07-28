@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.DumpCacheManager;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.exception.DumpException;
 import fft_battleground.scheduled.tasks.DumpTournamentScheduledTask;
@@ -21,17 +21,17 @@ public class UpdateExperienceDataTournamentTask extends DumpTournamentScheduledT
 	private Router<BattleGroundEvent> eventRouter;
 	
 	@Autowired
-	private DumpService dumpService;
+	private WebhookManager errorWebhookManager;
 	
 	@Autowired
-	private WebhookManager errorWebhookManager;
+	private DumpCacheManager dumpCacheManager;
 	
 	public UpdateExperienceDataTournamentTask() {}
 
 	@Override
 	protected void task() {
 		try {
-			Collection<BattleGroundEvent> expEvents = this.dumpService.getExpUpdatesFromDumpService();
+			Collection<BattleGroundEvent> expEvents = this.dumpCacheManager.getExpUpdatesFromDumpService();
 			expEvents.stream().forEach(event -> log.info("Found event from Dump: {} with data: {}", event.getEventType().getEventStringName(), event.toString()));
 			this.eventRouter.sendAllDataToQueues(expEvents);
 		} catch(DumpException e) {

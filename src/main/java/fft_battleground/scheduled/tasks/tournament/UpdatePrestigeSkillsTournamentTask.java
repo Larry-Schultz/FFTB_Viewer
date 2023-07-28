@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpDataProvider;
-import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.map.PrestigeSkillsCache;
 import fft_battleground.event.detector.model.PrestigeSkillsEvent;
 import fft_battleground.event.model.BattleGroundEvent;
 import fft_battleground.repo.model.PrestigeSkills;
@@ -28,13 +28,13 @@ public class UpdatePrestigeSkillsTournamentTask extends DumpTournamentScheduledT
 	private Router<BattleGroundEvent> eventRouter;
 	
 	@Autowired
-	private DumpService dumpService;
-	
-	@Autowired
 	private DumpDataProvider dumpDataProvider;
 	
 	@Autowired
 	private WebhookManager errorWebhookManager;
+	
+	@Autowired
+	private PrestigeSkillsCache prestigeSkillsCache;
 	
 	public UpdatePrestigeSkillsTournamentTask() {}
 
@@ -48,7 +48,7 @@ public class UpdatePrestigeSkillsTournamentTask extends DumpTournamentScheduledT
 				List<PrestigeSkills> currentUserPrestigeSkills = this.dumpDataProvider.getSkillsForPlayer(player)
 																	.stream().map(PrestigeSkills::new).collect(Collectors.toList());
 				List<String> skills = Skill.convertToListOfSkillStrings(currentUserPrestigeSkills);
-				this.dumpService.getPrestigeSkillsCache().put(player, skills);
+				this.prestigeSkillsCache.put(player, skills);
 				PrestigeSkillsEvent prestigeSkillsEvent = new PrestigeSkillsEvent(currentUserPrestigeSkills, player);
 				this.eventRouter.sendDataToQueues(prestigeSkillsEvent);
 				count.getAndIncrement();

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import fft_battleground.controller.WebsocketThread;
 import fft_battleground.discord.WebhookManager;
 import fft_battleground.dump.DumpService;
+import fft_battleground.dump.cache.startup.DumpCacheBuilder;
 import fft_battleground.event.EventManager;
 import fft_battleground.event.EventParser;
 import fft_battleground.irc.IrcChatMessenger;
@@ -50,7 +51,7 @@ public class CoreApplication implements ApplicationContextAware {
 	private AccessTracker accessTracker;
 	
 	@Autowired
-	private DumpService dumpService;
+	private DumpCacheBuilder dumpCacheBuilder;
 	
 	@Value("${fft_battleground.interactive}") 
 	private String interactiveMode;
@@ -79,7 +80,7 @@ public class CoreApplication implements ApplicationContextAware {
 			ircChatbotThread.start();
 		}
 		
-		this.dumpService.setUpCaches();
+		this.dumpCacheBuilder.setUpCaches();
 		
 		parser.start();
 		eventManager.start();
