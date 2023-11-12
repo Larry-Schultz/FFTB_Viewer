@@ -44,7 +44,6 @@ import fft_battleground.exception.DumpException;
 import fft_battleground.exception.MissingEventTypeException;
 import fft_battleground.exception.NotANumberBetException;
 import fft_battleground.exception.TournamentApiException;
-import fft_battleground.metrics.DetectorAuditManager;
 import fft_battleground.model.BattleGroundTeam;
 import fft_battleground.model.ChatMessage;
 import fft_battleground.music.MusicService;
