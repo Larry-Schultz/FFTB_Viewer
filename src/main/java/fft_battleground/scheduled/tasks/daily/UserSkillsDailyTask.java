@@ -82,7 +82,7 @@ public class UserSkillsDailyTask extends DumpDailyScheduledTask {
 			
 			AtomicInteger count = new AtomicInteger(0);
 			//assume all players with prestige skills have user skills
-			activeUserSkillPlayers.parallelStream().forEach(player -> {
+			playersToAnalyze.parallelStream().forEach(player -> {
 				try {
 					this.handlePlayerSkillUpdate(player, activeUserSkillPlayers);
 				} catch (DumpException | TournamentApiException e) {
