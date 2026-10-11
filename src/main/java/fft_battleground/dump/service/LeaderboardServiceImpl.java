@@ -2,6 +2,7 @@ package fft_battleground.dump.service;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,8 +15,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 
 import fft_battleground.dump.cache.map.BalanceCache;
 import fft_battleground.dump.cache.map.leaderboard.PlayerLeaderboardCache;
@@ -45,7 +44,6 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 	
 	@Override
 	public Map<String, Integer> getTopPlayers(Integer count) throws CacheBuildException {
-		BiMap<String, Integer> topPlayers = HashBiMap.create();
 		Map<String, Integer> playerLeaderboardMap = this.playerLeaderboardCache.getMap();
 		Map<String, Integer> topPlayerDataMap = playerLeaderboardMap.keySet().parallelStream()
 				.filter(player -> !this.botCache.contains(player))
@@ -57,23 +55,19 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 					return result;
 				}).collect(Collectors.toMap(Function.identity(),
 						player -> playerLeaderboardMap.get(player)));
-		Map.Entry<String, Integer> currentEntry = null;
-		try {
-			for(Map.Entry<String, Integer> entry : topPlayerDataMap.entrySet()) {
-				currentEntry = entry;
-				topPlayers.put(entry.getKey(), entry.getValue());
+		//dump positions should be unique per player, but duplicates occur (parse glitches, duplicate dump lines).
+		//A BiMap inverse crashes the whole leaderboard build on any tie; rank first-wins instead and keep building.
+		Map<Integer, String> rankToPlayer = new HashMap<>();
+		for(Map.Entry<String, Integer> entry : topPlayerDataMap.entrySet()) {
+			String previous = rankToPlayer.putIfAbsent(entry.getValue(), entry.getKey());
+			if(previous != null) {
+				log.warn("Duplicate leaderboard position {}: keeping {} over {}", entry.getValue(), previous, entry.getKey());
 			}
-		} catch(IllegalArgumentException e) {
-			String errorMessageFormat = "Illegal argument exception populating BiMap.  The current entry is %1$s and %2$o";
-			String errorMessage = String.format(errorMessageFormat, currentEntry.getKey(), currentEntry.getValue());
-			log.error(errorMessage, e);
-			throw new CacheBuildException(errorMessage, e);
 		}
-		Set<Integer> topValues = topPlayers.values().stream().sorted().limit(count).collect(Collectors.toSet());
+		List<Integer> topValues = rankToPlayer.keySet().stream().sorted().limit(count).collect(Collectors.toList());
 
-		BiMap<Integer, String> topPlayersInverseMap = topPlayers.inverse();
 		Map<String, Integer> leaderboardWithoutBots = topValues.stream()
-				.collect(Collectors.toMap(rank -> topPlayersInverseMap.get(rank), Function.identity()));
+				.collect(Collectors.toMap(rank -> rankToPlayer.get(rank), Function.identity()));
 		return leaderboardWithoutBots;
 	}
 

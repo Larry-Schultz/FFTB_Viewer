@@ -53,9 +53,11 @@ public class MissingPortraitCheckDailyTask extends DumpDailyScheduledTask {
 			.collect(Collectors.toList());
 		
 		if(missingPortraits.size() > 0) {
-			String warningMessage = "Missing portraits: " + missingPortraits.stream().collect(Collectors.joining(", "));
-			String exceptionMessage = "Missing portrait count: " + missingPortraits.size();
-			this.errorWebhookManager.sendWarningException(new MissingPortraitsException(exceptionMessage), warningMessage);		
+			String portraitsList = missingPortraits.stream().collect(Collectors.joining(", "));
+			//names go in the exception message too so the persisted error_message rows identify WHAT is missing
+			String exceptionMessage = "Missing portraits (" + missingPortraits.size() + "): " + portraitsList;
+			log.warn(exceptionMessage);
+			this.errorWebhookManager.sendWarningException(new MissingPortraitsException(exceptionMessage), portraitsList);
 		}
 		log.info("MissingPortraitCheck complete");
 	}

@@ -2,6 +2,7 @@ package fft_battleground.util;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,12 +12,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class GenericPairing<U, V> implements Serializable {
 	/**
 	 * 
@@ -45,7 +48,15 @@ public class GenericPairing<U, V> implements Serializable {
 		} else if(genericPairingList.size() == 0) {
 			return Collections.emptyMap();
 		} else {
-			Map<U,V> map = genericPairingList.stream().collect(Collectors.toMap(GenericPairing::getKey, GenericPairing::getValue));
+			//gene files contain duplicate keys with different values; first-wins with a warning so one
+			//bad entry cannot kill the whole bot iteration (was 65% of all historical production errors)
+			Map<U,V> map = new HashMap<>();
+			for(GenericPairing<U,V> pair : genericPairingList) {
+				V previous = map.putIfAbsent(pair.getKey(), pair.getValue());
+				if(previous != null) {
+					log.warn("Duplicate GenericPairing key [{}]: keeping value [{}] over [{}]", pair.getKey(), previous, pair.getValue());
+				}
+			}
 			return map;
 		}
 	}
