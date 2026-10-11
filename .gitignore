@@ -1,0 +1,25 @@
+# Build output
+target/
+
+# Local secrets - never commit
+src/main/resources/application.properties
+src/main/resources/application-prod.properties
+src/main/resources/keystore.p12
+
+# Embedded postgres data dir
+pgdata/
+
+# Logs
+*.log
+replay_pid*
+hs_err_pid*
+
+# IDE
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+
+# VS Code
+.vscode/

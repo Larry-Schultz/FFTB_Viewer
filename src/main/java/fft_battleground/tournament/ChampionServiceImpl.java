@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import fft_battleground.util.HttpClientFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -58,7 +59,7 @@ public class ChampionServiceImpl implements ChampionService {
 	
 	@SneakyThrows
 	protected List<Champion> callChampionApi() {
-		RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = HttpClientFactory.createRestTemplate();
 		String championDataString = restTemplate.getForObject(championApiUrl, String.class);
 		ObjectMapper objectMapper = new ObjectMapper();
 		Champion[] championData = objectMapper.readValue(championDataString, Champion[].class);

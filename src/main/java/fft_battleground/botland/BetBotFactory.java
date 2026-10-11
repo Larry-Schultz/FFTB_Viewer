@@ -189,7 +189,7 @@ public class BetBotFactory {
 	}
 	
 	private Map<String, BotData> getBotDataMapFromXmlFile() {
-		Map<String, BotData> botDataMap = this.getBotConfig().parallelStream().collect(Collectors.toMap(BotData::getName, Function.identity()));
+		Map<String, BotData> botDataMap = this.getBotConfig().stream().collect(Collectors.toMap(BotData::getName, Function.identity()));
 		return botDataMap;
 	}
 	

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import fft_battleground.util.HttpClientFactory;
 import fft_battleground.exception.TournamentApiException;
 import fft_battleground.tournament.model.Tournament;
 import fft_battleground.tournament.model.TournamentInfo;
@@ -37,7 +38,7 @@ public class TournamentRestServiceImpl implements TournamentRestService {
 	
 	@Override
 	public TournamentInfo getLatestTournamentInfo() throws TournamentApiException {
-		RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = HttpClientFactory.createRestTemplate();
 		ResponseEntity<TournamentInfo[]> tournamentInfo;
 		try {
 			tournamentInfo = restTemplate.getForEntity(tournamentInfoApiUri, TournamentInfo[].class);
@@ -51,7 +52,7 @@ public class TournamentRestServiceImpl implements TournamentRestService {
 	
 	@Override
 	public Tournament getTournamentById(Long id) throws TournamentApiException {
-		RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = HttpClientFactory.createRestTemplate();
 		ResponseEntity<Tournament> latestTournament;
 		try {
 			latestTournament = restTemplate.getForEntity(tournamentApiBaseUri + id.toString(), Tournament.class);

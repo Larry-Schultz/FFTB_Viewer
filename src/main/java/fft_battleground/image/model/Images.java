@@ -119,7 +119,7 @@ public class Images {
 		final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), env);
 		final Path locationPath = fs.getPath(array[1]);
 		//Path locationPath = Paths.get(path);
-		try (Stream<Path> paths = Files.walk(locationPath)) {
+		try (fs; Stream<Path> paths = Files.walk(locationPath)) {
 			portraits = paths.map(path -> new Portrait(path)).collect(Collectors.toList());
 	    } catch (IOException e) {
 	      log.error("Error parsing potraits folder file names", e);

@@ -80,7 +80,10 @@ public class GlobalGiServiceImpl implements GlobalGilService {
 		Double percentage = new Double(0);
 		if (balance != null) {
 			GlobalGilHistory todaysData = this.globalGilHistoryRepo.getFirstGlobalGilHistory();
-			percentage = ((new Double(balance) / new Double(todaysData.getGlobal_gil_count())));
+			//guard against null/empty history (empty economy snapshot): a zero denominator yields Infinity/NaN which breaks JSON serialization
+			if (todaysData != null && todaysData.getGlobal_gil_count() != null && todaysData.getGlobal_gil_count() > 0) {
+				percentage = ((new Double(balance) / new Double(todaysData.getGlobal_gil_count())));
+			}
 		}
 		return percentage;
 	}

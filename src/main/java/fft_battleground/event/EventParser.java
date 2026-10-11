@@ -437,6 +437,11 @@ public class EventParser extends Thread {
 				} catch (DumpException e) {
 					log.error("Error generating tournament tracker", e);
 					eventParser.errorWebhookManager.sendException(e);
+				} catch (Throwable t) {
+					//this executor is single-threaded: an uncaught throwable would otherwise be
+					//swallowed into the uninspected Future and all later tracker tasks queue forever
+					log.error("Error generating tournament tracker", t);
+					eventParser.errorWebhookManager.sendException(t, "uncaught error generating tournament tracker");
 				}
 			}
 		});

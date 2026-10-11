@@ -83,14 +83,14 @@ public class TeamInfoEventAnnotator implements BattleGroundEventAnnotator<TeamIn
 	}
 	
 	public String findClosestMatchingName(String playerName, Collection<String> entrants) {
-		List<String> cleanedEntrants = Collections.unmodifiableList(entrants.parallelStream().collect(Collectors.toList()));
+		List<String> cleanedEntrants = Collections.unmodifiableList(entrants.stream().collect(Collectors.toList()));
 		LevenshteinDistance distanceCalculator = LevenshteinDistance.getDefaultInstance();
 		Map<String, Integer> entrantDistanceMap = new ConcurrentHashMap<>();
 		for(String entrant: cleanedEntrants) {
 			Integer distance = distanceCalculator.apply(playerName, entrant);
 			entrantDistanceMap.put(entrant, distance);
 		}
-		Optional<String> closestEntrant = entrantDistanceMap.keySet().parallelStream().min(new Comparator<String>() {
+		Optional<String> closestEntrant = entrantDistanceMap.keySet().stream().min(new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				Integer distance1 = entrantDistanceMap.get(o1);

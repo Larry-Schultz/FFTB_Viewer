@@ -199,7 +199,7 @@
 		<dependency>
 			<groupId>club.minnced</groupId>
 			<artifactId>discord-webhooks</artifactId>
-			<version>0.5.0</version>
+			<version>0.5.4</version>
 		</dependency>
 		<dependency>
     		<groupId>org.codehaus.janino</groupId>
@@ -222,6 +222,12 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter-tomcat</artifactId>
 				</dependency>
+				<!-- Local dev only: managed PostgreSQL, enabled with -Dfft_battleground.embeddedPostgres=true -->
+				<dependency>
+					<groupId>io.zonky.test</groupId>
+					<artifactId>embedded-postgres</artifactId>
+					<version>2.0.7</version>
+				</dependency>
 			</dependencies>
 			<build>
 				<plugins>
@@ -230,17 +236,6 @@
 						<artifactId>copy-rename-maven-plugin</artifactId>
 						<version>1.0</version>
 						<executions>
-							<execution>
-								<id>copy-file1</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>rename</goal>
-								</goals>
-								<configuration>
-									<sourceFile>target/classes/application.properties</sourceFile>
-									<destinationFile>target/classes/application-heroku.properties</destinationFile>
-								</configuration>
-							</execution>
 							<execution>
 								<id>copy-file2</id>
 								<phase>prepare-package</phase>
@@ -359,31 +354,10 @@
 		</plugins>
 	</build>
 	<repositories>
-		<repository>
-			<id>spring-releases</id>
-			<name>Spring Releases</name>
-			<url>https://repo.spring.io/libs-release</url>
-		</repository>
-		<repository>
-			<id>org.jboss.repository.releases</id>
-			<name>JBoss Maven Release Repository</name>
-			<url>https://repository.jboss.org/nexus/content/repositories/releases</url>
-		</repository>
+		<!-- jitpack needed for com.github.gikkman:Java-Twirk; everything else comes from Maven Central -->
 		<repository>
 	        <id>jitpack.io</id>
 	        <url>https://jitpack.io</url>
 	    </repository>
-	    <repository>
-		    <name>jcenter</name>
-		    <id>bintray-jcenter</id>
-		    <url>https://jcenter.bintray.com</url>
-		</repository>
 	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-releases</id>
-			<name>Spring Releases</name>
-			<url>https://repo.spring.io/libs-release</url>
-		</pluginRepository>
-	</pluginRepositories>
 </project>

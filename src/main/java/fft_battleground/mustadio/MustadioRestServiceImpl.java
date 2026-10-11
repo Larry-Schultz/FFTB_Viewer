@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import fft_battleground.util.HttpClientFactory;
 import fft_battleground.exception.MustadioApiException;
 import fft_battleground.mustadio.model.MustadioClasses;
 import fft_battleground.mustadio.model.MustadioItems;
@@ -18,7 +19,7 @@ public class MustadioRestServiceImpl implements MustadioRestService {
 	@Override
 	public MustadioItems fetchMustadioItemsData() throws MustadioApiException {
 		log.info("Calling mustadio to get item data");
-		RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = HttpClientFactory.createRestTemplate();
 		ResponseEntity<MustadioItems> mustadioInfo;
 		try {
 			mustadioInfo = restTemplate.getForEntity(mustadioItemUrl, MustadioItems.class);
@@ -33,7 +34,7 @@ public class MustadioRestServiceImpl implements MustadioRestService {
 	@Override
 	public MustadioClasses fetchMustadioClassData() throws MustadioApiException {
 		log.info("Calling mustadio to get class base stats");
-		RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = HttpClientFactory.createRestTemplate();
 		ResponseEntity<MustadioClasses> mustadioInfo;
 		try {
 			mustadioInfo = restTemplate.getForEntity(mustadioClassUrl, MustadioClasses.class);

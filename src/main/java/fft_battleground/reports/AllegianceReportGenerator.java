@@ -20,6 +20,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import javax.annotation.PreDestroy;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
@@ -102,6 +104,15 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 	
 	@Autowired
 	private BotCache botCache;
+
+	// shared across refreshes: creating a pool per generateReport() call leaked 20 threads per refresh
+	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
+
+	@PreDestroy
+	private void shutdownExecutor() {
+		this.executor.shutdown();
+	}
+
 		
 	public AllegianceReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
 			Timer battlegroundCacheTimer) {
@@ -110,8 +121,6 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 
 	@Override
 	public AllegianceLeaderboardWrapper generateReport() throws CacheBuildException {
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
-
 		Map<BattleGroundTeam, Map<String, Integer>> allegianceData = new ConcurrentHashMap<>();
 
 		List<BattleGroundTeam> teams = BattleGroundTeam.coreTeams();
@@ -178,7 +187,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		// find player total
 		// find top 5 players
 		// determine the relative position of each team
-		List<AllegianceLeaderboard> leaderboard = teams.parallelStream().map(team -> this.generateAllegianceLeaderboardByTeam(team, allegianceData, playerRepoLock))
+		List<AllegianceLeaderboard> leaderboard = teams.stream().map(team -> this.generateAllegianceLeaderboardByTeam(team, allegianceData, playerRepoLock))
 				.collect(Collectors.toList());
 
 		// determine the leaderboard order
@@ -274,7 +283,7 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		// access player data from database using a projection
 		List<PlayerRecord> teamPlayers = null;
 		synchronized(playerRepoLock) {
-			teamPlayers = this.playerRecordRepo.getPlayerDataForAllegiance(teamData.keySet()).parallelStream()
+			teamPlayers = this.playerRecordRepo.getPlayerDataForAllegiance(teamData.keySet()).stream()
 				.filter(playerRecord -> playerRecord != null)
 				//.filter(playerRecord -> allegianceData.get(team).containsKey(playerRecord.getPlayer()))
 				.collect(Collectors.toList());
@@ -321,17 +330,18 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		log.info("Allegiance data lookup complete for team {}", team);
 
 		List<AllegianceLeaderboardEntry> top5Players = new ArrayList<>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < teamPlayers.size() && i < 5; i++) {
 			PlayerRecord currentPlayer = teamPlayers.get(i);
 			AllegianceLeaderboardEntry entry = new AllegianceLeaderboardEntry(currentPlayer.getPlayer(),
 					currentPlayer.getLastKnownAmount());
 			entry.setPosition(i);
 			top5Players.add(entry);
 		}
-		
+
 		log.info("Top5 player leaderboard complete for team {}", team);
 
-		String topPlayerPortrait = this.portraitCache.get(top5Players.get(0).getName());
+		// a team can have zero players (fresh database); fall through to the default portrait below
+		String topPlayerPortrait = top5Players.isEmpty() ? "" : this.portraitCache.get(top5Players.get(0).getName());
 		String portraitUrl = this.images.getPortraitByName(topPlayerPortrait, team);
 		if (StringUtils.isNotBlank(topPlayerPortrait)) {
 			portraitUrl = this.images.getPortraitByName(topPlayerPortrait, team);
@@ -353,10 +363,10 @@ public class AllegianceReportGenerator extends AbstractReportGenerator<Allegianc
 		data.setTotalPlayers(teamData.keySet().size());
 		data.setTotalMillionaires(totalMillionaires);
 
-		Integer gilPerPlayer = data.getTotalGil() / data.getTotalPlayers();
+		Integer gilPerPlayer = data.getTotalPlayers() == 0 ? 0 : data.getTotalGil() / data.getTotalPlayers();
 		data.setGilPerPlayer(gilPerPlayer);
 
-		Double levelsPerPlayer = (double) data.getTotalLevels() / (double) data.getTotalPlayers();
+		Double levelsPerPlayer = data.getTotalPlayers() == 0 ? 0.0 : (double) data.getTotalLevels() / (double) data.getTotalPlayers();
 		data.setTotalLevelsPerPlayer(levelsPerPlayer);
 
 		Double betRatio = (data.getBetWins().doubleValue() + 1) / (data.getBetWins().doubleValue() + data.getBetLosses().doubleValue() + 1);
@@ -409,7 +419,7 @@ class CountingCallable<T> implements Callable<Integer> {
 
 	@Override
 	public Integer call() {
-		Integer result = this.iteratedObject.parallelStream().mapToInt(this.countingFunction).sum();
+		Integer result = this.iteratedObject.stream().mapToInt(this.countingFunction).sum();
 		return result;
 	}
 }

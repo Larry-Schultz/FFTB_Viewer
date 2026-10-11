@@ -11,12 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 public class ReportBuilder implements Runnable {
 	private List<ReportGenerator<?>> reportGenerators;
 	private DumpDataProvider dumpDataProvider;
-	
+
 	public ReportBuilder(List<ReportGenerator<?>> reportGenerators, DumpDataProvider dumpDataProvider) {
 		this.reportGenerators = reportGenerators;
 		this.dumpDataProvider = dumpDataProvider;
 	}
-	
+
 	@Override
 	public void run() {
 		// run this at startup so leaderboard data works properly
@@ -26,21 +26,36 @@ public class ReportBuilder implements Runnable {
 			this.dumpDataProvider.getHighExpDump();
 		} catch(DumpException e) {
 			log.error("error getting high score dump", e);
+		} catch(RuntimeException e) {
+			log.error("error pre-caching leaderboard dumps", e);
 		}
 
 		this.loadDatabaseData();
 		this.runCacheRebuildFunctions();
-		
+
 		log.info("leaderboard data cache complete");
 	}
-	
+
 	protected void loadDatabaseData() {
 		this.reportGenerators.stream()
-			.forEach(ReportGenerator::loadFromDatabase);
+			.forEach(generator -> {
+				try {
+					generator.loadFromDatabase();
+				} catch(Exception e) {
+					// one generator with bad/missing persisted data must not stop the others from being scheduled
+					log.error("error loading {} from database", generator.getClass().getSimpleName(), e);
+				}
+			});
 	}
-	
+
 	protected void runCacheRebuildFunctions() {
 		this.reportGenerators.stream()
-			.forEach(ReportGenerator::scheduleUpdates);
+			.forEach(generator -> {
+				try {
+					generator.scheduleUpdates();
+				} catch(Exception e) {
+					log.error("error scheduling updates for {}", generator.getClass().getSimpleName(), e);
+				}
+			});
 	}
 }

@@ -78,11 +78,16 @@ public class DumpDataProvider extends AbstractDataProvider {
 			highScoreReader.readLine(); //ignore the header
 			
 			while((line = highScoreReader.readLine()) != null) {
-				Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
-				String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
-				Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
-				data.put(username, value);
-				this.playerLeaderboardCache.put(username, position);
+				try {
+					Integer position = Integer.valueOf(StringUtils.substringBefore(line, ". "));
+					String username = StringUtils.trim(StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":")));
+					Integer value = Integer.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
+					data.put(username, value);
+					this.playerLeaderboardCache.put(username, position);
+				} catch (NumberFormatException e) {
+					// one malformed line (format drift in the dump file) must not discard the whole leaderboard
+					log.warn("Skipping malformed line in high score dump: {}", line);
+				}
 			}
 		} catch (DumpException e) {
 			log.error("Error getting high score dump");
@@ -103,9 +108,13 @@ public class DumpDataProvider extends AbstractDataProvider {
 			String line;
 			highScoreReader.readLine(); //ignore the header
 			while((line = highScoreReader.readLine()) != null) {
-				totalPlayers++;
-				long value = Long.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
-				globalGil += value;
+				try {
+					totalPlayers++;
+					long value = Long.valueOf(StringUtils.replace(StringUtils.substringBetween(line, ": ", "G"), ",", ""));
+					globalGil += value;
+				} catch (NumberFormatException e) {
+					log.warn("Skipping malformed line in high score total: {}", line);
+				}
 			}
 		} catch (DumpException e) {
 			log.error("Error getting high score total", e);
@@ -126,14 +135,24 @@ public class DumpDataProvider extends AbstractDataProvider {
 			String line;
 			highScoreReader.readLine(); //ignore the header
 			while((line = highScoreReader.readLine()) != null) {
-				Integer position = Integer.valueOf(StringUtils.substringBefore(line, "."));
-				String username = StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":"));
-				Short level = Short.valueOf(StringUtils.substringBetween(StringUtils.replace(line, ",", ""), "Level ", " (EXP:"));
-				Short currentExp = Short.valueOf(StringUtils.substringBetween(line, "(EXP: ", ")"));
-				Short remainingExp = (short) (100 - currentExp);
-				data.put(username, new ExpEvent(username, level, remainingExp));
-				this.expLeaderboardByRank.put(position, username);
-				this.expRankLeaderboardByPlayer.put(username, position);
+				try {
+					Integer position = Integer.valueOf(StringUtils.substringBefore(line, "."));
+					String username = StringUtils.lowerCase(StringUtils.substringBetween(line, ". ", ":"));
+					Short level = Short.valueOf(StringUtils.substringBetween(StringUtils.replace(line, ",", ""), "Level ", " (EXP"));
+					// the dump dropped the colon after EXP at some point ("(EXP: 25)" became "(EXP 25)"), accept both
+					String currentExpString = StringUtils.substringBetween(line, "(EXP: ", ")");
+					if(currentExpString == null) {
+						currentExpString = StringUtils.substringBetween(line, "(EXP ", ")");
+					}
+					Short currentExp = Short.valueOf(StringUtils.replace(currentExpString, ",", ""));
+					Short remainingExp = (short) (100 - currentExp);
+					data.put(username, new ExpEvent(username, level, remainingExp));
+					this.expLeaderboardByRank.put(position, username);
+					this.expRankLeaderboardByPlayer.put(username, position);
+				} catch (NumberFormatException e) {
+					// one malformed line (format drift in the dump file) must not discard the whole leaderboard
+					log.warn("Skipping malformed line in high exp dump: {}", line);
+				}
 			}
 		} catch (DumpException e) {
 			log.error("Error reading high exp dump", e);

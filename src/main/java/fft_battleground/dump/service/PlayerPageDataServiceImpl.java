@@ -199,7 +199,8 @@ public class PlayerPageDataServiceImpl implements PlayerPageDataService {
 		Integer result = null;
 		for (int i = 0; result == null && i <= 100; i++) {
 			Double currentPercentile = fightPercentiles.get(i);
-			if (ratio < currentPercentile) {
+			//the percentile table can be empty (no active players, dark stream); no entry means no percentile
+			if (currentPercentile != null && ratio < currentPercentile) {
 				result = i - 1;
 			}
 		}

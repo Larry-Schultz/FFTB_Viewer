@@ -28,16 +28,27 @@ public class WebhookManager {
 	private ErrorMessageEntryRepo errorMessageEntryRepo;
 	
 	public WebhookManager(String webhookUrl, String hostname, ErrorMessageEntryRepo errorMessageEntryRepo) {
-		this.client = WebhookClient.withUrl(webhookUrl);
+		if (webhookUrl == null || webhookUrl.isBlank()) {
+			log.info("No webhook URL configured, webhook messages will be ignored");
+			this.client = null;
+		} else {
+			this.client = WebhookClient.withUrl(webhookUrl);
+		}
 		this.hostname = hostname;
 		this.errorMessageEntryRepo = errorMessageEntryRepo;
 	}
-	
+
 	public void sendMessage(String message) {
+		if (this.client == null) {
+			return;
+		}
 		this.client.send(message);
 	}
 	
 	public void sendAscensionMessage(String player, int prestigeSkillsCountBefore, int prestigeSkillsCountAfter) {
+		if (this.client == null) {
+			return;
+		}
 		final String ascendedDescriptionFormat = "%1$s has ascended.  Has progressed from prestige level %2$o to %3$o!";
 		
 		String url = this.generatePlayerRecordUrl(player);
@@ -66,6 +77,9 @@ public class WebhookManager {
 	}
 	
 	protected void sendExceptionEmbed(Throwable e, String description, int colorCode) {
+		if (this.client == null) {
+			return;
+		}
 		String errorMessage = ExceptionUtils.getMessage(e);
 		ErrorMessageEntry errorMessageEntry = this.writeNewErrorMessage(e);
 		String url = this.generateErrorMessageUrl(errorMessageEntry.getErrorMessageId());

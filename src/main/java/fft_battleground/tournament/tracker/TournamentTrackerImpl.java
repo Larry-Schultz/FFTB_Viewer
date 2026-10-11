@@ -66,17 +66,19 @@ public class TournamentTrackerImpl implements TournamentTracker {
 		}
 		
 		//annotate events
+		//sequential on purpose: nested parallelStreams deadlock on small boxes where the ForkJoin
+		//commonPool has parallelism 1 (a commonPool worker blocked in awaitJoin can never be relieved)
 		this.teamInfoEventAnnotator.setCurrentTournament(currentTournamentDetails);
 		this.unitInfoEventAnnotator.setCurrentTournament(currentTournamentDetails);
-		teamInfoMap.keySet().parallelStream()
+		teamInfoMap.keySet().stream()
 			//.filter(team -> team != BattleGroundTeam.CHAMPION)
 			.map(key -> teamInfoMap.get(key))
 			.forEach(event -> this.teamInfoEventAnnotator.annotateEvent(event));
-		
-		unitInfoMap.keySet().parallelStream()
+
+		unitInfoMap.keySet().stream()
 			.map(key -> unitInfoMap.get(key))
 			.forEach(
-				unitInfoEventList -> unitInfoEventList.parallelStream().forEach(event -> this.unitInfoEventAnnotator.annotateEvent(event))
+				unitInfoEventList -> unitInfoEventList.forEach(event -> this.unitInfoEventAnnotator.annotateEvent(event))
 			);
 		
 		tournamentStatus = new TournamentStatusUpdateEvent(aliveTeamMap, teamInfoMap, unitInfoMap, currentTournamentDetails.getTournamentWinTracker(), currentTournamentDetails.getChampionStreak());

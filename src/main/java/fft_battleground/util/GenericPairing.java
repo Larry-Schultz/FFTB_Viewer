@@ -27,12 +27,12 @@ public class GenericPairing<U, V> implements Serializable {
 	private V value;
 	
 	public static <U,V>  List<GenericPairing<U, V>> convertPairToGenericPair(List<Pair<U,V>> pairList) {
-		List<GenericPairing<U,V>> result = pairList.parallelStream().map(pair -> new GenericPairing<U,V>(pair.getLeft(), pair.getRight())).collect(Collectors.toList());
+		List<GenericPairing<U,V>> result = pairList.stream().map(pair -> new GenericPairing<U,V>(pair.getLeft(), pair.getRight())).collect(Collectors.toList());
 		return result;
 	}
 	
 	public static <U,V> List<GenericPairing<U,V>> convertMapToGenericPairList(Map<U,V> map) {
-		List<GenericPairing<U,V>> result = map.keySet().parallelStream().map(key -> new GenericPairing<U,V>(key, map.get(key))).collect(Collectors.toList());
+		List<GenericPairing<U,V>> result = map.keySet().stream().map(key -> new GenericPairing<U,V>(key, map.get(key))).collect(Collectors.toList());
 		if(result == null) {
 			result = List.of();
 		}

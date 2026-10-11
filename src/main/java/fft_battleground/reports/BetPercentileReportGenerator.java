@@ -1,5 +1,6 @@
 package fft_battleground.reports;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -49,6 +50,10 @@ public class BetPercentileReportGenerator extends AbstractReportGenerator<Map<In
 				.map(playerRecord -> ((double) playerRecord.getWins() + 1)
 						/ ((double) playerRecord.getWins() + playerRecord.getLosses() + 1))
 				.collect(Collectors.toList());
+		if (ratios.isEmpty()) {
+			//no active players (dark stream): quantiles of an empty dataset throw; serve an empty table instead
+			return new HashMap<>();
+		}
 		Map<Integer, Double> percentiles = Quantiles.percentiles().indexes(IntStream.rangeClosed(0, 100).toArray())
 				.compute(ratios);
 		return percentiles;

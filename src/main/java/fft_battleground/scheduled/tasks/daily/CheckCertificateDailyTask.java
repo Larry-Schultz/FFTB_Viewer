@@ -1,7 +1,7 @@
 package fft_battleground.scheduled.tasks.daily;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +14,7 @@ import java.util.Enumeration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -28,26 +28,33 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class CheckCertificateDailyTask extends DumpDailyScheduledTask {
 	
+	@Value("${server.ssl.key-store}")
+	private String keyStoreLocation;
+
 	@Value("${server.ssl.key-store-password}")
 	private String keyStorePass;
-	
+
 	@Autowired
 	private WebhookManager errorWebhookManager;
-	
-	public CheckCertificateDailyTask(@Autowired LastActiveCache lastActiveCache, 
-			@Autowired LastFightActiveCache lastFightActiveCache) { 
+
+	public CheckCertificateDailyTask(@Autowired LastActiveCache lastActiveCache,
+			@Autowired LastFightActiveCache lastFightActiveCache) {
 		super(lastActiveCache, lastFightActiveCache);
 	}
-	
+
 	protected void task() {
 		this.checkExpirationDateOfCertificate();
 	}
-	
+
 	private void checkExpirationDateOfCertificate() {
 		try {
-			Resource keystoreResource = new ClassPathResource("keystore.p12");
+			//resolve the configured keystore (classpath:, file:, or plain path) instead of assuming classpath,
+			//and load it as a stream - getFile() can never resolve inside an executable war
+			Resource keystoreResource = new DefaultResourceLoader().getResource(this.keyStoreLocation);
 	        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-	        keystore.load(new FileInputStream(keystoreResource.getFile()), this.keyStorePass.toCharArray() );
+	        try (InputStream keystoreStream = keystoreResource.getInputStream()) {
+	        	keystore.load(keystoreStream, this.keyStorePass.toCharArray() );
+	        }
 	        Enumeration<String> aliases = keystore.aliases();
 	        for(; aliases.hasMoreElements();) {
 	            String alias = (String) aliases.nextElement();

@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import javax.annotation.PreDestroy;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,16 +43,22 @@ public class BotlandLeaderboardReportGenerator extends AbstractReportGenerator<B
 	
 	@Autowired
 	private BotsRepo botsRepo;
-	
-	public BotlandLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager, 
+
+	// shared across refreshes: creating a pool per generateReport() call leaked 8 threads per refresh
+	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
+
+	@PreDestroy
+	private void shutdownExecutor() {
+		this.executor.shutdown();
+	}
+
+	public BotlandLeaderboardReportGenerator(BattleGroundCacheEntryRepo battleGroundCacheEntryRepo, WebhookManager errorWebhookManager,
 			Timer battlegroundCacheTimer) {
 		super(key, reportName, battleGroundCacheEntryRepo, errorWebhookManager, battlegroundCacheTimer);
 	}
 
 	@Override
 	public BotlandLeaderboard generateReport() throws CacheBuildException {
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
-		
 		BotlandLeaderboard leaderboard = null;
 		
 		Future<List<Bots>> botList = executor.submit(this.botsRepo::getBotsForToday); 
@@ -80,7 +88,7 @@ public class BotlandLeaderboardReportGenerator extends AbstractReportGenerator<B
 
 			//determine highest of all time for each bot
 			Map<String, Integer> botHighestOfAllTimeMap = botEntriesWithHighestKnownValueAllTime.get().stream()
-					.collect(Collectors.toMap(bot -> bot.getPlayer(), bot -> bot.getHighestKnownValue()));
+					.collect(Collectors.toMap(bot -> bot.getPlayer(), bot -> bot.getHighestKnownValue(), (first, second) -> first));
 			
 			//determine number of wins per bot
 			Map<String, Long> botWinCountMap = botEntriesThatAreWinnersForDay.get().stream()
@@ -88,18 +96,18 @@ public class BotlandLeaderboardReportGenerator extends AbstractReportGenerator<B
 			
 			//determine oldest entry per bot
 			Map<String, Bots> oldestBotEntryMap = oldestEntriesPerBot.get().stream()
-					.collect(Collectors.toMap(Bots::getPlayer, Function.identity()));
+					.collect(Collectors.toMap(Bots::getPlayer, Function.identity(), (first, second) -> first));
 			
-			Map<String, Long> winCountsPerBot = winsPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-			Map<String, Long> lossCountsPerBot = lossesPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-			Map<String, Double> averageBalancePerBot = averageEndDayBalancePerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-			Map<String, Double> averagePeakBalancePerBotMap = averagePeakBalancePerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			Map<String, Long> winCountsPerBot = winsPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
+			Map<String, Long> lossCountsPerBot = lossesPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
+			Map<String, Double> averageBalancePerBot = averageEndDayBalancePerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
+			Map<String, Double> averagePeakBalancePerBotMap = averagePeakBalancePerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
 			
-			Map<String, Double> averageWinsPerDay = averageWinsPerDayPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-			Map<String, Double> averageLossesPerDay = averageLossesPerDayPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			Map<String, Double> averageWinsPerDay = averageWinsPerDayPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
+			Map<String, Double> averageLossesPerDay = averageLossesPerDayPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
 			
 			//days participating must be calculated by number of days the application was online and when the bot was online
-			Map<String, Long> daysParticipatingPerBotMap = daysParticipatingPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			Map<String, Long> daysParticipatingPerBotMap = daysParticipatingPerBot.get().stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (first, second) -> first));
 			
 			//gorgeous collector that first creates a Map<String, Pair<String, Double>> and reduces it with averagingDouble to Map<String, Double>
 			Map<String, Double> averageWinRatePerDay = averageWinRatePerBotPerDay.get().stream()

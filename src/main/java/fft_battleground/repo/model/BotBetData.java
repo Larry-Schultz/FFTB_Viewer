@@ -10,7 +10,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import org.hibernate.annotations.Cache;
@@ -56,14 +55,12 @@ public class BotBetData {
 	@Column(name = "right_side_pot", nullable = false)
 	private Integer rightSidePot;
 	
-	@Lob
 	@Convert(converter = BotReceivedBetsString.class)
-	@Column(name = "left_bets", columnDefinition="BLOB")
+	@Column(name = "left_bets", columnDefinition="TEXT")
 	private BotReceivedBets leftBets;
 	
-	@Lob
 	@Convert(converter = BotReceivedBetsString.class)
-	@Column(name = "right_bets", columnDefinition="BLOB")
+	@Column(name = "right_bets", columnDefinition="TEXT")
 	private BotReceivedBets rightBets;
 	
 	@CreationTimestamp
@@ -90,6 +87,9 @@ class BotReceivedBetsString implements AttributeConverter<BotReceivedBets, Strin
 
 	@Override
 	public String convertToDatabaseColumn(BotReceivedBets attribute) {
+		if(attribute == null) {
+			return null;
+		}
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String json = null;
 		try {
@@ -97,12 +97,15 @@ class BotReceivedBetsString implements AttributeConverter<BotReceivedBets, Strin
 		} catch (JsonProcessingException e) {
 			log.error("Error parsing map data", e);
 		}
-		
+
 		return json;
 	}
 
 	@Override
 	public BotReceivedBets convertToEntityAttribute(String dbData) {
+		if(dbData == null) {
+			return null;
+		}
 		ObjectMapper jsonMapper = new ObjectMapper();
 		BotReceivedBets data = null;
 		String json = dbData;
@@ -111,7 +114,7 @@ class BotReceivedBetsString implements AttributeConverter<BotReceivedBets, Strin
 		} catch (JsonProcessingException e) {
 			log.error("Error parsing map data", e);
 		}
-		
+
 		return data;
 	}
 

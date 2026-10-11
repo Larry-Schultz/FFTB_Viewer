@@ -73,7 +73,7 @@ public class WebsocketThread extends Thread {
 						break;
 					case MUSIC:
 						//remove existing music element
-						List<Long> musicElements = this.currentEventIndexMapCache.keySet().parallelStream().filter(elementId -> this.currentEventIndexMapCache.get(elementId).getElement().getEventType() == BattleGroundEventType.MUSIC)
+						List<Long> musicElements = this.currentEventIndexMapCache.keySet().stream().filter(elementId -> this.currentEventIndexMapCache.get(elementId).getElement().getEventType() == BattleGroundEventType.MUSIC)
 							.collect(Collectors.toList());
 						musicElements.stream().forEach(elementId -> this.currentEventIndexMapCache.remove(elementId));
 						//set the currentMusicEvent to the new MusicEvent object
