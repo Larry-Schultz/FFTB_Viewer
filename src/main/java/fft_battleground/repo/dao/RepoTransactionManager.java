@@ -1,6 +1,7 @@
 package fft_battleground.repo.dao;
 
 import java.text.MessageFormat;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -530,34 +531,36 @@ public class RepoTransactionManager {
 	@Transactional(propagation=Propagation.REQUIRED)
 	public void updatePlayerSkills(PlayerSkillEvent event) throws BattleGroundDataIntegrityViolationException {
 		String cleanedName = this.cleanString(event.getPlayer());
-		try {
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-			if(maybeRecord.isPresent()) {
-				Hibernate.initialize(maybeRecord.get().getPlayerSkills());
-				List<PlayerSkills> currentSkills = maybeRecord.get().getPlayerSkills();
-				List<String> currentSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
-				//add skills to player
-				for(PlayerSkills possibleNewSkill: event.getPlayerSkills()) {
-					if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
-						maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
-						this.playerRecordRepo.save(maybeRecord.get());
-					} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
-						List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
-						if(matchingSkills.size() > 0) {
-							PlayerSkills currentSkill = matchingSkills.get(0);
-							if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
-								currentSkill.setCooldown(possibleNewSkill.getCooldown());
-								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
-								this.playerSkillRepo.save(currentSkill);
-							}
+		//no try/catch in here on purpose: rethrowing from inside a transaction that an inner
+		//proxied call already marked rollback-only surfaces as UnexpectedRollbackException and
+		//erases the root cause. Letting the raw exception propagate keeps the real stack trace.
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
+		if(maybeRecord.isPresent()) {
+			Hibernate.initialize(maybeRecord.get().getPlayerSkills());
+			List<PlayerSkills> currentSkills = maybeRecord.get().getPlayerSkills();
+			Set<String> knownSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toSet());
+			//add skills to player
+			for(PlayerSkills possibleNewSkill: event.getPlayerSkills()) {
+				if(!knownSkillNames.contains(possibleNewSkill.getSkill())) {
+					maybeRecord.get().addPlayerSkill(new PlayerSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
+					//the event can list the same skill twice (dump glitch); track it so the duplicate
+					//updates the row instead of being inserted again and violating the constraint at flush
+					knownSkillNames.add(possibleNewSkill.getSkill());
+					this.playerRecordRepo.save(maybeRecord.get());
+				} else if(knownSkillNames.contains(possibleNewSkill.getSkill())) {
+					List<PlayerSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
+					if(matchingSkills.size() > 0) {
+						PlayerSkills currentSkill = matchingSkills.get(0);
+						if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
+							currentSkill.setCooldown(possibleNewSkill.getCooldown());
+							currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
+							this.playerSkillRepo.save(currentSkill);
 						}
-					} 
+					}
 				}
-				this.playerRecordRepo.flush();
-				this.playerSkillRepo.flush();
 			}
-		} catch(DataIntegrityViolationException dive) {
-			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
+			this.playerRecordRepo.flush();
+			this.playerSkillRepo.flush();
 		}
 	}
 	
@@ -565,37 +568,36 @@ public class RepoTransactionManager {
 	public void updatePrestigeSkills(PrestigeSkillsEvent event) throws BattleGroundDataIntegrityViolationException {
 		String cleanedName = this.cleanString(event.getPlayer());
 		if(event.getPlayerSkills().size() > SkillUtils.PRESTIGE_SKILLS.size()) {
-			throw new DataIntegrityViolationException(MessageFormat.format("Attempting to push {0} prestige skills for user {1}, but the limit is {3}", 
+			throw new DataIntegrityViolationException(MessageFormat.format("Attempting to push {0} prestige skills for user {1}, but the limit is {3}",
 					event.getPlayerSkills().size(), cleanedName, SkillUtils.PRESTIGE_SKILLS.size()));
 		}
-		try {
-			Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
-			if(maybeRecord.isPresent()) {
-				Hibernate.initialize(maybeRecord.get().getPrestigeSkills());
-				List<PrestigeSkills> currentSkills = maybeRecord.get().getPrestigeSkills();
-				List<String> currentSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toList());
-				//add skills to player
-				for(PrestigeSkills possibleNewSkill: event.getPlayerSkills()) {
-					if(!currentSkillNames.contains(possibleNewSkill.getSkill())) {
-						maybeRecord.get().addPrestigeSkills(new PrestigeSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
-						this.playerRecordRepo.save(maybeRecord.get());
-					} else if(currentSkillNames.contains(possibleNewSkill.getSkill())) { 
-						List<PrestigeSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
-						if(matchingSkills.size() > 0) {
-							PrestigeSkills currentSkill = matchingSkills.get(0);
-							if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
-								currentSkill.setCooldown(possibleNewSkill.getCooldown());
-								currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
-								this.prestigeSkillRepo.save(currentSkill);
-							}
+		//same reasoning as updatePlayerSkills: no catch-and-rethrow inside the transaction,
+		//and dedupe within the event so a repeated skill name cannot double-insert at flush
+		Optional<PlayerRecord> maybeRecord = this.playerRecordRepo.findById(cleanedName);
+		if(maybeRecord.isPresent()) {
+			Hibernate.initialize(maybeRecord.get().getPrestigeSkills());
+			List<PrestigeSkills> currentSkills = maybeRecord.get().getPrestigeSkills();
+			Set<String> knownSkillNames = currentSkills.stream().map(playerSkill -> playerSkill.getSkill()).collect(Collectors.toSet());
+			//add skills to player
+			for(PrestigeSkills possibleNewSkill: event.getPlayerSkills()) {
+				if(!knownSkillNames.contains(possibleNewSkill.getSkill())) {
+					maybeRecord.get().addPrestigeSkills(new PrestigeSkills(possibleNewSkill.getSkill(), possibleNewSkill.getCooldown(), SkillType.USER, possibleNewSkill.getSkillCategory(), maybeRecord.get()));
+					knownSkillNames.add(possibleNewSkill.getSkill());
+					this.playerRecordRepo.save(maybeRecord.get());
+				} else if(knownSkillNames.contains(possibleNewSkill.getSkill())) {
+					List<PrestigeSkills> matchingSkills = currentSkills.parallelStream().filter(playerSkill -> StringUtils.equalsIgnoreCase(playerSkill.getSkill(), possibleNewSkill.getSkill())).collect(Collectors.toList());
+					if(matchingSkills.size() > 0) {
+						PrestigeSkills currentSkill = matchingSkills.get(0);
+						if(currentSkill != null && possibleNewSkill.getCooldown() != null) {
+							currentSkill.setCooldown(possibleNewSkill.getCooldown());
+							currentSkill.setSkillCategory(possibleNewSkill.getSkillCategory());
+							this.prestigeSkillRepo.save(currentSkill);
 						}
-					} 
+					}
 				}
-				this.playerRecordRepo.flush();
-				this.prestigeSkillRepo.flush();
 			}
-		} catch(DataIntegrityViolationException dive) {
-			throw new BattleGroundDataIntegrityViolationException(cleanedName, dive);
+			this.playerRecordRepo.flush();
+			this.prestigeSkillRepo.flush();
 		}
 	}
 	
