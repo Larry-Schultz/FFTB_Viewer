@@ -365,6 +365,15 @@
 			description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
 		<param id="personality" description="personality of bot">nerd</param>
 	</bot>
+	<bot id="genebotv1-4-17-26" classname="genebot"
+		canPrimary="true"
+		description="Bot that uses genetic attributes to find a winner (April 2026 trainer output, deduplicated)">
+		<param id="geneFile"
+			description="file location that contains the genes">genebotv1-4-17-26.txt</param>
+		<param id="betExpression"
+			description="This field allows a bot's bet amount algorithm to be customized with a mathematical expression">min(mxBet, balance)</param>
+		<param id="personality" description="personality of bot">nerd</param>
+	</bot>
 	<bot id="bravebot" classname="bravefaithbot" canPrimary="true"
 		description="Bot that looks at bravery">
 		<param id="bravefaith"
